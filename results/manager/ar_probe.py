@@ -39,7 +39,12 @@ with set_current_vllm_config(cfg):
     for n in toks:
         x = torch.randn(n, H, dtype=torch.bfloat16); r = torch.randn(n, H, dtype=torch.bfloat16)
         w = which(x)
+        mode = os.environ.get("PROBE_MODE", "both")
         def step():
+            if mode == "ar":
+                return tensor_model_parallel_all_reduce(x)
+            if mode == "norm":
+                return norm(x, r)
             y = tensor_model_parallel_all_reduce(x)
             return norm(y, r)
         for _ in range(3): step()
@@ -55,6 +60,6 @@ with set_current_vllm_config(cfg):
             s.record(); g.replay(); e.record(); torch.cuda.synchronize(); ts.append(s.elapsed_time(e) / 10)
         ts.sort(); med = ts[len(ts) // 2]
         if rank == 0:
-            rec = dict(H=H, tokens=n, MB=round(x.nbytes / 2**20, 2), backend=w, std_ms=round(med, 4))
+            rec = dict(mode=mode, H=H, tokens=n, MB=round(x.nbytes / 2**20, 2), backend=w, std_ms=round(med, 4))
             print(json.dumps(rec), flush=True); res.append(rec)
 dist.barrier()

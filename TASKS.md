@@ -153,3 +153,27 @@ no output after workspace allocation; both reps were killed by a 30-min timeout.
   `torchrun --nproc-per-node=8 ... ar_probe.py <H> 32 64 96 128 192 256 384 512 768 1024 1536 2048 4096`
 - Report whether your node also prints "FABRIC handles failed ... using POSIX file descriptors". If MNNVL is only slow
   without IMEX fabric handles, the slowness is node config rather than vLLM tuning.
+
+## Manager correction (2026-11-23 ~20:35Z) — W1b hypothesis REFUTED, re-plan
+
+The ~30-40 us "floor" was an artifact of `ar_probe.py`. Its RMSNorm ran the native torch implementation (no custom op
+enabled in the probe's VllmConfig), which costs ~32 us at 0.3 MB and ~340 us at 40 MB. Timed alone, the production
+TP8 all-reduce is fine: FlashInfer mnnvl with the 128 MB workspace takes 6.5 us @0.3 MB, 20 us @5 MB, 68 us @20 MB and
+133 us @40 MB (H=5120). Comparing (100,8,1)=128 MB with 1 MB in the same probe gives the same small-size times, and
+mnnvl beats symm_mem from 1 to 20 MB. So **nothing is wrong with standalone mnnvl at TP8**.
+(The benchmark_device_communicators hang with the 128 MB workspace is still unexplained, but the benchmark harness
+there differs from production.)
+
+**What this means for W1:** the "Standard" rows of `benchmark_fused_collective.py` also look dominated by the unfused
+norm path, so do not use them as the baseline. A fair baseline per size is production AR (~mnnvl, numbers above) plus a
+custom `fused_add_rms_norm`. Against that, fused mnnvl two-shot still looks better at every size: 8 us vs ~9.5 us at
+0.3 MB, and 138 us vs ~165 us at 40 MB. Only the model-level test can settle it.
+
+**New plan:**
+- **Stop W1b.** Delete partial results or keep them as-is with a note. Skip W1.
+- **W2 is now the main task** (Qwen3-32B, TP8, dummy weights). It runs as specified above. Arms: default (cap 1 MB) and
+  `fi_allreduce_fusion_max_size_mb` = 8, 32 and 64, alternating, 2 runs each.
+  - Check the log line `Flashinfer Allreduce Fusion: <max_token_num>` for each arm.
+  - Add the cases `--case p8k=8192` and `--case mix=...` if you know a mixed prefill+decode case syntax; otherwise skip.
+- The manager runs the same sweep on Qwen3-235B-A22B (MoE, hidden 4096, TP8) on its own node.
+- `results/manager/ar_probe.py` now supports `PROBE_MODE=ar|norm|both`.
