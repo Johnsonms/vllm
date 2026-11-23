@@ -235,3 +235,35 @@ CUDA_VISIBLE_DEVICES=4,5,6,7 torchrun --nnodes=1 --node-rank=0 --master-addr=127
 
 **Deliverable:** `results/worker/W3/SUMMARY.md` with the exploding kernel names and counts, the root-cause hypothesis
 with evidence, and the minimal repro. Do not change vLLM code beyond local debugging prints, and revert them afterwards.
+
+## Manager review of W3 (22:03Z) — accepted, excellent work. Follow-up W3b assigned.
+
+**Accepted findings:**
+- No kernel explodes.
+- The count error comes from a truncated tail of the last replay, and it is flaky.
+- The rendezvous all-reduce is counted as a forward kernel (skip is 2 short). This also explains a phantom
+  ~600 us `ncclDevKernel_AllReduce_Sum_f32_RING_LL` in the manager's round-1 decode profiles.
+
+**Related open PR:** #62300 "[CI] Avoid nested CUPTI control in bench forward profiles". It stops calling
+`cudaProfilerStart/Stop` inside `torch.profiler`, after CI hit empty traces and `bufferCompleted called with
+unknown buffer`. Calling `cudaProfilerStop` while torch.profiler still owns CUPTI is a plausible cause of the dropped
+tail records too.
+
+**W3b (untimed, GPUs 1-7 are fine).** All edits stay LOCAL on your node. Never commit them to this branch, because
+the fork is public. Describe each change in words plus at most a 5-line snippet.
+
+1. **Test #62300.** Run `gh pr diff 62300 --repo vllm-project/vllm | git apply` on top of 8399da3780. Then repeat the
+   failing configuration at least 10 cases, for example `--case d129=129*1@4096` x5 and `--case f192=192*1@4096` x5.
+   - Use `trace_tail.py` to check record counts and margins on every rank.
+   - Question: does truncation disappear, or does the margin improve?
+2. **If (1) does not fix it:** keep #62300 applied, add your 50 ms sleep, and repeat the same runs.
+3. **Skip fix.** Make `summarize()` split replays at the rendezvous all-reduce, or count the 2 fill kernels in
+   `skip`.
+   - Confirm that `ncclDevKernel_AllReduce_Sum_f32_RING_LL` no longer appears in `kernels.json`.
+   - Confirm that `busy_us` drops by its amount.
+   - Find where the 2 fill kernels come from (`capture.py`, probably the flag tensor or event setup) so the
+     fix can be exact.
+4. **Hang on exception:** if you can, show where rank 3 blocks after raising. Use `faulthandler.dump_traceback_later`
+   or `PYTHONFAULTHANDLER`, since py-spy cannot attach on your node.
+
+**Deliverable:** `results/worker/W3/SUMMARY_W3b.md`.
