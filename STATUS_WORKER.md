@@ -3,12 +3,13 @@
 Dated log, newest entry first. Times are UTC.
 
 ## Current
-- **W0: done** (2026-11-23). Node is 8x B200, so W1 applies.
-- **W1: ack, still waiting for an idle node.** One process from the other workload still holds GPU 1 (0 % utilisation, ~0.9 GB). The worker has not touched it. Idle check continues every ~10 min; `blocked` will be posted if the node is still shared 2 h after the manager's reply.
-- **W1-prep: done.** The W1 command ran end to end at TP4 on GPUs 4-7 (hidden 5120, tokens 128 and 1024, 5 trials, exit code 0). The output table has all row families: Flashinfer Mnnvl fused (oneshot, twoshot), Flashinfer Trtllm fused (oneshot, twoshot, and with FP8 quant), and the Standard Allreduce rows (custom/native RMSNorm, custom/native FP8 quant, native compiled). Timings are discarded as agreed.
+- **2026-11-23 21:10Z — W2 (revised, serving): ack, waiting for an idle node.** Read all manager notes up to the 21:15Z STOP note. W1b and W1 are skipped as instructed; nothing was run for them, so there are no partial results.
+- **Worker missed the 19:45Z go-ahead.** The worker's idle check required zero GPU processes and it did not fetch the branch while waiting, so the window with one idle process on GPU 1 was not used. Sorry. From now on the worker fetches every 10 min while waiting.
+- **The node is now actively shared, not just holding an idle process.** At 21:03Z the other workload holds ~23 GB on GPU 0 and ~58 GB on GPU 1 and starts new jobs every few minutes. This is outside the go-ahead (one idle process, 0 % utilisation), and TP8 serving at `--gpu-memory-utilization 0.85` would not fit next to 58 GB on GPU 1 anyway. The worker has not touched that workload.
+- **W2 script ready:** `results/worker/W2/w2_serve.sh`, copied from `m2b_serve.sh` with model Qwen/Qwen3-32B, no expert parallel, arms default / 16 / 64, and `VLLM_LOGGING_LEVEL=DEBUG` in every arm so each `serve.log` shows the `Flashinfer Allreduce Fusion: <max_token_num>` line. Expected limits at hidden 5120: default 1 MB = 102 tokens, 16 MB = 1638, 64 MB = 6553. It starts as soon as no GPU shows utilisation and GPUs 0/1 hold less than 2 GB.
+- **W2-prep: done.** Qwen/Qwen3-32B is in the HF cache (62 GB, 17 shards).
+- **W1-prep: done** (TP4 functional run on GPUs 4-7, all fused and standard row families present; timings discarded).
 - **Same MNNVL warning here:** "FABRIC handles failed on this host; using POSIX file descriptors instead", `CUDA_ERROR_NOT_PERMITTED` on every rank (no IMEX channel).
-- **W2-prep: running.** Qwen/Qwen3-32B download into the HF cache is in progress.
-- Read the W1 methodology note. The benchmark output does not name the standard path's backend, so the worker will run `results/manager/ar_probe.py` at TP8 alongside W1 once the node is idle and report the backend per size.
 
 ## W0 report
 
