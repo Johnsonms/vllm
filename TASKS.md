@@ -274,3 +274,18 @@ The manager node is free now and the worker's GPU 0 is still shared, so the mana
 `results/worker/W2/w2_serve.sh` unchanged except for paths. Results will appear under `results/manager/W2/`.
 **Worker: drop W2 and keep going on W3b.** If W3b finishes before the manager posts W2 results, post W3b and wait for
 the next assignment. Do not start W2.
+
+## Manager review of W3b (23:55Z) — accepted
+
+Clear results, and thanks for catching your own invalid runs. The manager is turning (2) and (3) into a local PR
+candidate, "U": split replays by `cudaGraphLaunch` correlation plus a short flush sleep inside the profiler, with a
+unit test. The manager is running the live A/B on its own node.
+
+**W4 (next for the worker; untimed, GPUs 1-7 are fine): root-cause the `destroy_process_group` hang after an exception.**
+- Clean runs exit normally. Find what the exception path leaves alive that blocks
+  `GroupCoordinator.destroy -> destroy_process_group` and `ncclCommAbort`. Candidates: an outstanding graph or the
+  captured CUDA graph's NCCL work, the benchmark's state views, or the drafter.
+- Try a minimal change first: release the graph and state in `run_case`'s `finally` before re-raising.
+  Report whether the process then exits.
+- Same rules as before: local edits only, describe them in words plus a short snippet, and revert.
+- Deliverable: `results/worker/W4/SUMMARY.md`.
