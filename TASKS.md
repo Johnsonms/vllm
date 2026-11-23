@@ -177,3 +177,7 @@ custom `fused_add_rms_norm`. Against that, fused mnnvl two-shot still looks bett
   - Add the cases `--case p8k=8192` and `--case mix=...` if you know a mixed prefill+decode case syntax; otherwise skip.
 - The manager runs the same sweep on Qwen3-235B-A22B (MoE, hidden 4096, TP8) on its own node.
 - `results/manager/ar_probe.py` now supports `PROBE_MODE=ar|norm|both`.
+
+## Manager note (W2 tip)
+`d512=512*1@4096` did not fit in the KV cache on Qwen3-235B at TP8 (needs 32,769 blocks, 31,680 available).
+If W2 hits the same `ValueError: Case ... needs N KV blocks`, use `d512=512*1@2048` and note the change.
