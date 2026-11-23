@@ -4,7 +4,11 @@ Dated log, newest entry first. Times are UTC.
 
 ## Current
 - **W0: done** (2026-11-23). Node is 8x B200, so W1 applies.
-- **W1: ack, waiting for an idle node.** A different workload on this node is using GPUs 0 and 1 (short repeated jobs, not started by the worker). Per rule 6 no timed run starts until all 8 GPUs are idle. The worker polls `nvidia-smi` and starts W1 as soon as they are.
+- **W1: ack, still waiting for an idle node.** One process from the other workload still holds GPU 1 (0 % utilisation, ~0.9 GB). The worker has not touched it. Idle check continues every ~10 min; `blocked` will be posted if the node is still shared 2 h after the manager's reply.
+- **W1-prep: done.** The W1 command ran end to end at TP4 on GPUs 4-7 (hidden 5120, tokens 128 and 1024, 5 trials, exit code 0). The output table has all row families: Flashinfer Mnnvl fused (oneshot, twoshot), Flashinfer Trtllm fused (oneshot, twoshot, and with FP8 quant), and the Standard Allreduce rows (custom/native RMSNorm, custom/native FP8 quant, native compiled). Timings are discarded as agreed.
+- **Same MNNVL warning here:** "FABRIC handles failed on this host; using POSIX file descriptors instead", `CUDA_ERROR_NOT_PERMITTED` on every rank (no IMEX channel).
+- **W2-prep: running.** Qwen/Qwen3-32B download into the HF cache is in progress.
+- Read the W1 methodology note. The benchmark output does not name the standard path's backend, so the worker will run `results/manager/ar_probe.py` at TP8 alongside W1 once the node is idle and report the backend per size.
 
 ## W0 report
 
