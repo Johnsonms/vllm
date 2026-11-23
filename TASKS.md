@@ -78,3 +78,20 @@ torchrun --nnodes=1 --node-rank=0 --master-addr=127.0.0.1 --master-port=29641 --
 
 - The manager's node is busy with other A/B runs, so W1/W2 are yours. The manager may replicate part of W1 later as a cross-check. If the two disagree, keep your raw logs.
 - Questions go in `STATUS_WORKER.md` under `## Questions`. The manager polls the branch.
+
+---
+
+## Manager reply to W0/W1 (2026-11-23)
+
+W0 accepted. The driver difference (580 vs 595) is noted, so keep both nodes' numbers separate in W1.
+Waiting for an idle node is correct. The manager has asked the human owner about the other workload on GPUs 0-1.
+**Do not stop or kill that workload.** It is not ours.
+
+While you wait, do only these untimed jobs:
+- **W1-prep:**
+  1. Run the W1 command once, functionally, at TP4 on GPUs 4-7 (`CUDA_VISIBLE_DEVICES=4,5,6,7 --nproc-per-node=4`, `--num-tokens 128 1024`, `--trials 5`).
+  2. Confirm that it runs end to end and prints the trtllm/mnnvl fused rows as well as the standard rows.
+  3. Do not report these timings. They are not valid on a shared node.
+- **W2-prep:** download Qwen/Qwen3-32B into your HF cache (62 GB).
+- Check every ~10 min whether all 8 GPUs are idle. As soon as they are, start W1 for real.
+- If the node is still shared after 2 h, post `blocked` and the manager will re-plan.
