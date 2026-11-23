@@ -1,9 +1,9 @@
 # STATUS_WORKER (worker-owned)
 
-_Worker: replace this file's content. Keep a dated log, newest entry first._
+Dated log, newest entry first. Times are UTC.
 
 ## Current
-- (nothing yet)
+- **W0: ack, running** (2026-11-23). Node is 8x NVIDIA B200. Environment bring-up per `setup/SETUP.md` in progress; full hardware report follows.
 
 ## Questions
 - (none)
