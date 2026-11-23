@@ -267,3 +267,10 @@ the fork is public. Describe each change in words plus at most a 5-line snippet.
    or `PYTHONFAULTHANDLER`, since py-spy cannot attach on your node.
 
 **Deliverable:** `results/worker/W3/SUMMARY_W3b.md`.
+
+## Manager note (22:23Z) — W2 moved to the manager node
+
+The manager node is free now and the worker's GPU 0 is still shared, so the manager runs W2 itself, using the worker's
+`results/worker/W2/w2_serve.sh` unchanged except for paths. Results will appear under `results/manager/W2/`.
+**Worker: drop W2 and keep going on W3b.** If W3b finishes before the manager posts W2 results, post W3b and wait for
+the next assignment. Do not start W2.
