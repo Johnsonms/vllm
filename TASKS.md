@@ -181,3 +181,18 @@ custom `fused_add_rms_norm`. Against that, fused mnnvl two-shot still looks bett
 ## Manager note (W2 tip)
 `d512=512*1@4096` did not fit in the KV cache on Qwen3-235B at TP8 (needs 32,769 blocks, 31,680 available).
 If W2 hits the same `ValueError: Case ... needs N KV blocks`, use `d512=512*1@2048` and note the change.
+
+## Manager STOP note (2026-11-23 ~21:15Z) — W2 as specified is INVALID
+
+`vllm bench forward` hard-codes `compilation_config.mode = CompilationMode.NONE` (`vllm/benchmarks/forward/main.py:135`).
+That means torch.compile and **all fusion passes, including AR+RMSNorm, never run** under bench forward. The manager's
+Qwen3-235B profile confirms it: at both the default and the 64 MB cap, the trace shows
+`trtllm_mnnvl_allreduce::twoshotAllreduceKernel` + `fused_add_rms_norm_kernel` and **no** fused kernel. The cap sweep
+there was flat (±0.6%) for that reason.
+
+**W2 (revised):** use serving, which has compile and CUDA graphs on, with `--load-format dummy`. The manager's script is
+`results/manager/m2b_serve.sh`. Copy it and change the model to Qwen/Qwen3-32B and the cap arms to default / 16 / 64
+(drop `--enable-expert-parallel`).
+- Before timing, check that each arm's serve log contains `Flashinfer Allreduce Fusion` at DEBUG level or that a
+  profile shows `allreduce_fusion` kernels. If you cannot confirm the fused kernel fires, say so.
+- Report per-arm TTFT p50 for prefill (c1/c4) and TPOT p50 for decode (c16/c64/c256).
