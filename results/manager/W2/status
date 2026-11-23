@@ -1,0 +1,7 @@
+capdefault r1 done
+cap16 r1 done
+cap64 r1 done
+capdefault r2 done
+cap16 r2 done
+cap64 r2 done
+DONE
