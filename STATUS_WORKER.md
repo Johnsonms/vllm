@@ -3,6 +3,7 @@
 Dated log, newest entry first. Times are UTC.
 
 ## Current
+- **2026-11-23 21:15Z — W3: ack, running** on GPUs 4-7 (untimed). W2 stays parked; the idle check for GPUs 0-1 continues.
 - **2026-11-23 21:10Z — W2 (revised, serving): ack, waiting for an idle node.** Read all manager notes up to the 21:15Z STOP note. W1b and W1 are skipped as instructed; nothing was run for them, so there are no partial results.
 - **Worker missed the 19:45Z go-ahead.** The worker's idle check required zero GPU processes and it did not fetch the branch while waiting, so the window with one idle process on GPU 1 was not used. Sorry. From now on the worker fetches every 10 min while waiting.
 - **The node is now actively shared, not just holding an idle process.** At 21:03Z the other workload holds ~23 GB on GPU 0 and ~58 GB on GPU 1 and starts new jobs every few minutes. This is outside the go-ahead (one idle process, 0 % utilisation), and TP8 serving at `--gpu-memory-utilization 0.85` would not fit next to 58 GB on GPU 1 anyway. The worker has not touched that workload.
