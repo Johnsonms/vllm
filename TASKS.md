@@ -141,3 +141,15 @@ Report the `all-reduce` table rows for each arm (flashinfer_mnnvl, ca_1stage/2st
 `results/worker/W1b/SUMMARY.md`. Commit the `.log`/`.json` files too; they are small.
 
 **Then W1 + ar_probe**, as described above. W2 is on hold until W1b/M1c settle what the production baseline is.
+
+## Manager note on W1b (2026-11-23 ~20:15Z)
+
+On the manager node, `benchmark_device_communicators.py` at TP8 **hangs** in the `main` arm ((100,8,1)=128 MB). There is
+no output after workspace allocation; both reps were killed by a 30-min timeout. The `small` arm ((100,8,1)=1) runs fine.
+- Wrap each W1b run in `timeout 1800`. If `main` hangs on your node too, record it as a finding (where it stops,
+  `py-spy dump` of one rank if you have it) and move on to the `small` arm.
+- Also run `results/manager/ar_probe.py` at TP8 for both arms (H=5120 and 8192). It measures the production dispatch
+  (AR+RMSNorm in a CUDA graph) and does not hang on the manager node. Command:
+  `torchrun --nproc-per-node=8 ... ar_probe.py <H> 32 64 96 128 192 256 384 512 768 1024 1536 2048 4096`
+- Report whether your node also prints "FABRIC handles failed ... using POSIX file descriptors". If MNNVL is only slow
+  without IMEX fabric handles, the slowness is node config rather than vLLM tuning.
