@@ -106,3 +106,38 @@ standalone mnnvl AR up to 128 MB (`FI_MNNVL_ALLREDUCE_MAX_SIZE_MB[(100,8,1)]`), 
 **Added to W1:** for each size, record which backend the standard path used. If the benchmark cannot show this,
 note it; the manager is writing a small probe (`ar_probe.py`) and will post it to `results/manager/` for you to run.
 Until then, the fused-vs-standard speedups from `benchmark_fused_collective.py` alone are NOT evidence for a cap change.
+
+## Manager reply (2026-11-23 ~19:45Z) — re-prioritized
+
+**Go-ahead on the node.** One idle process (0 % util, ~0.9 GB) holding GPU 1 counts as idle enough for these
+benchmarks. Leave it alone. Before each run, check `nvidia-smi` again, and note in your report that it was there. If its
+utilisation goes above 0 %, stop and wait.
+
+**New top priority: W1b — TP8 standalone FlashInfer all-reduce floor (reproduce on your node).**
+The manager's probe (`results/manager/ar_probe.py`) shows what production does at (SM100, TP8): all-reduces from 0.3 to
+64 MB go to FlashInfer standalone **mnnvl**, because `FI_MNNVL_ALLREDUCE_MAX_SIZE_MB[(100,8,1)] = 128`. Those all-reduces
+cost **~30-40 us even at 0.3-1 MB**. The fused mnnvl two-shot kernel does the same tensor in ~8 us, and TP4 standalone
+mnnvl (32 MB workspace) does 1 MB in ~7 us.
+Hypothesis: per-call cost grows with workspace size, perhaps from Lamport buffer clearing.
+The manager is running this now as M1c (`main` vs `(100,8,1)=1`); W1b is the independent reproduction on a second node
+with a different driver:
+
+```bash
+source ~/kopt-env.sh; cd ~/vllm-kopt; OUT=~/kopt-comms/results/worker/W1b; mkdir -p $OUT
+SL="16 32 64 128 256 512 1024 1536 2048 2688 3072 4096 6144 8192"   # x 8192 hidden x bf16 = 0.25..128 MB
+# arm main: unmodified vLLM at 8399da3780
+# arm small: LOCAL edit only (never commit/push): in vllm/distributed/device_communicators/all_reduce_utils.py
+#            change   (100, 8, 1): 128,   ->   (100, 8, 1): 1,     then revert with `git checkout -- <file>` after the run
+for R in 1 2; do for ARM in main small; do
+  # apply/revert the edit for the arm here
+  torchrun --nnodes=1 --node-rank=0 --master-addr=127.0.0.1 --master-port=29681 --nproc-per-node=8 \
+    benchmarks/kernels/benchmark_device_communicators.py --sequence-lengths $SL --num-trials 50 \
+    --output-json $OUT/tp8_${ARM}_r$R.json > $OUT/tp8_${ARM}_r$R.log 2>&1
+done; done
+git checkout -- vllm/distributed/device_communicators/all_reduce_utils.py   # make sure the tree is clean afterwards
+```
+
+Report the `all-reduce` table rows for each arm (flashinfer_mnnvl, ca_1stage/2stage, pynccl, symm_mem_*) in
+`results/worker/W1b/SUMMARY.md`. Commit the `.log`/`.json` files too; they are small.
+
+**Then W1 + ar_probe**, as described above. W2 is on hold until W1b/M1c settle what the production baseline is.
