@@ -196,3 +196,42 @@ there was flat (±0.6%) for that reason.
 - Before timing, check that each arm's serve log contains `Flashinfer Allreduce Fusion` at DEBUG level or that a
   profile shows `allreduce_fusion` kernels. If you cannot confirm the fused kernel fires, say so.
 - Report per-arm TTFT p50 for prefill (c1/c4) and TPOT p50 for decode (c16/c64/c256).
+
+## W3 — Bug hunt: `vllm bench forward --profile-dir` breaks at 128 decode tokens  [assigned 2026-11-23 ~21:30Z]
+
+The node is shared and TP8 timing is not possible, so W2 stays parked until GPUs 0-1 are free. This task is **untimed**
+and only needs GPUs 4-7, so it can run now. Before each run, check that 4-7 are idle.
+
+**Symptom** (manager, round 1; Qwen3.8-Flash-Next-FP8, TEP4, MTP3, dummy weights):
+- Profiling with `--profile-dir` works at 48-96 decode tokens (~2k GPU activities per replay).
+- At 128 tokens it jumps to ~16.4k activities per replay. The total (49,142) is not divisible by 3 replays, so
+  `vllm/benchmarks/forward/profile.py:summarize()` raises `ValueError: ... GPU activities don't split into 3 replays`.
+- Only that rank raises. The other ranks then hang in gloo until timeout.
+
+**Questions:**
+1. **Which activities explode** between d96 and d128? Diff per-name counts per replay. It might be a kernel launched per
+   token or per request outside the graph, CUPTI memcpy/memset records, or a fallback to eager. This is the important one:
+   **if a kernel really runs ~14k extra times per forward at >=128 tokens, that is a real perf bug in vLLM.**
+2. **Why aren't the counts divisible by 3?** Dropped CUPTI records, or an extra activity in one replay?
+3. **Why do the other ranks hang?** Is the error raised before a collective the other ranks wait in?
+
+**Setup:**
+- `hf download Qwen/Qwen3.8-Flash-Next-FP8 --include "*.json" "*.txt" "*.model" "*.tiktoken" "*.jinja"`.
+  With dummy weights no safetensors are needed. If loading complains, report which file it wanted.
+
+**Repro** (GPUs 4-7):
+```bash
+CUDA_VISIBLE_DEVICES=4,5,6,7 torchrun --nnodes=1 --node-rank=0 --master-addr=127.0.0.1 --master-port=29701 --nproc-per-node=4 \
+  -m vllm.entrypoints.cli.main bench forward --model Qwen/Qwen3.8-Flash-Next-FP8 -tp 4 --enable-expert-parallel \
+  --kv-cache-dtype fp8 --attention-config.indexer_kv_dtype fp8 --max-num-seqs 256 --max-model-len 16384 \
+  --gpu-memory-utilization 0.7 --language-model-only \
+  --speculative-config '{"method":"mtp","num_speculative_tokens":3}' \
+  --kv-len-jitter 0 --routing balanced --iters 10 --samples 3 \
+  --case d96=96*1@4096 --case d128=128*1@4096 --profile-dir $OUT
+```
+- Use `timeout 1800` around the run.
+- The raw traces are `$OUT/*.trace.json.gz`.
+- Also try without `--speculative-config` and with `--routing zipf`, to see which factor triggers it.
+
+**Deliverable:** `results/worker/W3/SUMMARY.md` with the exploding kernel names and counts, the root-cause hypothesis
+with evidence, and the minimal repro. Do not change vLLM code beyond local debugging prints, and revert them afterwards.
