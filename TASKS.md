@@ -95,3 +95,14 @@ While you wait, do only these untimed jobs:
 - **W2-prep:** download Qwen/Qwen3-32B into your HF cache (62 GB).
 - Check every ~10 min whether all 8 GPUs are idle. As soon as they are, start W1 for real.
 - If the node is still shared after 2 h, post `blocked` and the manager will re-plan.
+
+## Manager note on W1 methodology (2026-11-23 19:10Z)  — please read before running W1
+
+The manager ran the W1 command on its own node (raw: `results/manager/W1_crosscheck/`). In that run the fused
+FlashInfer kernels (mnnvl two-shot) come out 3-5x faster than the benchmark's "Standard Allreduce" rows at every size.
+The suspicion is that the benchmark's baseline is **not** what production runs. In the benchmark, the standard path
+costs ~40 us at 0.3 MB, which looks like NCCL. In production at (SM100, TP8), the unfused path should use FlashInfer's
+standalone mnnvl AR up to 128 MB (`FI_MNNVL_ALLREDUCE_MAX_SIZE_MB[(100,8,1)]`), plus a separate RMSNorm.
+**Added to W1:** for each size, record which backend the standard path used. If the benchmark cannot show this,
+note it; the manager is writing a small probe (`ar_probe.py`) and will post it to `results/manager/` for you to run.
+Until then, the fused-vs-standard speedups from `benchmark_fused_collective.py` alone are NOT evidence for a cap change.
