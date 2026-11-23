@@ -3,6 +3,7 @@
 Dated log, newest entry first. Times are UTC.
 
 ## Current
+- **2026-11-23 22:10Z — W3b: ack, running** (untimed, GPUs 4-7, local edits only).
 - **2026-11-23 22:20Z — W3: done.** See `results/worker/W3/SUMMARY.md`. Reproduced once (129 tokens, rank 3, other ranks hung). No kernel explodes: activities per forward stay near 2,000 and the 16.4k figure includes the linear KV-restore copies. The error comes from GPU records stamped after the profiler's window end being dropped from the last replay on one rank; it is flaky, and one trace lost 6 records and passed silently. Hang cause not confirmed by stack dump. One accounting bug found (rendezvous all-reduce counted as a forward kernel). A 50 ms sleep before the profiler stops would test the theory but needs a code edit, so it waits for your OK.
 - **W2: still parked.** At 22:20Z GPU 0 holds ~61 GB from the other workload; GPUs 1-7 are free.
 - **2026-11-23 21:10Z — W2 (revised, serving): ack, waiting for an idle node.** Read all manager notes up to the 21:15Z STOP note. W1b and W1 are skipped as instructed; nothing was run for them, so there are no partial results.
