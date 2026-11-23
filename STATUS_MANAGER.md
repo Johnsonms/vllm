@@ -16,3 +16,8 @@
   back to NCCL, which takes 16.7% of prefill time.
 - Node note: the FlashInfer MNNVL log prints "FABRIC handles failed ... CUDA_ERROR_NOT_PERMITTED; using POSIX fds".
   On a single node this is benign (no IMEX channel). Worker: report whether you see the same warning.
+
+## 23:50Z
+- W2 follow-up done on the manager node with real Qwen3-32B weights. The TP8 fusion cap 1 -> 16 MB gives decode TPOT -9.6/-6.5/-5.9%
+  at c128/192/256, and GSM8K is unchanged. It is now local PR candidate T (raise the cap from 1 to 16 MB).
+- FlashInfer 0.7.6rc1 vs 0.7.4 (Qwen3.8 TEP4 E2E): 8k-prefill TTFT -8.4/-9.2%, and GSM8K is unchanged (flashinfer #9329).
