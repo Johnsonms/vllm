@@ -89,3 +89,65 @@ one-line change, but the end-to-end gain is about 1 % at 256 requests.**
   (launch attribute); would need a rebase against a BV change but does not overlap in content.
 - **#68576, #61823, #63864, #60400**: the same kind of tile tuning for SM80, SM89, SM90 and ROCm. None covers B200.
 - I found no open PR that retunes this kernel for B200 or for B > 64 on SM100.
+
+## W7c — MoE input FP8 quantization kernel (`per_token_group_quant_8bit_register_kernel`)
+
+**Answer: no ≥1.5x by selection or Python-side launch config. The kernel vLLM picks is already the fastest of the
+variants that produce the fp32 scales the TRT-LLM MoE needs. But an existing sibling kernel does the same per-element
+work 1.5-1.8x faster at large N, which shows the gap is in how the fp32-scale kernel is launched or indexed, not in
+memory bandwidth. Closing it needs a small C++ change and a rebuild, which I did not do.**
+
+### How the kernel is picked
+
+- `fused_moe/utils.py::_fp8_quantize` -> `fp8_utils.py::per_token_group_quant_fp8` ->
+  `torch.ops._C.per_token_group_fp8_quant` whenever the input is contiguous on CUDA. The Triton kernel in the same
+  Python function is only a fallback for non-contiguous input.
+- Inside the C++ op (`csrc/quantization/w8a8/fp8/per_token_group_quant.cu`), `CanUseRegisterPath` chooses the
+  **register kernel** when group size is 128, the input is 16-bit, and both buffers are contiguous and 16-byte aligned.
+  Otherwise it uses the older **shared-memory kernel**. Launch: 256 threads per block, 8 threads per group, 1-D grid.
+  Nothing here is reachable from Python or from config.
+- A third kernel, the **packed register kernel** (`per_token_group_fp8_quant_packed`), exists for DeepGEMM. It writes
+  UE8M0 scales packed four per int32 in a TMA-aligned layout. The TRT-LLM MoE takes fp32 scales (`a1q_scale` passed to
+  `flashinfer.fused_moe.trtllm_fp8_block_scale_moe`), so it cannot use this output, and power-of-two scales would also
+  change the numerics.
+
+### Measurements (N x 2,560 bf16 -> fp8, group 128; microseconds, 3 runs each agreeing to 0.1 %)
+
+| N | A: C++ register, row-major scales (what runs today) | A': register, column-major scales | B: C++ shared-memory kernel | C: Triton fallback (warps 1 / 2 / 4) | D: packed register kernel (other scale layout) | D vs A |
+|---|---|---|---|---|---|---|
+| 1 | 2.82 | 2.82 | 2.69 | 1.95 / 1.95 / 1.95 | 2.18 | 1.29x |
+| 64 | 3.07 | 3.26 | 3.07 | 2.40 / 2.50 / 2.59 | 2.43 | 1.26x |
+| 256 | 3.55 | 3.71 | 3.81 | 4.45 / 4.61 / 5.06 | 2.69 | 1.32x |
+| 2,048 | 8.77 | 9.09 | 11.65 | 22.9 / 23.1 / 25.6 | 5.63 | 1.56x |
+| 8,192 | 25.6 | 27.2 | 38.3 | 86.1 / 86.3 / 95.1 | 14.6 | **1.76x** |
+
+- B was reached by offsetting the output buffer by 8 bytes, which makes `CanUseRegisterPath` false; the kernel name was
+  checked with the profiler. B's output and scales are bit-identical to A's.
+- The Triton fallback is 1.3-1.4x **faster** than the C++ kernels at N = 1 and 64 (about 0.7-0.9 us per call), and
+  3.4x slower at 8,192. Its scales are not bit-identical to the C++ kernels', and its quantized bytes differ from N = 64 up.
+- At N = 8,192, A moves 63.6 MB in 25.6 us, about 2.5 TB/s. A plain bf16 copy of the same input takes 15.8 us (about
+  5.3 TB/s), and D takes 14.6 us. So A is not limited by memory bandwidth.
+
+### Where the 1.76x comes from (partly tested)
+
+- **Not the scale math:** A with `use_ue8m0=True` takes 25.6 us at 8,192 and 8.83 us at 2,048, the same as with fp32
+  scales. Odd row counts make no difference either (8,190 rows: 25.4 us).
+- **What differs between A and D:** D launches 128-thread blocks (16 groups) on a 2-D grid with 32-bit index
+  arithmetic and writes a quarter as many scale words; A launches 256-thread blocks on a 1-D grid with 64-bit group
+  indices. Which of these matters was **not tested**, because every one of them is a C++ change.
+
+### Proposal (not implemented)
+
+Give the fp32-scale register kernel the packed kernel's launch geometry and 32-bit indexing, keeping its fp32 scale
+output. If it then matches D, the MoE input quant drops from about 1.2 % to about 0.7 % of an 8k prefill step, and by
+about a quarter at decode sizes. First test is a one-constant change (`REG_BLOCK_THREADS` 256 -> 128) and a rebuild.
+At N ≤ 64 the Triton fallback is faster still, but it is not bit-compatible, so I would not route to it.
+
+### Duplicate search
+
+- **#61641 and #60927 (merged), #61343 (merged)** already optimised the per-element conversion in these kernels.
+- **#62514 (open)** "Single-pass register-resident rms_norm_per_block_quant kernel": a different, fused kernel.
+- **#64906 (open)** keeps fp32 activation scales on the Triton FP8 experts with a fused SiLU+quant path; it concerns the
+  Triton experts, not the TRT-LLM path used here.
+- I found no open PR that changes the launch geometry of the fp32-scale register kernel. The TRT-LLM experts code has a
+  `TODO: fuse into the quant kernel` comment, so a fused path may be planned.
