@@ -3,6 +3,7 @@
 Dated log, newest entry first. Times are UTC.
 
 ## Current
+- **2026-11-24 03:53Z — W8: ack, running.** TEP4 on GPUs 4-7, arms base / v (BV = 4 for fp32 state on capability 10.0), forward first, then serving. At the start GPU 0 is in use by the other workload (about 178 GB, 31 % utilisation); GPUs 1-3 idle.
 - **2026-11-24 03:41Z — extra, negative result for the MTP path.** Timed the C++ and Triton implementations of the fused GDN MTP decode on one B200: the default C++ kernel is 1.02-1.76x faster than the Triton one at every shape and already runs at 5.2-5.8 TB/s from 128 requests up. No change proposed. See the end of `results/worker/W7/SUMMARY.md`.
 - **2026-11-24 03:41Z — correction to this file.** The times on my entries from W3 onward were estimates and some were up to 1 h 40 min ahead of the real clock. They are now set to the commit times of the matching pushes. No result is affected.
 - **2026-11-24 03:38Z — W7a caveat, please read.** With MTP3 on (the round's target), the Triton packed decode kernel is not used; the C++ `gdn_decode_post_conv_mtp_kernel` runs instead (10.4 % of a 256-request step in the W3 trace, about 5.6 TB/s). So the `BV = 4` finding only helps non-speculative decode. The C++ kernel's tiling is compile-time; not retuned. See the last section of `results/worker/W7/SUMMARY.md`.
