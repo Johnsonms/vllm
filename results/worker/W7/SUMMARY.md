@@ -216,3 +216,69 @@ Either of these, in order of preference:
 - **#65436 (open, not draft, last updated 2026-11-18)**: the same idea, opt-in, MiniMax-M3 only. This is the duplicate.
 - **#66639 (open, draft)** changes what the sampler does after the logits exist; it does not remove these copies.
 - **#63890 (merged)** uses AITER's all-gather on ROCm; unrelated to CUDA.
+
+## W7c addendum — the gap is the element conversion, and a bit-identical 2x is available at large N
+
+**This corrects my W7c guess. Launch geometry makes no difference. The fp32-scale register kernel still converts each
+element with the software `c10::Float8_e4m3fn` cast, while the packed kernel uses the hardware two-values-per-`cvt`
+path. Giving the register kernel the fp32 form of that conversion makes it 2.07x faster at 8,192 tokens with
+bit-identical output. It is a 6-line C++ change, so it needs a build; I tested it in a standalone program.**
+
+### Method
+
+- A standalone nvcc program (`-arch=sm_100a`, CUDA 13.1) that includes the two kernels **verbatim**, cut from
+  `csrc/quantization/w8a8/fp8/per_token_group_quant.cu` at 8399da3780 by line range, with the c10 bf16/fp8 headers from
+  the installed torch. No vLLM file was edited and nothing was rebuilt in the vLLM tree.
+- Two local variants of the register kernel that differ only in the quantize loop.
+- Timing: 400-2,000 back-to-back launches between CUDA events, rotating over 4 buffer sets (about 250 MB at 8,192
+  tokens). This includes launch overhead and is not the CUPTI cold-L2 method; the unmodified kernel reads 26.6 us here
+  against 25.6 us with CUPTI, so the two agree at large N. Below about 256 tokens this timer floors at about 4 us and
+  cannot resolve differences.
+- Same result on two GPUs (5 and 6).
+
+### Results (microseconds per launch)
+
+| N | register kernel as is, 256 threads/block | 128 | 64 | 512 | **variant A: fp32 math, `__nv_cvt_float2_to_fp8x2`** | variant B: bf16 math + bf16x2 cvt (as the packed kernel) | packed kernel (verbatim) |
+|---|---|---|---|---|---|---|---|
+| 256 | 4.10 | 4.10 | 4.10 | 4.10 | 4.05 | 4.05 | 4.06 |
+| 2,048 | 8.33 | 8.61 | 10.24 | 10.24 | **6.10 (1.37x)** | 4.10 | 6.14 |
+| 8,192 | 26.62 | 26.62 | 26.62 | 26.62 | **12.85 (2.07x)** | 12.33 | 14.35 |
+
+- **Block size 64 / 128 / 256 / 512 changes nothing** at 8,192 tokens and only hurts at 2,048. Launch geometry is not it.
+- **Variant A is bit-identical to the current kernel**: 0 differing output bytes out of 20,971,520 at 8,192 tokens, and
+  identical scales. The test data includes values scaled by 1000, exact zeros, an all-zero group, groups scaled by
+  1e-4, values near ±448, ±inf, NaN, 3e38 and 1e-30.
+- **Variant B is not bit-identical** with fp32 scales (about 3 % of bytes differ), because it multiplies in bf16. That
+  explains why the merged two-per-`cvt` work could use it only where the scale is a power of two.
+- Variant A is also faster than the packed kernel (12.85 vs 14.35 us).
+
+### The change (described; not applied to the vLLM tree)
+
+In `per_token_group_quant_8bit_register_kernel`, replace the per-element loop that clamps, casts through `DST_DTYPE(q)`
+and packs one byte at a time with a loop over pairs, under the existing `VLLM_FP8_CVT_X2` gate:
+
+```cpp
+for (int i = 0; i < VEC_SIZE; i += 2) {
+  const float s0 = fminf(fmaxf(float(regs[i]) * inv_y, min_8bit), max_8bit);
+  const float s1 = fminf(fmaxf(float(regs[i + 1]) * inv_y, min_8bit), max_8bit);
+  packed[i >> 2] |= uint32_t(__nv_cvt_float2_to_fp8x2(make_float2(s0, s1), __NV_SATFINITE, __NV_E4M3)) << ((i & 3) * 8);
+}
+```
+
+### What it is worth
+
+- Kernel: 2.07x at 8,192 tokens, 1.37x at 2,048; no measurable change at decode sizes, where the kernel is
+  launch-bound.
+- Step, estimated from W5 shares, not measured end to end: 8k prefill about 1.2 % -> about 0.6 % (a 0.6 % gain);
+  2k prefill about 0.3 %.
+- int8 output and fp16 input take the same template; I tested bf16 -> e4m3 only. The int8 path must keep the old loop.
+
+### Duplicate search
+
+- **#61641 (merged 2026-11-02)** "Convert two FP8 values per cvt in the FP8 quant kernels" introduced
+  `__nv_cvt_float2_to_fp8x2` and the `VLLM_FP8_CVT_X2` gate for the shared conversion helpers and the packed kernel. It
+  states that the software cast and the hardware `cvt` agree on every non-NaN fp32 input, which matches my result.
+- **#55330 (merged)** added the register kernel. Its quantize loop was not converted: on upstream `main` today the
+  register kernel is byte-for-byte the same as at 8399da3780, and the file has a single `VLLM_FP8_CVT_X2` use, in the
+  packed kernel.
+- I found no open PR that applies the two-per-`cvt` conversion to the fp32-scale register kernel.
