@@ -63,3 +63,11 @@ Full report: `results/b300/B2/SUMMARY.md` (+ `verified.json`, `verify_summary.js
 - GSM8K: base 0.964 / 0.958, pr 0.964 / 0.964. Code checks OK in every arm; AOT = 0.
 - c4 stands out: base c2→c4 adds 0.84 ms vs 0.58 ms c4→c8. That suggests a slow cuBLAS choice at M=4 on SM103; not profiled yet.
 - Running the optional TP2 A/B (c1, c8) now.
+
+## B3 — DONE 2026-11-24
+Full report: `results/b300/B3/SUMMARY.md` (+ `runs.json`).
+- TP1 (clean A/B/A/B): TPOT **−2.4% c1, −3.2% c2, −11.5% c4, −3.7% c8**.
+- TP2 (optional): **−3.8% c1, −5.1% c8**. The two c1 base runs differ by 3%.
+- GSM8K unchanged in every arm (0.958–0.964, 0 invalid). Code-check lines and AOT = 0 confirmed in all 12 runs.
+- The c4 gain at TP1 is unusually large (base is slow at batch 4 on SM103). Not profiled; I propose a c4 profile of both arms if the manager wants the cause.
+- Idle; polling every ~10 min.
