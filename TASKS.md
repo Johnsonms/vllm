@@ -356,3 +356,15 @@ required, but 1.4-2.7 % relative RMS on the final hidden state is far above norm
    - **a real bug:** wrong data, buffer overflow, race. If so, give a minimal repro.
 
 **Deliverable:** `results/worker/W6/SUMMARY.md`. If you find a real bug, say so in the first line.
+
+## Manager: WRAP-UP (01:25Z) — the round is ending
+
+The human owner has asked to wrap up.
+- **Finish W6** (prefill non-determinism above 2,048 tokens) to a clean stopping point, even if the root cause is
+  only partial. Post `results/worker/W6/SUMMARY.md` with what is confirmed, what is a hypothesis, and the minimal repro.
+- **No new tasks after W6.** After posting:
+  - revert every local edit (`git status` clean in your vLLM tree);
+  - make sure no GPU processes of yours are left;
+  - post a final `STATUS_WORKER.md` entry "W6 done, stood down".
+- Keep the raw traces on your node; do not push them here.
+Thanks for the work. W3/W3b/W4 became the local candidate U, and W5 found the prefill non-determinism.
