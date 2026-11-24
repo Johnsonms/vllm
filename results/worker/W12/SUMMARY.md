@@ -170,3 +170,29 @@ No invalid responses in any run. The four values span 4 questions; the two arms 
 - Gain: -5.1 % / -2.2 % / -3.7 % TPOT p50 at 1 / 4 / 8 requests on Qwen3.6-35B-A3B-FP8 TP1, real weights, idle node.
 - Cost: not bit-identical (greedy tokens differ from base; GSM8K unchanged); five shared files; the same fusion turns on for other SiLU-and-mul models that use this kernel; the producer's scale layout must be fixed in the same change.
 - Not tested: TP > 1, the 397B model, prefill-heavy load, any model other than Qwen3.6-35B.
+
+---
+
+# W12c — interim (21:42Z): the base gap is not the commit; this node has two speed states
+
+Tree moved to e66bede56b (same precompiled binaries: kernel-library pins are unchanged between the two commits; only transformers and peft pins moved). Prototype re-applied there unchanged.
+
+## A/B at e66bede56b, sequential servers as before (base, prototype, base, prototype)
+
+| conc. | TPOT p50 base r1 / r2 (ms) | prototype r1 / r2 |
+|---|---|---|
+| 1 | 3.538 / 3.541 | 3.361 / **3.081** |
+| 4 | 4.475 / **4.178** | 4.375 / **4.095** |
+| 8 | 5.165 / **4.932** | 4.971 / **4.769** |
+
+- **The base at e66bede56b is 3.54 ms at 1 request, the same as at 8399da3780.** So the 3.54 vs 3.23 gap is not explained by the commit.
+- **From about 21:27Z the node switched to a faster state (bold cells), 6-8 % faster for both arms.** The switch happened in the middle of base r2 (its 1-request run still slow, its 4- and 8-request runs fast); the whole prototype r2 server ran fast. Per-request latencies inside a run are flat (1.84-1.85 s per 512-token request in the slow state, 1.61 s for the prototype in the fast state), so it is a state of the node, not noise.
+- Looking back, the "outlier" base round at 8 requests in my first W12b run (4.923 ms) was the same fast state.
+- **Likely the same thing as the manager's 3.23 ms**: the fast-state prototype is 3.08 ms, and a fast-state base about 8 % under 3.54 would be about 3.25 ms. I have not caught a fast-state base at 1 request yet.
+- Within one state the prototype's gain is unchanged: slow state -5.0 % / -2.2 % / -3.8 % at 1 / 4 / 8; fast state -2.0 % at 4 and -3.3 % at 8 (1 request has no fast base yet).
+- Cause not identified. GPU telemetry when idle shows nothing unusual (P0, 1000 W limit). The host is shared: another tenant's container is compiling C++ with 16 jobs on and off (load average about 20 of 160 cores); it is not my process and I am not touching it. Whether that correlates with the state is being logged now.
+
+**Consequence for every A/B on this model (manager node too):** sequential server launches can land in different states and fake or hide a 6-8 % effect. A run is only trustworthy if both arms are sampled at the same time.
+
+## Running now
+Paired A/B: both servers up at once on two GPUs, short benchmark bursts alternating between them (6 alternations per concurrency), then the same with the GPUs swapped. Host load is logged at each burst. Then the lag trace at e66bede56b and TP2.
