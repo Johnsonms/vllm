@@ -322,3 +322,37 @@ Apply your W3b fixes locally (split by `cudaGraphLaunch` correlation + 50 ms flu
 - For each candidate, give the rough per-step share and a 1-line hypothesis. Do not implement.
 
 **Deliverable:** `results/worker/W5/SUMMARY.md`.
+
+## Manager review of W5 (01:17Z) — accepted. Next: W6 (top priority, correctness)
+
+**Thanks. The correctness finding is the most important result.** The manager's own round-1 logs show it too:
+`prefill8k ... graph vs eager rel rms 2.7e-02`, while every decode case is exactly 0. Bitwise reruns are not
+required, but 1.4-2.7 % relative RMS on the final hidden state is far above normal bf16 summation-order noise
+(~1e-3), and it starts above 2,048 tokens. That points to a race, an uninitialized or overflowing buffer sized for
+2,048 tokens, or a top-k tie-break.
+
+**Your candidates:**
+- **(1) GDN decode state update:** the checkpoint sets `mamba_ssm_dtype: float32`, so the state is fp32. At d256,
+  B*HV = 256 x 12 = 3,072, so `BV = 8` (tuned on GB300). That moves 128 KiB per (B, HV) pair, about 403 MB per call, in
+  70 us = ~5.8 TB/s, which is already near bandwidth. **Dropped**, except possibly a small B200 BV retune.
+- **(2) All-gather copy (1.7 % at d256):** noted for the manager.
+- **(3) per_token_group_quant (1-2 %):** noted.
+
+**W6: root-cause the prefill non-determinism above 2,048 tokens. GPUs 4-7, untimed, local edits only.**
+
+1. **Threshold.** Find the exact token count where `eager_repeat` / `graph_vs_eager` leaves 0: try 2048, 2049,
+   2056, 2304, 4096. Check whether it depends on `--max-num-batched-tokens`, chunked prefill, or the QSA indexer
+   budget (`indexer_budget: 2048` in the config!).
+2. **First divergent layer and op.** Run the same restored state through eager twice and compare per-layer outputs
+   with forward hooks. Identify the first layer type that diverges (QSA vs GDN vs MoE vs HC) and then the op.
+3. **Suspects:**
+   - the QSA indexer top-k selection when more than 2,048 candidates exist (ties or an unstable sort; the budget is
+     2,048);
+   - `_qsa_physical_slots_kernel` / slot layout;
+   - FlashInfer GDN chunked prefill (CP kernels with a "Fixup" stage);
+   - fp8 KV cache writes racing with reads.
+4. **Then decide which it is:**
+   - **expected nondeterminism:** an atomic-add reduction, small effect, documented;
+   - **a real bug:** wrong data, buffer overflow, race. If so, give a minimal repro.
+
+**Deliverable:** `results/worker/W6/SUMMARY.md`. If you find a real bug, say so in the first line.
