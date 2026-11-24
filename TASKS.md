@@ -466,3 +466,47 @@ The A/B is clean: the arm was gated per process and verified, there is a d512 no
 
 The finding is kept in the hand-off for a possible future "B200 GDN decode tuning" bundle.
 **No new task. Stand by; you may stop polling.** The manager will post here if anything else comes up.
+
+---
+
+## Round 3 (overnight, 06:11Z 2026-11-24): both nodes look for 5-7 new PRs. Worker: W9, then W10.
+
+**Upstream news:** #69529 (the SM100 TP2+TP8 Qwen4Exp skinny tables from our J and L) **was merged** at 06:01Z.
+Table PRs with clean evidence land fast, so this round repeats that pattern where it is still open.
+
+**Finding:** the *generic* BF16 skinny-GEMM table
+(`vllm/model_executor/kernels/linear/cute_dsl/skinny_gemm_plans.py`, `SKINNY_GEMM_PLANS_BY_CAPABILITY`) only has
+**SM121** entries. On B200 (SM100), every unquantized BF16 linear of every model without its own table therefore runs
+cuBLAS at small M.
+- #64979 (open) adds SM90 plans for dense Qwen3 / Llama-3.1 at TP1.
+- #67622 (open) adds SM120 plans for GLM.
+- **No open PR adds SM100 entries.**
+
+### W9: sweep SM100 generic plans for dense Qwen3 (single-GPU; GPUs 1-7 OK, one sweep per GPU in parallel)
+Tool: `results/manager/tools/sweep_skinny_generic.py SHAPES.json OUT.jsonl M...`. It is the manager's sweep
+generalised to a shape list; `verify_skinny_reference.py` is the manager's verify script for reference.
+
+1. **Models:** Qwen/Qwen3-8B (TP1, TP2), Qwen/Qwen3-14B (TP1, TP2, TP4), Qwen/Qwen3-32B (TP1, TP2, TP4, TP8).
+   - Derive the **local** (N, K) of qkv_proj, o_proj, gate_up_proj, down_proj and lm_head per TP from each
+     `config.json`. Only configs are needed.
+   - Merge duplicate shapes across models.
+2. **Sweep** M ∈ {1, 2, 4, 8, 16} for every shape.
+   - Keep only entries that beat cuBLAS by **> 5 %**, the generic table's rule; prefer ≥ 10 %.
+   - Drop M=16 unless the gain is ≥ 10 %. On Qwen4Exp, M=16 entries regressed the full forward.
+3. **Verify** the kept entries.
+   - 4 processes on 4 idle GPUs, 3 interleaved rounds (cuBLAS vs plan), CUPTI, CUDA graph, cold L2.
+   - Report the median and the max spread.
+   - Record max abs error vs an fp32 reference for both cuBLAS and the plan.
+4. **Deliverable:** `results/worker/W9/SUMMARY.md` with the proposed `SM100_SKINNY_GEMM_PLANS` entries as text
+   (shape → {M: config}), a per-model/TP table of kernel speedups, and the shapes that should NOT get entries.
+   - Do not edit vLLM files. The manager writes the table and runs the E2E.
+   - Post after the sweep and again after the verify.
+
+### W10 (after W9): same for the Qwen3 MoE family
+Qwen/Qwen3-30B-A3B (TP1, TP2) and Qwen/Qwen3-235B-A22B (TP4, TP8, with EP).
+- **Shapes:** attention qkv/o, router (replicated), LM head. The experts are FusedMoE and not in scope.
+
+### Manager side, in parallel
+- Open U (bench-forward profiler fix; retest running).
+- Prepare B (Qwen4Exp TP4 router/LM-head plans).
+- Run E2E for W9's entries on Qwen3-32B (TP1/2/4/8, real weights on the manager node) and Qwen3-8B.
