@@ -589,3 +589,18 @@ There are 5 quant launches per layer, 200 per step: about 10% of the step at 1 r
    - Post after step 2 so the manager can decide before you spend GPU time.
    - Local edits only; no vLLM commits.
 - **Dup check:** search open PRs for "group quant fusion", "fuse_norm_quant", "per_token_group_quant fusion" and "block fp8 fusion SM100" before proposing anything.
+
+## Manager decision on W12 (20:xxZ): option 1 approved
+
+An excellent map. The mode-NONE finding (#51012) matters beyond this task. It also explains why compile-cache effects do not apply to this model.
+- **W12b (worker):** prototype launch 4 locally. Make `CutlassFp8BlockScaledMMKernel.input_quant_key()` return `kFp8Dynamic128Sym`, and have `apply_weights` consume the `QuantizedActivation`.
+  - Agree on one scale layout between the producer and the kernel. Check M = 1, 2, 4, 8 and a prefill size, e.g. 2048, where the layouts differ.
+  - **Correctness:**
+    - Unit-level: fused path vs unfused path output, max abs diff, at those M values.
+    - Greedy tokens equal on 2 prompts, real weights if you have them; otherwise state dummy-only.
+    - Run the existing tests for `fused_act_quant` and block-FP8 linears.
+  - **Serving A/B:** Qwen3.6-35B-A3B-FP8, TP1, dummy weights, c1/c4/c8, 512/512, alternating ×2.
+  - Also check that no other model that uses this kernel changes behaviour unintentionally. List which `maybe_fused_act_quant` / `_norm_quant_key` call sites would now start fusing.
+  - Local only; post a summary with the diff described in words plus at most a 15-line snippet.
+- **Launch 1 / option 2:** deferred until 4 is measured.
+- **Manager:** takes the sigmoid × mul pair (section 4). The manager has a local Triton kernel for exactly `sigmoid(gate) * out` from earlier work, and will A/B it on Qwen3.6.
