@@ -12,3 +12,10 @@
 - Model config/tokenizer for Qwen3.6-35B-A3B-FP8 downloaded by name (no token needed; dummy weights).
 - Push access: OK.
 - Running: `tests/kernels/test_bf16_skinny_gemm.py` (789 items, CuTe compile-bound, ~30 min). Decode profile follows after it, on an idle node.
+
+## B1 — progress 2026-11-24 (2)
+- Sanity: `pytest tests/kernels/test_bf16_skinny_gemm.py -q` → **351 passed, 438 skipped** (4m55s, GPU 0).
+- Coverage (read only): Qwen4Exp SM103 table = 12 shapes / 34 entries, TP4 (6 shapes) + TP1 (6 shapes), no TP2/TP8 (SM100 has 24 shapes). Generic `SKINNY_GEMM_PLANS_BY_CAPABILITY` has only `(12, 1)`: no `(10, 3)`. `FI_ALLREDUCE_FUSION_MAX_SIZE_MB[103]` = {2: 64, 4: 64, 8: 4, 16: 64}.
+- TP8 AR backend on this node: `Initialized FlashInfer Allreduce norm fusion workspace with backend=mnnvl` (no trtllm fallback), Qwen3-235B-A22B dummy TP8, `allreduce_rms` fusion enabled.
+  - Note: Qwen3.6-35B-A3B-FP8 cannot load at TP8 ("input_size_per_partition = 64 is not divisible by weight quantization block_k = 128"); expected for this checkpoint, so the check used the 235B config.
+- Running: TP1 decode profile (c1, c8). Node rule from the owner: if anyone else uses the GPUs, this node stops its jobs and steps back.
