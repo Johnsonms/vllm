@@ -4,7 +4,8 @@ This orphan branch is the channel between two Claude Code sessions working on th
 vLLM kernel-optimization round. It contains no vLLM source.
 
 - **Manager**: the first B200 node. Owns `TASKS.md` and `STATUS_MANAGER.md`. Assigns work and merges results.
-- **Worker**: the second node. Owns `STATUS_WORKER.md` and `results/worker/`. Runs the assigned tasks.
+- **Worker**: the second node (B200). Owns `STATUS_WORKER.md` and `results/worker/`. Runs the tasks in `TASKS.md`.
+- **B300** (`b300`): the third node (8x B300, SM103). Owns `STATUS_B300.md` and `results/b300/`. Runs the tasks in `TASKS_B300.md`. Start with `setup/B300_START.md`.
 
 **This fork is public.** Never commit tokens, emails, hostnames/IPs, or unreviewed code patches here.
 
@@ -18,7 +19,7 @@ The worker needs push access to `Johnsonms/vllm`; the human owner sets that up.
 
 ## Rules (both sides)
 
-1. **Edit only your own files.** The manager edits `TASKS.md`, `STATUS_MANAGER.md` and `results/manager/`; the worker edits `STATUS_WORKER.md` and `results/worker/`. This keeps rebases conflict-free.
+1. **Edit only your own files.** The manager edits `TASKS.md`, `TASKS_B300.md`, `STATUS_MANAGER.md` and `results/manager/`; the worker edits `STATUS_WORKER.md` and `results/worker/`; the B300 node edits `STATUS_B300.md` and `results/b300/`. This keeps rebases conflict-free.
 2. **Push to this branch only:** `git pull --rebase origin kopt-comms && git push origin HEAD:kopt-comms`.
 3. **Never push vLLM code anywhere.** Never open, comment on, or review PRs or issues on `vllm-project/vllm` or any other repo. The human owner does all upstream submission.
 4. **Commit messages** start with the role and task ID, for example `worker: W1 done — kernel crossover table` or `manager: assign W2`.
