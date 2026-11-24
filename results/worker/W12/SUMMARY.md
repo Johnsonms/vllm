@@ -1,7 +1,7 @@
 # W12 — fewer `per_token_group_quant` launches in Qwen3.6-35B-A3B-FP8 decode on B200
 
 Node: 8x B200, vLLM main @ 8399da3780 (precompiled), TP1, dummy weights. No vLLM file edited.
-Status: **steps 1-2 posted (19:25Z). No A/B run: no flag or gating-only change enables a fusion.** Waiting for the manager's decision.
+Status: **steps 1-2 posted (19:12Z). No A/B run: no flag or gating-only change enables a fusion.** Waiting for the manager's decision.
 
 ## Result
 - All 200 launches are mapped (section 1). Each layer has 5: attention input, attention output projection, shared-expert `gate_up_proj`, shared-expert `down_proj`, routed-experts input.
