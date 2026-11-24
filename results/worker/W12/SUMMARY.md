@@ -194,5 +194,51 @@ Tree moved to e66bede56b (same precompiled binaries: kernel-library pins are unc
 
 **Consequence for every A/B on this model (manager node too):** sequential server launches can land in different states and fake or hide a 6-8 % effect. A run is only trustworthy if both arms are sampled at the same time.
 
-## Running now
-Paired A/B: both servers up at once on two GPUs, short benchmark bursts alternating between them (6 alternations per concurrency), then the same with the GPUs swapped. Host load is logged at each burst. Then the lag trace at e66bede56b and TP2.
+(The paired A/B announced here is in the final section below.)
+
+# W12c — final (23:55Z): the gain holds at e66bede56b in a paired A/B, at TP1 and TP2
+
+Status: **done. Local edit reverted; `~/vllm-kopt` is left clean at e66bede56b; no worker process; all 8 GPUs free.** The diff stays on the node only.
+
+Note on time: my first paired run (21:35-22:35Z) did not start its servers because of an argument bug in my script. No data came from it. The numbers below are from the rerun.
+
+## Method
+Both servers up at the same time (base and prototype, one GPU set each), real weights, 512/512 random, compile cache off. For each concurrency, 6 short bursts per arm (5 x concurrency prompts), base and prototype alternating, order flipped every round. Then the whole run again with the GPU sets swapped. Both arms therefore sample the same node state. TPOT p50 in ms, base / prototype per burst pair.
+
+## 1. TP1 (GPU 4 vs GPU 5)
+
+| requests | base on 4, prototype on 5 | base on 5, prototype on 4 | mean of the two |
+|---|---|---|---|
+| 1 | 3.535 / 3.350, **-5.25 %** (pairs -5.46 to -4.99) | 3.518 / 3.364, **-4.41 %** (-4.61 to -4.10) | **-4.8 %** |
+| 4 | 4.470 / 4.352, **-2.69 %** (-2.89 to -2.30) | 4.456 / 4.368, **-1.97 %** (-2.65 to -1.79) | **-2.3 %** |
+| 8 | 5.170 / 4.956, **-4.07 %** (-4.76 to -3.68) | 5.146 / 4.988, **-3.29 %** (-3.60 to -2.94) | **-3.7 %** |
+
+- All 36 pairs are negative. The paired numbers match the earlier sequential ones (-5.05 / -2.24 / -3.70 % at 8399da3780).
+- GPU 5 is about 0.4 % faster than GPU 4 on this workload. That is why the two columns differ; the mean removes it.
+- The node stayed in the slow state for the whole run (base 3.52-3.55 ms at 1 request). I did not see the fast state again, so I still have no fast-state base at 1 request and no cause. Host load average was 14-22 the whole time; no compiler process of the other tenant was running at any burst.
+
+## 2. Shared-vs-routed lag at e66bede56b (base, 1 request, profiled, 3 replays)
+Same as at 8399da3780. In all 40 layers of all 3 replays (120 of 120) the last shared-expert kernel on the aux stream ends after the routed-experts finalize kernel on the main stream.
+
+| commit | median lag | range |
+|---|---|---|
+| 8399da3780 | 11.1 us | 8.4-13.5 us |
+| e66bede56b | 11.3 us | 6.2-13.6 us |
+
+The unprofiled step in the same run is 3.41 ms (3.39 ms at 8399da3780). The shared expert is still the longer branch, so the reason for the gain is unchanged.
+
+## 3. TP2, `--max-num-seqs 256` (GPUs 4,5 vs GPUs 6,7)
+
+| requests | base on 4,5, prototype on 6,7 | base on 6,7, prototype on 4,5 | mean of the two |
+|---|---|---|---|
+| 1 | 3.437 / 3.191, -7.19 % (-7.35 to -7.03) | 3.321 / 3.268, -1.66 % (-1.76 to -1.49) | **-4.4 %** |
+| 8 | 4.375 / 4.202, -4.03 % (-4.79 to -3.90) | 4.372 / 4.237, -3.07 % (-3.63 to -3.03) | **-3.6 %** |
+
+- All 24 pairs are negative.
+- **The GPU pair matters a lot at 1 request under TP2**: the same arm is about 2.8 % slower on GPUs 4,5 than on 6,7 (base 3.437 vs 3.321; prototype 3.268 vs 3.191). At 8 requests the pairs are within 0.5 %. I did not look for the cause. Without the swap this would read as either -7 % or -2 %.
+
+## Summary for the decision
+- The prototype's gain holds at e66bede56b: TP1 -4.8 / -2.3 / -3.7 % at 1 / 4 / 8 requests, TP2 -4.4 / -3.6 % at 1 / 8 requests.
+- The correctness notes from W12b are unchanged and not re-run here: output is not bit-identical to base; GSM8K was unchanged (measured at 8399da3780 only); the kernel needs column-major scales; the key change also turns on the same fusion for other models using this kernel.
+- Measurement advice for this model on B200: use both arms at the same time and swap the GPUs. I saw three position or state effects as large as the gain itself: the node's two speed states (6-8 %), GPU pair under TP2 at 1 request (2.8 %), single GPU (0.4 %).
+- Open: cause of the two speed states; why the manager's S candidate (three launches less in the same branch) showed nothing.
