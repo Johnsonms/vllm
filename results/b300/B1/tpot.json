@@ -1,0 +1,74 @@
+{
+ "prof_c1": {
+  "completed": 1,
+  "num_prompts": 1,
+  "max_concurrency": 1,
+  "median_tpot_ms": 21.848064055070502,
+  "mean_tpot_ms": 21.848064055070502,
+  "median_itl_ms": 3.0141649913275614,
+  "median_ttft_ms": 21.051677002105862,
+  "output_throughput": 45.776064665918916,
+  "total_input_tokens": 512,
+  "total_output_tokens": 128
+ },
+ "prof_c8": {
+  "completed": 8,
+  "num_prompts": 8,
+  "max_concurrency": 8,
+  "median_tpot_ms": 23.940476724398085,
+  "mean_tpot_ms": 23.953243744128528,
+  "median_itl_ms": 4.9258395010838285,
+  "median_ttft_ms": 63.800440497288946,
+  "output_throughput": 329.6960641077185,
+  "total_input_tokens": 4096,
+  "total_output_tokens": 1024
+ },
+ "tpot_c1_r1": {
+  "completed": 8,
+  "num_prompts": 8,
+  "max_concurrency": 1,
+  "median_tpot_ms": 3.0028271693030484,
+  "mean_tpot_ms": 3.002584309052601,
+  "median_itl_ms": 3.00474699906772,
+  "median_ttft_ms": 23.208964499644935,
+  "output_throughput": 315.8707386077057,
+  "total_input_tokens": 4096,
+  "total_output_tokens": 1024
+ },
+ "tpot_c1_r2": {
+  "completed": 8,
+  "num_prompts": 8,
+  "max_concurrency": 1,
+  "median_tpot_ms": 3.003719417292599,
+  "mean_tpot_ms": 3.0041658405326155,
+  "median_itl_ms": 3.004795507877134,
+  "median_ttft_ms": 22.032796499843244,
+  "output_throughput": 316.76825708781956,
+  "total_input_tokens": 4096,
+  "total_output_tokens": 1024
+ },
+ "tpot_c8_r1": {
+  "completed": 64,
+  "num_prompts": 64,
+  "max_concurrency": 8,
+  "median_tpot_ms": 4.920285244096037,
+  "mean_tpot_ms": 4.931207079600542,
+  "median_itl_ms": 4.91237550158985,
+  "median_ttft_ms": 55.09109799459111,
+  "output_throughput": 1502.6488426752396,
+  "total_input_tokens": 32768,
+  "total_output_tokens": 8192
+ },
+ "tpot_c8_r2": {
+  "completed": 64,
+  "num_prompts": 64,
+  "max_concurrency": 8,
+  "median_tpot_ms": 4.917479421259142,
+  "mean_tpot_ms": 4.92978531964202,
+  "median_itl_ms": 4.910651492536999,
+  "median_ttft_ms": 54.1439164953772,
+  "output_throughput": 1504.2030683751254,
+  "total_input_tokens": 32768,
+  "total_output_tokens": 8192
+ }
+}
