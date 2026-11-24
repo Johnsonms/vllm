@@ -1,7 +1,15 @@
 # W11a — SM100 generic skinny plans for Qwen3.5 / Qwen3.6 MoE (FP8 checkpoints)
 
 Node: 8x B200, vLLM main @ 8399da3780 (precompiled), no vLLM file edited.
-Status: **sweep posted (18:40Z); verify running.** This file is rewritten when the verify ends.
+Status: **done (sweep 18:40Z, verify and checks 18:50Z).** E2E not run here; that is the manager's part.
+
+## Result
+- **49 entries on 14 shapes, all pass the verify (median >= 1.10x in 4 seeds).** `verified.json` equals `proposed.json`.
+- Small projections (GDN `in_proj_ba`, shared-expert gate, router): **1.49-3.29x** at M = 1-8, 4.4-7.3 us -> 1.9-4.8 us.
+- LM heads: **1.11-1.42x** at M = 1-2, and at M = 4 for the three shards of 62,080 rows or fewer. M = 8 loses on every LM head, and M = 4 is under 1.10x on the two largest; those cells have no entry.
+- **N = 1 reaches the skinny kernel on SM100 without the #64982 `layers/utils.py` change** (section 4). N = 1 is in scope.
+- Weakest entries, in case the manager wants a margin: (62080, 2048) M=4 at 1.11x (min 1.10) and (248320, 2048) M=1 at 1.11x.
+- Not measured: E2E, and the host cost of the custom-op dispatch at unplanned token counts (above 8), which is what #64982's eager fast path is for. Please include a concurrency above 8 in the E2E.
 
 ## 1. Unquantized layers (module walk, `load_format=dummy`)
 
@@ -10,17 +18,17 @@ ran the model once. Local weight shapes per rank, all BF16, no bias, `use_skinny
 
 | layer | class | count | Qwen3.6-35B TP1 | TP2 | TP4 | Qwen3.5-397B TP4 | TP8 |
 |---|---|---|---|---|---|---|---|
-| GDN `linear_attn.in_proj_ba` | MergedColumnParallelLinear | 30 / 45 | (64, 2048) | (32, 2048) | (16, 2048) | (32, 4096) | (16, 4096) derived |
+| GDN `linear_attn.in_proj_ba` | MergedColumnParallelLinear | 30 / 45 | (64, 2048) | (32, 2048) | (16, 2048) | (32, 4096) | (16, 4096) |
 | `mlp.shared_expert_gate` | ReplicatedLinear | 40 / 60 | (1, 2048) | same | same | (1, 4096) | same |
 | `mlp.gate` (router) | GateLinear | 40 / 60 | (256, 2048) | same | same | (512, 4096) | same |
-| `lm_head` | ParallelLMHead | 1 | (248320, 2048) | (124160, 2048) | (62080, 2048) | (62080, 4096) | (31040, 4096) derived |
+| `lm_head` | ParallelLMHead | 1 | (248320, 2048) | (124160, 2048) | (62080, 2048) | (62080, 4096) | (31040, 4096) |
 
 - Also unquantized but not a GEMM: `linear_attn.conv1d` (3-D weight).
 - The router is a `GateLinear`, but for this model its `apply` goes through `UnquantizedLinearMethod.apply` with a BF16 `(M, K)`
   input at every M (seen in the walk), i.e. the plain `F.linear` tier. So a generic plan entry takes effect for the router too.
 - The LM head goes through `UnquantizedEmbeddingMethod.apply`, which also calls `maybe_use_skinny_gemm`.
 - None of the 14 shapes is in `results/manager/W11_existing_shapes.json`.
-- The 397B TP8 shapes are derived from the config for now; a TP8 walk follows.
+- Walks run: Qwen3.6-35B at TP1, TP2, TP4; Qwen3.5-397B at TP4 and TP8 (no expert parallel).
 
 ## 2. Sweep (manager's `sweep_skinny_generic.py`, one M per GPU, CUPTI, CUDA graph, cold L2)
 
@@ -46,8 +54,148 @@ Times in us, cuBLAS -> best skinny config:
 
 Caveats on the sweep numbers:
 - One run per cell. For the small shapes the top three configs are within a few percent of each other, so the chosen config
-  is partly noise; the verify decides.
-- The Qwen3.6 sweep (GPUs 0-3) overlapped the 397B module walk on GPUs 4-7 for its first minutes. The verify runs on an idle node.
+  is partly noise; the verify (section 3) decides.
+- The Qwen3.6 sweep (GPUs 0-3) overlapped the 397B module walk on GPUs 4-7 for its first minutes. The verify ran on an idle node.
 
-## 3. Still to come
-Verify (4 seeds, 3 interleaved rounds), the N=1 reachability check for #64982, the 397B TP8 walk, duplicate search.
+## 3. Verify (4 seeds on 4 GPUs, 3 interleaved rounds each, CUPTI, CUDA graph, cold L2, idle node)
+
+Per seed the middle of 3 rounds is taken; cells show median cuBLAS -> median plan in us (median speedup, min-max over the 4 seeds).
+Raw: `verify.jsonl`; per-cell summary: `verify_summary.json`.
+
+| layer | (N, K) | M=1 | M=2 | M=4 | M=8 |
+|---|---|---|---|---|---|
+| Q3.6 TP1 `in_proj_ba` | (64, 2048) | 5.06 -> 2.19 (2.31x, 2.28-2.50) | 5.60 -> 2.27 (2.45x, 2.38-2.49) | 5.54 -> 2.27 (2.44x, 2.37-2.51) | 5.76 -> 2.54 (2.26x, 2.20-2.42) |
+| Q3.6 TP2 `in_proj_ba` | (32, 2048) | 4.85 -> 2.10 (2.31x, 2.26-2.38) | 5.47 -> 2.10 (2.63x, 2.53-2.71) | 5.74 -> 2.21 (2.62x, 2.55-2.65) | 5.63 -> 2.35 (2.39x, 2.30-2.53) |
+| Q3.6 TP4 `in_proj_ba` | (16, 2048) | 4.77 -> 2.05 (2.37x, 2.27-2.43) | 4.91 -> 2.11 (2.34x, 2.29-2.58) | 5.28 -> 2.18 (2.44x, 2.35-2.59) | 5.44 -> 2.30 (2.35x, 2.31-2.40) |
+| Q3.6 shared-expert gate (all TP) | (1, 2048) | 4.35 -> 1.87 (2.33x, 2.31-2.37) | 4.91 -> 1.95 (2.54x, 2.41-2.59) | 4.72 -> 2.05 (2.32x, 2.20-2.41) | 4.74 -> 2.24 (2.10x, 2.07-2.49) |
+| Q3.6 router (all TP) | (256, 2048) | 5.44 -> 2.42 (2.26x, 2.24-2.34) | 5.81 -> 2.50 (2.33x, 2.29-2.38) | 5.63 -> 2.59 (2.19x, 2.10-2.22) | 5.50 -> 2.91 (1.90x, 1.88-1.95) |
+| Q3.6 TP1 LM head | (248320, 2048) | 160.56 -> 144.61 (1.11x, 1.11-1.12) | 161.66 -> 142.11 (1.14x, 1.13-1.14) | cuBLAS (no entry) | cuBLAS (no entry) |
+| Q3.6 TP2 LM head | (124160, 2048) | 88.69 -> 74.77 (1.19x, 1.19-1.19) | 88.69 -> 75.14 (1.18x, 1.18-1.19) | cuBLAS (no entry) | cuBLAS (no entry) |
+| Q3.6 TP4 LM head | (62080, 2048) | 50.69 -> 39.33 (1.29x, 1.29-1.29) | 51.28 -> 39.41 (1.30x, 1.30-1.30) | 51.14 -> 46.24 (1.11x, 1.10-1.11) | cuBLAS (no entry) |
+| Q3.5-397B TP4 `in_proj_ba` | (32, 4096) | 4.82 -> 2.27 (2.12x, 2.10-2.28) | 6.18 -> 2.24 (2.76x, 2.72-2.79) | 5.68 -> 2.38 (2.38x, 2.33-2.54) | 5.79 -> 2.66 (2.18x, 2.13-2.25) |
+| Q3.5-397B TP8 `in_proj_ba` | (16, 4096) | 4.75 -> 2.18 (2.18x, 2.15-2.32) | 7.26 -> 2.21 (3.29x, 2.94-3.41) | 7.07 -> 2.32 (3.03x, 2.97-3.11) | 6.62 -> 2.62 (2.52x, 2.49-2.60) |
+| Q3.5-397B shared-expert gate | (1, 4096) | 4.40 -> 1.98 (2.20x, 2.14-2.33) | 4.90 -> 1.97 (2.44x, 2.42-2.57) | 4.90 -> 2.16 (2.27x, 2.19-2.34) | 4.64 -> 2.56 (1.81x, 1.77-1.90) |
+| Q3.5-397B router | (512, 4096) | 7.33 -> 3.33 (2.20x, 2.17-2.22) | 7.23 -> 3.36 (2.15x, 2.10-2.17) | 7.17 -> 3.63 (1.98x, 1.97-1.98) | 7.10 -> 4.78 (1.50x, 1.47-1.51) |
+| Q3.5-397B TP4 LM head | (62080, 4096) | 98.32 -> 72.88 (1.35x, 1.34-1.35) | 99.76 -> 75.02 (1.33x, 1.32-1.34) | 100.03 -> 85.12 (1.18x, 1.17-1.18) | cuBLAS (no entry) |
+| Q3.5-397B TP8 LM head | (31040, 4096) | 55.36 -> 38.90 (1.42x, 1.41-1.44) | 56.21 -> 40.06 (1.40x, 1.39-1.41) | 55.94 -> 46.06 (1.21x, 1.20-1.23) | cuBLAS (no entry) |
+
+- Spread (max - min over seeds, relative to the median speedup): at most 2.0 % on the LM heads, at most 19.8 % on the small shapes. The small-shape kernels take about 2 us, where one 32 ns timer step is 1.5 %; the worst cell, (1, 2048) M=8, has one seed at 2.49x against 2.07-2.12x for the others.
+- Error vs an fp32 reference (max abs error / max abs reference): at most 3.8e-03 for the plan, and **equal to the cuBLAS figure in all 196 records**.
+- From the sweep, against cuBLAS BF16 output directly: the small shapes are bit-identical (max abs diff 0, or 1e-4 on the 397B router); the LM heads differ by at most 0.0156 absolute.
+
+### Proposed `SM100_SKINNY_GEMM_PLANS` entries (same content as `verified.json`)
+```python
+# Q3.6 TP1 in_proj_ba
+(64, 2048): {
+    1: SkinnyGemmConfig(1, 128, 2, static_k=2048),
+    2: SkinnyGemmConfig(2, 128, 2, static_k=2048),
+    4: SkinnyGemmConfig(4, 256, 1, vector_width=4, static_k=2048),
+    8: SkinnyGemmConfig(8, 128, 1, vector_width=4, static_k=2048),
+},
+# Q3.6 TP2 in_proj_ba
+(32, 2048): {
+    1: SkinnyGemmConfig(1, 128, 1, k_unroll=2, vector_width=4, static_k=2048),
+    2: SkinnyGemmConfig(2, 128, 1, k_unroll=2, vector_width=4, static_k=2048),
+    4: SkinnyGemmConfig(4, 128, 1, k_unroll=2, static_k=2048),
+    8: SkinnyGemmConfig(8, 128, 1, k_unroll=4, static_k=2048),
+},
+# Q3.6 TP4 in_proj_ba
+(16, 2048): {
+    1: SkinnyGemmConfig(1, 128, 2, vector_width=4, static_k=2048),
+    2: SkinnyGemmConfig(2, 128, 1, vector_width=4, static_k=2048),
+    4: SkinnyGemmConfig(4, 128, 1, vector_width=4, static_k=2048),
+    8: SkinnyGemmConfig(8, 128, 1, static_k=2048),
+},
+# Q3.6 shared-expert gate (all TP)
+(1, 2048): {
+    1: SkinnyGemmConfig(1, 128, 1, k_unroll=2, vector_width=4, static_k=2048),
+    2: SkinnyGemmConfig(2, 64, 1, static_k=2048),
+    4: SkinnyGemmConfig(4, 128, 1, k_unroll=2, vector_width=4, static_k=2048),
+    8: SkinnyGemmConfig(8, 128, 1, static_k=2048),
+},
+# Q3.6 router (all TP)
+(256, 2048): {
+    1: SkinnyGemmConfig(1, 64, 1, k_unroll=2, static_k=2048),
+    2: SkinnyGemmConfig(2, 128, 1, static_k=2048),
+    4: SkinnyGemmConfig(4, 128, 1, static_k=2048),
+    8: SkinnyGemmConfig(8, 128, 1, vector_width=4, static_k=2048),
+},
+# Q3.6 TP1 LM head
+(248320, 2048): {
+    1: SkinnyGemmConfig(1, 256, 4),
+    2: SkinnyGemmConfig(2, 32, 2, k_unroll=4),
+},
+# Q3.6 TP2 LM head
+(124160, 2048): {
+    1: SkinnyGemmConfig(1, 256, 4, k_unroll=2, vector_width=4),
+    2: SkinnyGemmConfig(2, 32, 2, k_unroll=4),
+},
+# Q3.6 TP4 LM head
+(62080, 2048): {
+    1: SkinnyGemmConfig(1, 256, 4, k_unroll=2, vector_width=4),
+    2: SkinnyGemmConfig(2, 128, 4),
+    4: SkinnyGemmConfig(4, 32, 4),
+},
+# Q3.5-397B TP4 in_proj_ba
+(32, 4096): {
+    1: SkinnyGemmConfig(1, 256, 1, vector_width=4, static_k=4096),
+    2: SkinnyGemmConfig(2, 256, 1, k_unroll=2, static_k=4096),
+    4: SkinnyGemmConfig(4, 256, 1, k_unroll=2, static_k=4096),
+    8: SkinnyGemmConfig(8, 256, 1, k_unroll=2, static_k=4096),
+},
+# Q3.5-397B TP8 in_proj_ba
+(16, 4096): {
+    1: SkinnyGemmConfig(1, 128, 1, static_k=4096),
+    2: SkinnyGemmConfig(2, 128, 1, static_k=4096),
+    4: SkinnyGemmConfig(4, 256, 1, static_k=4096),
+    8: SkinnyGemmConfig(8, 256, 1, k_unroll=2, static_k=4096),
+},
+# Q3.5-397B shared-expert gate
+(1, 4096): {
+    1: SkinnyGemmConfig(1, 128, 1, vector_width=4, static_k=4096),
+    2: SkinnyGemmConfig(2, 256, 1, k_unroll=4, static_k=4096),
+    4: SkinnyGemmConfig(4, 128, 1, k_unroll=4, static_k=4096),
+    8: SkinnyGemmConfig(8, 128, 1, k_unroll=2, static_k=4096),
+},
+# Q3.5-397B router
+(512, 4096): {
+    1: SkinnyGemmConfig(1, 128, 1, static_k=4096),
+    2: SkinnyGemmConfig(2, 256, 1, static_k=4096),
+    4: SkinnyGemmConfig(4, 128, 1, static_k=4096),
+    8: SkinnyGemmConfig(8, 128, 2, k_unroll=2, static_k=4096),
+},
+# Q3.5-397B TP4 LM head
+(62080, 4096): {
+    1: SkinnyGemmConfig(1, 256, 2, k_unroll=2),
+    2: SkinnyGemmConfig(2, 128, 4, k_unroll=4),
+    4: SkinnyGemmConfig(4, 32, 2, k_unroll=4),
+},
+# Q3.5-397B TP8 LM head
+(31040, 4096): {
+    1: SkinnyGemmConfig(1, 256, 2, k_unroll=4, vector_width=4),
+    2: SkinnyGemmConfig(2, 128, 4, k_unroll=4),
+    4: SkinnyGemmConfig(4, 32, 2, k_unroll=4, vector_width=4),
+},
+```
+
+### Shapes and cells that should NOT get entries
+- Every LM head at M = 8 (0.71-0.94x in the sweep).
+- (124160, 2048) and (248320, 2048) at M = 4 (1.07x and 1.04x in the sweep).
+- `linear_attn.conv1d` is unquantized but is not a 2-D GEMM.
+
+## 4. N = 1 and #64982
+- #64982 changes two things in `layers/utils.py`: it caches the plan on the layer, and in eager mode it calls the kernel directly instead of going through `torch.ops.vllm.cuda_skinny_unquantized_gemm`. Its stated reason is host time (about 5 us per custom-op call at every token count), not reachability.
+- At 8399da3780 nothing in the path is specific to N: `maybe_use_skinny_gemm` only needs a 2-D BF16 weight, no bias and a plan; the op looks the plan up by `(N, K)` and M.
+- **Check run:** injected an SM100 table in-process (`SKINNY_GEMM_PLANS_BY_CAPABILITY[(10, 0)]`, no file edited) with entries for (1, 2048), (64, 2048), (256, 2048) and (248320, 2048) at M = 1, 2, 4, 8, loaded Qwen3.6-35B-A3B-FP8 at TP1 with dummy weights, and logged the calls of `shape_dynamic_skinny_gemm`.
+  - (1, 2048), (64, 2048) and (256, 2048) ran the skinny kernel at M = 1, 2, 4 and 8; the LM head at M = 1 and 2 (the only planned sizes it was called with).
+  - The model ran to the end, and the 8 greedy tokens of two requests equal those of a run without the injected table.
+  - The injected configs were a fixed valid one (`block_size=128, outputs_per_block=1, static_k=K`), not the proposed ones.
+- The only N = 1 constraint is `outputs_per_block = 1`, which the sweep tool already enforces (`n % opb`).
+
+## 5. Per-step estimate and duplicates
+- Qwen3.6-35B TP1, one request: 30 `in_proj_ba` + 40 gate + 40 router + 1 LM head per step. With the verify medians that is 30 x 2.87 + 40 x 2.48 + 40 x 3.02 + 16 = **about 320 us of kernel time per decode step**. This is a sum of isolated cold-L2 timings, not a measurement of the step.
+- Duplicates: no open upstream PR adds SM100 entries for these shapes. #64982 (open) is the SM90 counterpart for (1, 2048) and (64, 2048) only; it has no router or LM-head entry. #57848 (open) tunes the SM103 MoE router GEMM, a different path (`GateLinear` tiers); not read in detail.
+
+## 6. Not done
+- The optional decode profile of Qwen3.6-35B at c1 / c8 is not done yet; it comes next if no other task arrives.
+- No expert-parallel walk for the 397B model. The shapes above do not depend on it as far as the code shows (gate and router are replicated), but that was not run.
