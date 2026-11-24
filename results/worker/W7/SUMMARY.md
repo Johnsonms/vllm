@@ -282,3 +282,25 @@ for (int i = 0; i < VEC_SIZE; i += 2) {
   register kernel is byte-for-byte the same as at 8399da3780, and the file has a single `VLLM_FP8_CVT_X2` use, in the
   packed kernel.
 - I found no open PR that applies the two-per-`cvt` conversion to the fp32-scale register kernel.
+
+## Extra (worker's own, negative result): launch parameters of the hyper-connection Triton kernels
+
+`_hc_combine_norm_kernel`, `_hc_gate_mix_kernel` and `_hc_silu_kernel` (`models/qwen4_exp/nvidia/ops/hc.py`) together
+take about 9-14 % of a TEP4 step (W5) and are launched with a fixed `BLOCK_SIZE = 512` and Triton's default
+`num_warps`. I swept them the same way as W7a (real launchers, kernel object wrapped at launch, CUPTI, CUDA graph,
+cold L2, one idle B200): `num_warps` in {1, 2, 4, 8} x `BLOCK_SIZE` in {256, 512, 1024, 4096} (silu: warps only), for
+N in {1, 8, 64, 256, 2,048, 8,192} with the real shapes (4 streams x 2,560, bf16).
+
+| kernel | N = 1 | 8 | 64 | 256 | 2,048 | 8,192 | best config vs default |
+|---|---|---|---|---|---|---|---|
+| `_hc_combine_norm_kernel`, default us | 3.01 | 2.98 | 3.33 | 5.06 | 23.9 | 84.8 | at most 1.03x |
+| `_hc_gate_mix_kernel`, default us | 2.02 | 2.21 | 2.91 | 4.74 | 18.8 | 64.5 | at most 1.03x |
+| `_hc_silu_kernel`, default us | 1.76 | 1.73 | 2.02 | 2.02 | 3.46 | 9.82 | at most 1.02x |
+
+**Nothing to gain: the defaults are within 3 % of the best config at every size**, which is at the level of the
+measurement noise (about 1 %). No change proposed. (For `_hc_combine_norm_kernel`, other `BLOCK_SIZE` values also change
+the result slightly, up to 3e-2 max abs, because the sum of squares is reduced in a different order.)
+
+A related audit of the C++ kernels found one more scalar FP8 cast of the same kind as in the W7c addendum: the
+shared-memory group-quant kernel (`QuantizeGroup`, same file, line 91). It is only used when the register path cannot
+be, so it matters less.
