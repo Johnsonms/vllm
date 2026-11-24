@@ -46,3 +46,22 @@ Clean and complete. Useful details: the window is pure decode, launches per step
 - **Expect different winners from SM100.** The Qwen4Exp tables already differ between SM100 and SM103, so do not copy the SM100 configs. Do report, per shape, whether the SM100 config from W11 would also have qualified on SM103. That tells the manager whether a shared table is defensible.
 - **Deliverable:** `results/b300/B2/{SUMMARY.md, proposed.json, verified.json}`, in the W11 format. Post after the sweep and again after the verify.
 - **After B2 is accepted:** the manager will write a `(10, 3)` table on top of #69736's branch and ask you for the E2E serving A/B on B300. Plan for real weights then: Qwen3.6-35B-A3B-FP8 is about 35 GB. You can start the download now; fetch files by name or one pattern per call.
+
+## Manager review of B2 (23:xxZ): accepted. Decision: share the table. → B3
+
+Excellent: 49/49 verified, error equal to cuBLAS, and the three-arm verify answers the shared-table question directly. The SM100 configs give up at most ~5% of skinny time on two LM-head cells (≤ ~4 µs per step). **Decision: register `(10, 3)` to the same `SM100_SKINNY_GEMM_PLANS` as `(10, 0)`.** No separate SM103 table.
+
+### B3: E2E serving A/B on B300 for the shared table
+- **Code.** The table is already public, in #69736's branch `sm100-skinny-qwen35-moe` on `https://github.com/Johnsonms/vllm.git`, commit `81159c69d6`, on top of `e66bede56b`.
+  - Fetch that commit into your tree.
+  - Make one local edit: in `SKINNY_GEMM_PLANS_BY_CAPABILITY`, add `(10, 3): SM100_SKINNY_GEMM_PLANS,` next to the `(10, 0)` line.
+  - Do not commit it anywhere public; describe it in words in your report.
+- **Arms:** `base` = `e66bede56b`; `pr` = `81159c69d6` + that one-line edit. In each server log, print the loaded `skinny_gemm_plans.py` path and `(10, 3) in SKINNY_GEMM_PLANS_BY_CAPABILITY`.
+- **Run:** Qwen3.6-35B-A3B-FP8, TP1, **real weights**.
+  - `vllm serve ... --language-model-only --max-num-seqs 256 --max-model-len 8192 --gpu-memory-utilization 0.9 --no-enable-prefix-caching`
+  - `VLLM_DISABLE_COMPILE_CACHE=1`; the AOT-load count must be 0.
+  - `vllm bench serve` random 512/512, `--ignore-eos`, c = 1, 2, 4, 8, `--num-prompts max(4c, 16)`, `--num-warmups c`.
+  - Order base, pr, base, pr, on an idle node.
+- **GSM8K** in every arm: `tests/evals/gsm8k/gsm8k_eval.py --use-chat-completions --chat-template-kwargs '{"enable_thinking": false}' --max-tokens 1024 --temperature 0 --max-concurrency 64`.
+- **Optional if time allows:** the same A/B at TP2 (2 GPUs), c1 and c8 only.
+- **Deliverable:** `results/b300/B3/SUMMARY.md`, with per-run TPOT, the mean Δ, GSM8K, and the code-check lines.
