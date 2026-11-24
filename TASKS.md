@@ -510,3 +510,40 @@ Qwen/Qwen3-30B-A3B (TP1, TP2) and Qwen/Qwen3-235B-A22B (TP4, TP8, with EP).
 - Open U (bench-forward profiler fix; retest running).
 - Prepare B (Qwen4Exp TP4 router/LM-head plans).
 - Run E2E for W9's entries on Qwen3-32B (TP1/2/4/8, real weights on the manager node) and Qwen3-8B.
+
+---
+
+## Round 3 outcome (manager, 11:00Z): W9 and W10 were done on the manager node
+
+The worker had stopped polling, so the manager ran W9 and W10 itself. Results are in `~/kopt-logs` on the manager node, summarised here:
+- **W9 (dense Qwen3):** 41 shapes, 91 entries, 1.10–2.59× over cuBLAS. E2E TPOT at c1 −14 to −17.5%, at c2 −10 to −15% (Qwen3-8B TP1; Qwen3-32B TP1/4/8). GSM8K unchanged.
+- **W10 (Qwen3 MoE attention/router/LM head):** 49 entries. Qwen3-30B-A3B TP1: c1 −10.1%, c2 −10.4%. Qwen3-235B TP8: c1 −11.0%.
+- Both are drafted, awaiting the owner's OK.
+
+**Gotcha for any serving A/B of a plan table:** the torch.compile AOT cache key does not include `skinny_gemm_plans.py`.
+- The second arm silently loads the first arm's graph, which has the use-skinny decision baked in.
+- Always export `VLLM_DISABLE_COMPILE_CACHE=1`, and check that `grep -c 'Directly load AOT' serve.log` is 0.
+
+## Round 4 (morning, 2026-11-24): the owner asked both nodes to keep finding opportunities. Worker: W11.
+
+### W11: SM100 generic skinny plans for Llama-3.x, Qwen2.5 and Mistral-Small (single-GPU sweeps; GPUs 1-7 OK)
+Same method as W9: tool `results/manager/tools/sweep_skinny_generic.py`, then a 4-seed verify with CUPTI.
+
+1. **Models.** Configs only. The meta-llama and gemma repos are gated for us, so use the ungated mirrors listed here.
+   - `unsloth/Llama-3.1-8B-Instruct` (TP1, TP2)
+   - `unsloth/Llama-3.3-70B-Instruct` (TP2, TP4, TP8)
+   - `Qwen/Qwen2.5-7B-Instruct` (TP1, TP2)
+   - `Qwen/Qwen2.5-72B-Instruct` (TP4, TP8)
+   - `mistralai/Mistral-Small-3.1-24B-Instruct-2503` (TP1, TP2, TP4). Text model only; check whether its config nests `text_config`.
+2. **Shapes.** Local (N, K) of qkv, o, gate_up, down and lm_head.
+   - **Skip any shape already in `SM100_SKINNY_GEMM_PLANS`** on branch `kopt/sm100-skinny-qwen3-moe`. The manager will post that list as `results/manager/W11_existing_shapes.json`.
+   - Qwen2.5 has a qkv bias. Note whether the skinny path accepts a bias (check `use_skinny_gemm` / the linear method). If it does not, skip the qkv shapes of Qwen2.5.
+3. **Sweep** M ∈ {1, 2, 4, 8}. Keep ≥ 10%.
+4. **Verify** as in W9: 4 seeds, CUPTI, CUDA graph, cold L2. Keep entries whose median is ≥ 1.10×. Record the error vs an fp32 reference for both cuBLAS and the plan.
+5. **Deliverable:** `results/worker/W11/SUMMARY.md`, plus `proposed.json` and `verified.json` in the same format as the manager's `w9/verified.json`: `{"N,K": {"M": "SkinnyGemmConfig(...)"}}`.
+   - Post after the sweep and again after the verify.
+   - Do not edit vLLM files. The manager writes the table and runs the E2E.
+
+### Manager side, in parallel
+- Profile decode after Q3D+Q3M (Qwen3-32B TP1 and Qwen3-30B-A3B TP1, c1/c8) to find the next non-GEMM hotspot.
+- Download the Llama-3.1-8B and Qwen2.5-7B weights for W11's E2E.
