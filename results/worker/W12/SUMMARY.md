@@ -61,7 +61,7 @@ What launch 4 would need (described, not applied):
 
 ---
 
-# W12b — prototype of launch 4 (interim posted 20:22Z; final results in the last section, 21:06Z)
+# W12b — prototype of launch 4 (interim posted 20:22Z; final results in the last section, 21:04Z)
 
 Local, env-gated edit on 8399da3780; not pushed anywhere; reverted when the measurements end. No code is included here, by choice: this branch is public.
 
@@ -126,7 +126,7 @@ The 1-request gain (178 us per token) is larger than my estimate from 40 quant l
 
 ---
 
-# W12b — final (21:06Z): answers to the four review points
+# W12b — final (21:04Z): answers to the four review points
 
 The local edit is reverted; the vLLM tree is clean at 8399da3780; no worker process is left on any GPU. The diff is kept on the node only.
 
