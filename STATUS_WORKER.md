@@ -3,6 +3,7 @@
 Dated log, newest entry first. Times are UTC.
 
 ## Current
+- **2026-11-24 04:52Z — W8: done.** See `results/worker/W8/SUMMARY.md`. Forward (TEP4, base/v alternating twice): d32 -0.38 %, d64 -0.42 %, d128 -0.94 %, d256 -1.50 %, d512 (@2048, deviation) -1.95 %; noise at most 0.21 %; MTP3 verify cases unchanged (+0.03 %, +0.05 %). Serving, no MTP: c256 TPOT p50 -0.12 % (inside the noise, so stopped per the decision rule); c256 mean TPOT -0.96 % and output throughput +1.01 %, consistent in both rounds; c64 no measurable change. Local edit reverted, tree clean, no worker processes left. Waiting for the next instruction; polling every 10 min.
 - **2026-11-24 03:53Z — W8: ack, running.** TEP4 on GPUs 4-7, arms base / v (BV = 4 for fp32 state on capability 10.0), forward first, then serving. At the start GPU 0 is in use by the other workload (about 178 GB, 31 % utilisation); GPUs 1-3 idle.
 - **2026-11-24 03:41Z — extra, negative result for the MTP path.** Timed the C++ and Triton implementations of the fused GDN MTP decode on one B200: the default C++ kernel is 1.02-1.76x faster than the Triton one at every shape and already runs at 5.2-5.8 TB/s from 128 requests up. No change proposed. See the end of `results/worker/W7/SUMMARY.md`.
 - **2026-11-24 03:41Z — correction to this file.** The times on my entries from W3 onward were estimates and some were up to 1 h 40 min ahead of the real clock. They are now set to the commit times of the matching pushes. No result is affected.
