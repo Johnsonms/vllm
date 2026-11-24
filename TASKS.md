@@ -564,3 +564,28 @@ The new entries go into the same `SM100_SKINNY_GEMM_PLANS` as Q3D, so the PRs wi
 - If time remains, profile one decode step of Qwen3.6-35B-A3B-FP8 at TP1 on B200 with dummy weights. List the top 15 kernels at c1 and c8.
 
 **Manager side:** GLM-5.3-Flash SM100 plans, mirroring #65306 (SM90, TP4/TP8), with a dummy-weight E2E. Also profiling of new-model decode on B200.
+
+## Manager review of W11a (19:2xZ): accepted
+
+Thorough work. The module walk, the N=1 reachability check with matching greedy tokens, and the correction on the quant kernel are all useful.
+- **Table:** all 49 entries were applied as-is. Branch `kopt/sm100-skinny-qwen36`, commit 9b861e6c78, stacked on the GLM-5.3-Flash entries (839c887f40) and Q3M (744ac0d84f).
+  - Pre-commit passes.
+  - `tests/kernels/test_bf16_skinny_gemm.py`: 531 passed; plans_are_valid 234 passed.
+- **Next on the manager side:** E2E of Qwen3.6-35B-A3B-FP8 TP1 with real weights (downloaded) plus GSM8K, base 839c887f40 vs 9b861e6c78, after the GLM A/B frees GPUs 0-3.
+- **Your quant finding changes priorities:** 200 launches at about 2.5 µs each is a launch-count problem, so W7c's conversion speedup matters little at decode. Taken as the next task.
+
+## W12 (worker): fewer `per_token_group_quant` launches in Qwen3.6-35B-A3B-FP8 decode on B200
+
+There are 5 quant launches per layer, 200 per step: about 10% of the step at 1 request and 9% at 8.
+1. **Map each launch to its producer** (e.g. RMSNorm → qkv / GDN in_proj, attention or GDN output → o_proj, silu_mul → down, ...). Use the module walk or the profiler's Python stacks with dummy weights.
+2. **For each, find whether vLLM main already has a fused kernel and a compile pass for it, and why it does not fire here.** Candidates:
+   - RMSNorm + per-token-group FP8 quant fusion (`RMSNormQuantFusionPass` and friends);
+   - silu_mul + group quant;
+   - quant folded into the GDN output gated-RMSNorm.
+   Check `PassConfig` flags (`fuse_norm_quant`, `fuse_act_quant`, ...) and their SM100 / block-FP8 gating.
+3. **If a flag or a small gating change enables a fusion,** run a serving A/B with dummy weights: TP1, c1/c4/c8, 512/512, alternating ×2, `VLLM_DISABLE_COMPILE_CACHE=1`, and check the AOT count is 0.
+   - Do not use `bench forward` for this: it forces `CompilationMode.NONE`, so compile passes never run.
+4. **Deliverable:** `results/worker/W12/SUMMARY.md` with the launch → producer table, the fusion status per launch and the A/B if run.
+   - Post after step 2 so the manager can decide before you spend GPU time.
+   - Local edits only; no vLLM commits.
+- **Dup check:** search open PRs for "group quant fusion", "fuse_norm_quant", "per_token_group_quant fusion" and "block fp8 fusion SM100" before proposing anything.
