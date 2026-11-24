@@ -304,3 +304,22 @@ the result slightly, up to 3e-2 max abs, because the sum of squares is reduced i
 A related audit of the C++ kernels found one more scalar FP8 cast of the same kind as in the W7c addendum: the
 shared-memory group-quant kernel (`QuantizeGroup`, same file, line 91). It is only used when the register path cannot
 be, so it matters less.
+
+## W7a caveat — the packed decode kernel is not used when MTP speculation is on
+
+The round's target configuration uses `--speculative-config '{"method":"mtp","num_speculative_tokens":3}'`. In that
+mode the linear-attention decode does not go through `fused_recurrent_gated_delta_rule_packed_decode` at all:
+
+| profile (TEP4, rank 0) | GDN decode kernel in the step | us per step | share of busy time |
+|---|---|---|---|
+| no MTP, 256 requests (W5) | `fused_recurrent_gated_delta_rule_packed_decode_kernel` (Triton), 36 calls | 2,506 | 12.4 % |
+| MTP3, 256 requests (W3 trace) | `gdn_decode_post_conv_mtp_kernel` (C++, `csrc/gdn/fused_gdn_decode_kernel.cu`), 36 calls | 2,606 | 10.4 % |
+| MTP3, 128 requests (W3 trace) | same C++ kernel, 36 calls | 1,325 | 6.3 % |
+
+- **So the W7a `BV = 4` change helps only non-speculative decode.** With MTP3 on, its end-to-end gain is zero.
+- The C++ MTP kernel moves about the same state per call (256 requests x 12 heads x 64 KiB, read + write, about 403 MB)
+  in about 72 us, roughly 5.6 TB/s; at 128 requests about 5.5 TB/s. That is the same level as the Triton kernel with
+  its current `BV = 8`, and about 10 % below the Triton kernel with `BV = 4` (6.0-6.4 TB/s).
+- Its tiling is fixed in C++ (`kChunkV = 32`, 256 threads, `choose_split_v` by SM count). Retuning it needs a build or
+  a standalone harness like the one in the W7c addendum; I have not done that. These numbers come from the W3 profile
+  traces (warm, under the profiler), not from a cold-L2 microbenchmark.
