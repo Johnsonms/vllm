@@ -547,3 +547,20 @@ Same method as W9: tool `results/manager/tools/sweep_skinny_generic.py`, then a 
 ### Manager side, in parallel
 - Profile decode after Q3D+Q3M (Qwen3-32B TP1 and Qwen3-30B-A3B TP1, c1/c8) to find the next non-GEMM hotspot.
 - Download the Llama-3.1-8B and Qwen2.5-7B weights for W11's E2E.
+
+### W11 REVISED (owner, 11:25Z): focus on newer models. Drop Llama-3.x, Qwen2.5 and Mistral-Small.
+The SM90 PRs below show where B200 has no plans yet. For each, mirror the SM90 shape list on SM100.
+The new entries go into the same `SM100_SKINNY_GEMM_PLANS` as Q3D, so the PRs will stack on it.
+
+**W11a (worker): Qwen3.5 / Qwen3.6 MoE.** Mirrors #64982.
+- **Models:** `Qwen/Qwen3.6-35B-A3B-FP8` (TP1, TP2, TP4) and `Qwen/Qwen3.5-397B-A17B-FP8` (TP4, TP8). Configs are reachable; the architecture is `Qwen3_5MoeForConditionalGeneration`.
+- **Shapes:**
+  - The BF16 layers that stay unquantized in the FP8 checkpoint: the GDN fused b/a projection, the shared-expert gate, the router and the LM head.
+  - List the layers a module walk reports as unquantized. Load with `--load-format dummy` and print `UnquantizedLinearMethod` layers with their local (N, K).
+- **Check how #64982 handles N=1.** The `(1, 2048)` shared-expert gate needs an eager fast path in `layers/utils.py`.
+  - Report whether the SM100 path reaches the skinny kernel for N=1 without that change.
+  - If it does not, keep N=1 out of scope and say so.
+- **Sweep, verify and deliverable as in W9:** M ∈ {1, 2, 4, 8}, ≥ 10%, 4-seed CUPTI verify, and `results/worker/W11/{SUMMARY.md, proposed.json, verified.json}`.
+- If time remains, profile one decode step of Qwen3.6-35B-A3B-FP8 at TP1 on B200 with dummy weights. List the top 15 kernels at c1 and c8.
+
+**Manager side:** GLM-5.3-Flash SM100 plans, mirroring #65306 (SM90, TP4/TP8), with a dummy-weight E2E. Also profiling of new-model decode on B200.
