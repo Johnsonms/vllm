@@ -151,3 +151,68 @@ At N ≤ 64 the Triton fallback is faster still, but it is not bit-compatible, s
   Triton experts, not the TRT-LLM path used here.
 - I found no open PR that changes the launch geometry of the fp32-scale register kernel. The TRT-LLM experts code has a
   `TODO: fuse into the quant kernel` comment, so a fused path may be planned.
+
+## W7b — the copy after the per-step logits all-gather
+
+**Answer: the change is already proposed upstream. #65436 (open) "Gather vocab-parallel logits into their final layout
+in one pass" does exactly this, but only for models that opt in (MiniMax-M3 / M3.1). Qwen3.8 (`Qwen4Exp`) is not opted
+in. The remaining work is to opt it in once #65436 lands. My single-GPU numbers put the saving at about 150 us per
+step at 256 requests (about 0.8 % of a TEP4 decode step) and about 25 us at 64.**
+
+### Call site
+
+`qwen3_vl.py::compute_logits` -> `models/qwen4_exp/nvidia/model.py::compute_logits` -> `LogitsProcessor.forward` ->
+`_get_logits` -> `_gather_logits` (`model_executor/layers/logits_processor.py`, around line 122) ->
+`tensor_model_parallel_all_gather(logits)` with the default `dim=-1` -> `CudaCommunicator.all_gather`.
+
+- What is gathered: the vocab-parallel LM head's logits, one `[rows, 62,080]` bf16 shard per rank
+  (vocab 248,320 / TP4), once per step.
+- NCCL fills a rank-major buffer `[4 x rows, 62,080]`. Then `reshape(4, rows, 62080).movedim(0, 1).reshape(rows, 248320)`
+  has to copy, because the target is vocab-major. That is the `aten::copy_` seen in W5.
+- **The next consumer copies everything again:** `v1/worker/gpu/sample/sampler.py::apply_sampling_params` does
+  `torch.empty_like(logits, dtype=torch.float32).copy_(logits)` whenever any request needs logits processing. In W5
+  this was the 175 us `unrolled_elementwise_kernel` at 256 requests.
+
+So each sampled step moves the logits three times: gather, layout copy, FP32 copy.
+
+### Cost of the copies (one B200, real shapes, 4 shards x rows x 62,080 bf16; microseconds)
+
+| rows | bf16 MB | layout copy (today) | FP32 cast (today) | both, as today | one fused pass (layout + cast) | saving | layout only, as 4 slice copies |
+|---|---|---|---|---|---|---|---|
+| 1 | 0.5 | 2.1 | 4.7 | 5.1 | 4.7 | 0.4 | 8.3 |
+| 16 | 7.6 | 16.7 | 14.3 | 26.5 | 16.4 | 10 | 19.7 |
+| 64 | 30.3 | 49.3 | 46.2 | 83.2 | 58.4 | 25 | 49.1 |
+| 128 | 60.6 | 102 | 89 | 189 | 113 | 77 | 86 |
+| 256 | 121 | 198 | 175 | 371 | 223 | **148** | 156 |
+| 512 | 243 | 389 | 346 | 734 | 444 | 290 | 299 |
+
+- Cold-L2 numbers. In the W5 model profile the layout copy was 153 us at 256 rows and 33 us at 64, and the cast 175 us
+  at 256, so the in-model layout copy is somewhat cheaper than here and the saving is at most what the table shows.
+- "One fused pass" is `out_fp32.view(rows, 4, 62080).copy_(gathered.view(4, rows, 62080).movedim(0, 1))`: plain PyTorch,
+  bit-identical to today's two steps.
+- When no request needs logits processing the sampler skips the FP32 copy. Then only the layout copy remains, and doing
+  it as four slice copies is about 20 % cheaper from 128 rows up (156 vs 198 us at 256), slower below 64.
+- Two runs agree within 3 %.
+
+### What to change (local sketch only, not applied)
+
+Either of these, in order of preference:
+
+1. **Wait for #65436 and opt `Qwen4Exp` in.** It gathers along rows (no copy), then writes the final `[rows, vocab]`
+   layout with one Triton kernel that also casts to the dtype the sampler asks for through the forward context. That
+   removes both of today's extra passes where the sampler wants FP32.
+2. **If #65436 stalls:** a small local version for the default path. Let `_gather_logits` return the rank-major buffer
+   plus its shape, and let the sampler's existing FP32 copy do the layout change in the same pass (the fused expression
+   above). No new kernel; saves the layout copy when the FP32 copy happens anyway.
+
+### Estimated saving at TEP4 (not measured end to end)
+
+- 256 requests: up to 148 us of a 17.0 ms step, about 0.8 %.
+- 64 requests: about 25 us of a 10.9 ms step, about 0.2 %.
+- Larger with MTP verification, where more rows go through the head per step; not measured.
+
+### Duplicate search
+
+- **#65436 (open, not draft, last updated 2026-11-18)**: the same idea, opt-in, MiniMax-M3 only. This is the duplicate.
+- **#66639 (open, draft)** changes what the sampler does after the logits exist; it does not remove these copies.
+- **#63890 (merged)** uses AITER's all-gather on ROCm; unrelated to CUDA.

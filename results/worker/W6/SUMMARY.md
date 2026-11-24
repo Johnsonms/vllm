@@ -96,3 +96,17 @@ In `out.json`, `eager_repeat.relative_rms` is 0 for `t2049` and about 0.004 for 
 - Measure tie counts with real weights. If ties are rare there, this is a benchmark artifact of dummy weights.
 - If reproducibility matters for A/B quality runs, a stable tie-break (lowest index wins) in the top-k would fix it.
 - Not tested at TP1, so whether tensor parallelism plays any part is unknown; the first divergent module suggests not.
+
+## Addendum (2026-11-24): two follow-up runs the worker added on its own
+
+Same command, cases 2,049 / 2,056 / 4,096 / 8,192 tokens, TEP4, dummy weights.
+
+| variant | 2,049 | 2,056 | 4,096 | 8,192 |
+|---|---|---|---|---|
+| `--kernel-config.sparse_indexer_topk_backend persistent` (no code change), eager repeat rel. RMS | 0 | 0 | 0.0089 | 0.0206 |
+| default `gvr_2` with the selected indices sorted after the call (local edit, reverted), eager repeat rel. RMS | 0 | 0 (graph replays still differ) | 0.0216 | 0.0235 |
+
+- **The instability is not specific to `gvr_2`:** the `persistent` backend is also not reproducible at 4,096 and 8,192
+  tokens, though it is at 2,056.
+- **Output order is not the cause:** with a fixed order the difference is unchanged at 4,096 and 8,192 tokens. The
+  tie-broken sets are what matters.
