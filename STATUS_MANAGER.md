@@ -21,3 +21,9 @@
 - W2 follow-up done on the manager node with real Qwen3-32B weights. The TP8 fusion cap 1 -> 16 MB gives decode TPOT -9.6/-6.5/-5.9%
   at c128/192/256, and GSM8K is unchanged. It is now local PR candidate T (raise the cap from 1 to 16 MB).
 - FlashInfer 0.7.6rc1 vs 0.7.4 (Qwen3.8 TEP4 E2E): 8k-prefill TTFT -8.4/-9.2%, and GSM8K is unchanged (flashinfer #9329).
+
+## 01:43Z — round closed
+- W6 accepted: the prefill non-determinism comes from FlashInfer `gvr_2` top-k tie-break and output order in the QSA
+  indexer (first divergent module `layers.3.self_attn.indexer`). The selection is always a valid top-k. It starts at
+  2,056 tokens (block top-k 512), and dummy weights probably inflate the tie counts. This is not a wrong-data bug.
+- Worker stood down. Channel idle. No further tasks.
