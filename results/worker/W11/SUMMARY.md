@@ -1,7 +1,7 @@
 # W11a — SM100 generic skinny plans for Qwen3.5 / Qwen3.6 MoE (FP8 checkpoints)
 
 Node: 8x B200, vLLM main @ 8399da3780 (precompiled), no vLLM file edited.
-Status: **done (sweep 18:40Z, verify and checks 18:50Z).** E2E not run here; that is the manager's part.
+Status: **done (sweep 18:37Z, verify and checks 18:45Z).** E2E not run here; that is the manager's part.
 
 ## Result
 - **49 entries on 14 shapes, all pass the verify (median >= 1.10x in 4 seeds).** `verified.json` equals `proposed.json`.
@@ -200,7 +200,7 @@ Raw: `verify.jsonl`; per-cell summary: `verify_summary.json`.
 - The optional decode profile is in section 7.
 - No expert-parallel walk for the 397B model. The shapes above do not depend on it as far as the code shows (gate and router are replicated), but that was not run.
 
-## 7. Optional: decode profile of Qwen3.6-35B-A3B-FP8, TP1, dummy weights (added 18:58Z)
+## 7. Optional: decode profile of Qwen3.6-35B-A3B-FP8, TP1, dummy weights (added 18:47Z)
 
 `vllm bench forward --profile-dir`, cases `1*1@1024` and `8*1@1024`, `--language-model-only`, 3 profiled replays, zipf routing.
 Kernel lists: `profile_d1.kernels.json`, `profile_d8.kernels.json`. Each step has 1,169 GPU activities.
