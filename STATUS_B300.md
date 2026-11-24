@@ -56,3 +56,10 @@ Full report: `results/b300/B2/SUMMARY.md` (+ `verified.json`, `verify_summary.js
 ## B3 — progress 2026-11-24
 - TP1 set 1: a run-counter bug in my script (loop variable shared with the cleanup function) made round 4 (pr) overwrite round 2 (pr). Kept: base r1, base r3, pr r4. All three code checks are as expected, AOT = 0. GSM8K: 0.963 / 0.962 (base), 0.961 (pr).
 - Fixed the script and rerunning a clean base/pr/base/pr set 2 now. Set 1 will be reported as supplementary.
+
+## B3 — TP1 done 2026-11-24 (set 2, clean A/B/A/B)
+- Median TPOT, mean of 2 runs per arm, base → pr: c1 3.000 → 2.928 (**−2.4%**), c2 3.339 → 3.231 (**−3.2%**), c4 4.182 → 3.703 (**−11.5%**), c8 4.762 → 4.584 (**−3.7%**).
+- Per-run spread is ≤ 0.03 ms within each arm. Set 1 (3 surviving runs) agrees: −2.3 / −3.3 / −10.8 / −4.5%.
+- GSM8K: base 0.964 / 0.958, pr 0.964 / 0.964. Code checks OK in every arm; AOT = 0.
+- c4 stands out: base c2→c4 adds 0.84 ms vs 0.58 ms c4→c8. That suggests a slow cuBLAS choice at M=4 on SM103; not profiled yet.
+- Running the optional TP2 A/B (c1, c8) now.
