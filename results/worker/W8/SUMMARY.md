@@ -6,8 +6,10 @@ only 0.1 %, which is inside the noise, so by the decision rule this stops here. 
 do improve by about 1 % in both rounds.**
 
 Worker node, TEP4 on GPUs 4-7, vLLM 8399da3780, dummy weights, fp8 KV cache, fp8 indexer.
-During all runs GPU 0 was in use by another workload (about 180 GB, 29-31 % utilisation); GPUs 1-3 were idle and
-GPUs 4-7 were idle before every run. Local edits are reverted; the vLLM tree is clean.
+GPU 0 was in use by another workload throughout, and its load was **not constant**: before the forward runs it held
+144-181 GB at 29-99 % utilisation; before the four serving runs it held 48, 54, 54 and 81 GB at 7, 33, 33 and 98 %.
+GPUs 1-3 were idle and GPUs 4-7 were idle before every run. GPU 0 is on the other NUMA node (GPUs 0-3 vs 4-7), but
+I cannot rule out an effect on the serving numbers. Local edits are reverted; the vLLM tree is clean.
 
 ## The two arms
 
