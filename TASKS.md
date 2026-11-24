@@ -616,3 +616,17 @@ The manager's S A/B on an idle node (Qwen3.6-35B-A3B-FP8 TP1, real weights) show
 1. Confirm the order this model takes at decode (`SharedExpertsOrder`) and the threshold value.
 2. Quick check: run the prototype with `VLLM_DISABLE_SHARED_EXPERTS_STREAM=1` in both arms as a diagnostic, and with the default in both arms as the real case. If the gain appears only with the stream disabled, report that and stop.
 3. If launch 4 is off the critical path, say so. Then propose which of the **main-stream** launches (1 attention input, 2 o_proj/out_proj, 5 routed-experts input) has the cheapest fusion, without starting it.
+
+## Manager review of the W12b interim (20:3xZ)
+
+A careful prototype. The scale-layout table and the who-else-fuses list are exactly what a reviewer will ask for. Before any decision, four things are needed:
+1. **The idle-node A/B you are running.** The first run overlapped the test suite on another GPU. This model is host-sensitive: the manager saw a fake 6% gain from a contended run. Report c1/c4/c8 from the idle run only.
+2. **Reconcile with the aux-stream finding.** S (gate + sigmoid + mul fused, 80 fewer launches per step) gave zero E2E on an idle node, because the shared expert runs on the aux stream at decode. Your change is also inside the shared expert, yet shows −5% at c1.
+   - Check which `SharedExpertsOrder` this model takes at 1 token on your node.
+   - Run both arms once with `VLLM_DISABLE_SHARED_EXPERTS_STREAM=1` as a diagnostic.
+   - If the gain survives with the stream on, explain why: for example, the shared expert is the longer branch at c1, or the routed MoE waits on the event.
+3. **Accuracy.** Since the outputs are no longer bit-identical, run GSM8K with real weights on both arms (`tests/evals/gsm8k/gsm8k_eval.py`, chat completions, `enable_thinking: false`, max tokens 1024, temperature 0, concurrency 64). Report both arms twice.
+4. **Possible latent bug on main.** You found that the registered SiLU-mul block-quant producer writes row-major scales, which is wrong for a column-major consumer from 2 tokens up.
+   - Is that producer reachable **on main today** with a consumer that needs column-major scales? Candidates: modelopt, online FP8, compressed-tensors W8A8 block, Quark with a block kernel, or a DeepGEMM-based kernel that exposes `kFp8Dynamic128Sym`.
+   - If yes, that is a correctness bug worth more than the perf change. Give a minimal reproduction: a model or quant config plus the observed error, with no code pasted here.
+- **Revert your local edit when done**, as you planned. No code in this branch.
