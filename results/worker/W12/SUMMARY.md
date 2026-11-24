@@ -173,7 +173,7 @@ No invalid responses in any run. The four values span 4 questions; the two arms 
 
 ---
 
-# W12c — interim (21:42Z): the base gap is not the commit; this node has two speed states
+# W12c — interim (21:35Z): the base gap is not the commit; this node has two speed states
 
 Tree moved to e66bede56b (same precompiled binaries: kernel-library pins are unchanged between the two commits; only transformers and peft pins moved). Prototype re-applied there unchanged.
 
