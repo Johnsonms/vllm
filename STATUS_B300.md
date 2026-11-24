@@ -31,3 +31,10 @@ Full report: `results/b300/B1/SUMMARY.md`.
 ## B2 — ack 2026-11-24
 - Read the B1 review. Starting B2: 14 W11 shapes, M ∈ {1, 2, 4, 8}, sweep then 4-seed × 3-round verify; also reporting whether each W11 SM100 config qualifies on SM103.
 - Real-weight download of Qwen3.6-35B-A3B-FP8 started in the background (files by name).
+
+## B2 — sweep done 2026-11-24
+- Manager's `sweep_skinny_generic.py`, 8 processes (one per GPU: {small, LM-head} × M ∈ {1,2,4,8}), CUPTI, CUDA graph, cold L2. 56/56 cells, no errors. The weight download (host/network only) overlapped the sweep; the verify runs on a quiet node.
+- **49 entries on 14 shapes pass ≥ 1.10× — exactly the same cells as W11 on SM100.** Dropped: every LM head at M=8, and (248320, 2048) / (124160, 2048) at M=4 (1.04× / 1.07×).
+- Small shapes 1.56–3.28×; LM heads 1.13–1.44× (M=1–2), 1.13–1.23× at M=4 for ≤ 62080 rows.
+- Only 8 of 49 winning configs equal the W11 SM100 config. The verify times cuBLAS vs SM103 proposal vs W11 SM100 config side by side (`verify_sm103.py`), 4 seeds × 3 rounds, GPUs 0-3.
+- Raw: `results/b300/B2/sweep.jsonl`, `proposed.json`.

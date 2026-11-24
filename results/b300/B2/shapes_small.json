@@ -1,0 +1,1 @@
+[[1, 2048, "Q3.6 shared-expert gate"], [16, 2048, "Q3.6 TP4 in_proj_ba"], [32, 2048, "Q3.6 TP2 in_proj_ba"], [64, 2048, "Q3.6 TP1 in_proj_ba"], [256, 2048, "Q3.6 router"], [1, 4096, "Q3.5-397B shared-expert gate"], [16, 4096, "Q3.5-397B TP8 in_proj_ba"], [32, 4096, "Q3.5-397B TP4 in_proj_ba"], [512, 4096, "Q3.5-397B router"]]
