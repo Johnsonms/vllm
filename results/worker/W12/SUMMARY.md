@@ -61,7 +61,7 @@ What launch 4 would need (described, not applied):
 
 ---
 
-# W12b — prototype of launch 4 (interim, 20:25Z; second A/B run in progress)
+# W12b — prototype of launch 4 (interim posted 20:22Z; final results in the last section, 21:06Z)
 
 Local, env-gated edit on 8399da3780; not pushed anywhere; reverted when the measurements end. No code is included here, by choice: this branch is public.
 
@@ -122,3 +122,51 @@ TP1 server, language model only, max length 4096; random 512/512, ignore-eos; or
 | 8 | 5.183 / 4.923 | 4.977 / 4.988 | not settled (-1.4 % on means; +1.2 % against base r2 alone) |
 
 The 1-request gain (178 us per token) is larger than my estimate from 40 quant launches (about 96 us): the fused kernel also replaces the separate activation kernel, and two output allocations per layer go away. I did not break this down further.
+
+
+---
+
+# W12b — final (21:06Z): answers to the four review points
+
+The local edit is reverted; the vLLM tree is clean at 8399da3780; no worker process is left on any GPU. The diff is kept on the node only.
+
+## 1. Idle-node A/B (real weights, TP1, 512/512, base / prototype alternating twice, nothing else running)
+
+| conc. | TPOT p50 base r1 / r2 (ms) | prototype r1 / r2 | change of the means | output tok/s base -> prototype |
+|---|---|---|---|---|
+| 1 | 3.539 / 3.545 | 3.363 / 3.363 | **-5.05 %** | 277.7 -> 292.3 |
+| 4 | 4.472 / 4.474 | 4.376 / 4.370 | **-2.24 %** | 875.8 -> 896.7 |
+| 8 | 5.174 / 5.165 | 4.966 / 4.990 | **-3.70 %** | 1506.6 -> 1568.7 |
+
+- AOT-load count 0 in all four logs. Spread between the two rounds of an arm: at most 0.5 %.
+- 1 and 4 requests agree with the first (contended) run to 0.1 point. At 8 requests the first run's base r2 (4.923 ms) was the outlier; the idle run settles it.
+- TTFT p50 unchanged within its noise (31-32 ms at 1 request, 51-54 at 4, 66-69 at 8).
+
+## 2. Reconciling with the aux-stream finding
+- **Order taken here:** `MULTI_STREAM_OVERLAPPED` at 1, 2, 4, 8 and 16 tokens (threshold 256), `NO_OVERLAP` at 512 and above. Same as the manager saw.
+- **Diagnostic with `VLLM_DISABLE_SHARED_EXPERTS_STREAM=1`** (one round per arm, idle node): TPOT p50 base -> prototype 4.328 -> 4.240 ms at 1 request (**-2.0 %**), 5.384 -> 5.264 at 4 (-2.2 %), 5.988 -> 5.884 at 8 (-1.7 %). So the gain exists without the stream and is about 88 us per token at 1 request, i.e. 2.2 us for each of the 40 removed launches. (The stream itself is worth 18 % at 1 request: 4.328 vs 3.540 ms.)
+- **Why the gain survives, and is larger, with the stream on: the shared expert is the longer branch at 1 token.** In the W11 decode trace of the unmodified code (1 request, 3 replays), in every one of the 40 layers the last shared-expert kernel on the aux stream (the gate multiply) ends after the last routed-experts kernel on the main stream (finalize): median 11.1 us later, range 8.4-13.5 us. The main stream waits for it. Anything removed from the shared branch therefore shortens the step until that 11 us lag is used up.
+  - Caveat: the lag is measured under the profiler, which inflates this step from 3.39 to 4.64 ms.
+  - I cannot explain from here why the manager's S (three launches less in the same branch) showed nothing. By this trace it should help too. Two things worth checking on the manager node: whether the same lag exists in a trace there, and whether the Triton replacement is slower per call than the three kernels it removes.
+  - Not explained: why the saving is 4.4 us per layer with the stream but 2.2 us without. A guess, not tested: small kernels on two overlapping streams each run slower than alone.
+
+## 3. Accuracy: GSM8K, real weights
+`gsm8k_eval.py`, chat completions, `enable_thinking: false`, max tokens 1024, temperature 0, concurrency 64, 1,319 questions, 5 shots; order base, prototype, prototype, base.
+
+| arm | run 1 | run 2 |
+|---|---|---|
+| base | 0.9598 | 0.9606 |
+| prototype | 0.9613 | 0.9583 |
+
+No invalid responses in any run. The four values span 4 questions; the two arms are not distinguishable. (Runs of one arm differ because the batch composition differs at concurrency 64.)
+
+## 4. Is the row-major producer reachable on main today? **No.**
+- On main at 8399da3780 no linear kernel returns the dynamic group-128 FP8 key from `input_quant_key()`. The keys returned are static-tensor FP8, per-token FP8, MXFP8 and NVFP4 only (checked every `input_quant_key` implementation under `kernels/linear`).
+- `expose_input_quant_key` is the only place that sets the layer key, and it copies the kernel's answer.
+- So the `(SiluAndMul, group-128)` registry entry has no consumer among linear layers, on any of modelopt, online FP8, compressed-tensors W8A8 block, Quark or the DeepGEMM-based kernels. **It is not a live bug; it is a trap for whoever adds the first consumer**, because the cutlass block kernel reads scales column-major and the entry writes them row-major. No reproduction exists on main; the layout table in the interim section is from calling the two ops directly.
+- The compile-path pattern for the same op is a separate code path; I did not check which layout it passes.
+
+## Summary for the decision
+- Gain: -5.1 % / -2.2 % / -3.7 % TPOT p50 at 1 / 4 / 8 requests on Qwen3.6-35B-A3B-FP8 TP1, real weights, idle node.
+- Cost: not bit-identical (greedy tokens differ from base; GSM8K unchanged); five shared files; the same fusion turns on for other SiLU-and-mul models that use this kernel; the producer's scale layout must be fixed in the same change.
+- Not tested: TP > 1, the 397B model, prefill-heavy load, any model other than Qwen3.6-35B.
