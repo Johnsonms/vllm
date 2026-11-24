@@ -58,3 +58,67 @@ What launch 4 would need (described, not applied):
 1. Launch 4 only (kernel input key + `apply_weights`): smallest, about 30 lines in two shared files, no new kernel. I can prototype it locally and run the serving A/B.
 2. Launch 4 plus launch 1 via a group-128 mode in the model-local Triton norm-quant kernel: larger, a new kernel mode.
 3. Stop here.
+
+---
+
+# W12b — prototype of launch 4 (interim, 20:25Z; second A/B run in progress)
+
+Local, env-gated edit on 8399da3780; not pushed anywhere; reverted when the measurements end. No code is included here, by choice: this branch is public.
+
+## Result so far
+- **It works and it is faster: TPOT p50 -5.0 % at 1 request, -2.3 % at 4** (real weights, TP1, 512/512, base/prototype alternating twice; run-to-run spread under 0.1 %). 8 requests is not settled: one base round was 5 % off; a second full A/B on an idle node is running.
+- Quant launches per step 200 -> 160; the fused SiLU-mul + block-quant kernel runs 40 times instead of the activation kernel plus the quant kernel.
+- **Greedy tokens are NOT equal to the base with real weights.** The fused kernel quantizes the fp32 product; the unfused path rounds it to BF16 first. This is a property of the existing fused kernel, not of the wiring.
+- **The key change is not local to Qwen3.6.** The same linear kernel serves other quantization methods that already expose input keys, so their SiLU-mul -> down-projection paths would start fusing too (list below).
+- **The registered producer has the wrong scale layout for this kernel.** Row-major scales give wrong GEMM output at 2 tokens and more; column-major is required.
+
+## The edit, in words (5 files, 48 lines added)
+1. The cutlass block-FP8 linear kernel reports the dynamic group-128 FP8 key as its accepted input key when its activation key is that and it pads no tokens, and declares that it wants column-major scales.
+2. The shared block-scaled `apply_weights` accepts a pre-quantized activation and then skips its own input quant.
+3. The `fp8` linear method exposes its kernel's input key on the layer after weight processing. **On main this method never exposes a key**, unlike the modelopt, online-FP8, compressed-tensors and Quark methods, so for `quant_method: fp8` checkpoints no manual fusion can fire with any kernel.
+4. The expose helper also stores the kernel's scale layout on the layer.
+5. The SiLU-mul block-quant producer allocates transposed scales and sets the op's transposed flag when the consumer asks for column-major.
+
+## Scale layout (kernel ops called directly, N = 2048, K = 512)
+GEMM output of the fused producer against the unfused path, max abs difference (outputs are about 0.3-0.5 in magnitude):
+
+| tokens | scales column-major | scales row-major (what the registered producer writes today) |
+|---|---|---|
+| 1 | 0.0027 | 0.0027 |
+| 2 | 0.0056 | **0.150** |
+| 4 | 0.0039 | **0.225** |
+| 8 | 0.0053 | **0.152** |
+| 64 | 0.0082 | **0.310** |
+| 2048 | 0.0117 | **0.796** |
+
+So enabling the key without fixing the producer's layout would be silently wrong from 2 tokens up.
+
+## Correctness
+- **Layer level** (real row-parallel linear + `fp8` method + the fusion helper, synthetic block-FP8 weight, fp32 reference): the fusion fires at 1, 2, 4, 8, 64 and 2,048 tokens with column-major scales. Relative RMS error against fp32: unfused 2.15-2.41 %, fused 2.16-2.41 %, equal within 0.02 points at every size. Max relative error 2.0-2.7 % in both.
+- **Not bit-identical:** 2.2-2.7 % of the quantized bytes differ and the group scales differ by up to about 1 % (same test as the layout table).
+- **Greedy tokens, real weights** (4 chat prompts, 256 tokens, once one at a time and once as a batch of 4):
+  - base run twice: identical in all 8 cases.
+  - base vs prototype: different in all 8; first differing token at 48, 13, 20, 5 (single) and 0, 103, 20, 24 (batch).
+  - base single vs base batch of 4, same prompts: first differing token at 48, 13, 91, 5. Three of the four positions are the same as base vs prototype, so those are near-ties that any numeric change flips; the base output already depends on batch composition.
+  - Both arms give coherent text of the same kind. No quality benchmark was run.
+- **Dummy weights:** tokens also differ, as expected with random logits; not informative.
+- **Existing tests** (manual SiLU-mul quant fusion test, `tests/fusion`, the two block-FP8 test files, the cutlass scaled-mm test file): 813 passed, 407 failed, 675 skipped with the gate on **and** with it off. The failures I sampled are "Int8 not supported on SM100"; I compared the counts, not the full list of failing IDs. The manual-fusion and `tests/fusion` files pass. The helion test file cannot be imported here.
+
+## Who else would start fusing
+Call sites of the act-quant fusion helper whose activation is SiLU-and-mul fuse as soon as their down-projection gets this kernel with a dynamic group-128 activation:
+- the Qwen3 MoE MLP class (dense Qwen3 MLP, and the shared expert of Qwen3-Next / Qwen3.5 / Qwen3.6),
+- the Llama MLP, Nemotron-H, Pixtral (two sites), the transformers GLU fuser, the Muse Spark draft MLP.
+- With edit 1 alone this already applies to checkpoints loaded through modelopt, online FP8 and compressed-tensors W8A8, which expose keys today. Edit 3 adds `quant_method: fp8` checkpoints, and for those it also exposes the static-tensor and per-token keys of the non-block cutlass and FlashInfer kernels for the first time.
+- Not affected: the Qwen3.5 model-local norm fusions (they accept only static-tensor, per-token and NVFP4 keys). The cutlass kernel is third in the CUDA block-kernel list after the two DeepGEMM-based ones, so models that pick those are unchanged.
+- All of them would get the same non-bit-identical numerics.
+
+## Serving A/B, first run (real weights instead of dummy, since they are now on the node)
+TP1 server, language model only, max length 4096; random 512/512, ignore-eos; order base, prototype, base, prototype on one GPU; compile cache disabled, AOT-load count 0 in all four logs. The test suite above was running on another GPU during this run.
+
+| conc. | TPOT p50 base r1 / r2 (ms) | prototype r1 / r2 | change of the means |
+|---|---|---|---|
+| 1 | 3.540 / 3.542 | 3.363 / 3.363 | **-5.0 %** |
+| 4 | 4.472 / 4.470 | 4.367 / 4.368 | **-2.3 %** |
+| 8 | 5.183 / 4.923 | 4.977 / 4.988 | not settled (-1.4 % on means; +1.2 % against base r2 alone) |
+
+The 1-request gain (178 us per token) is larger than my estimate from 40 quant launches (about 96 us): the fused kernel also replaces the separate activation kernel, and two output allocations per layer go away. I did not break this down further.
