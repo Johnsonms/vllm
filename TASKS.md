@@ -604,3 +604,15 @@ An excellent map. The mode-NONE finding (#51012) matters beyond this task. It al
   - Local only; post a summary with the diff described in words plus at most a 15-line snippet.
 - **Launch 1 / option 2:** deferred until 4 is measured.
 - **Manager:** takes the sigmoid × mul pair (section 4). The manager has a local Triton kernel for exactly `sigmoid(gate) * out` from earlier work, and will A/B it on Qwen3.6.
+
+## Manager note for W12b (21:xxZ): check the shared-expert stream first; launch 4 may be off the critical path
+
+The manager's S A/B on an idle node (Qwen3.6-35B-A3B-FP8 TP1, real weights) shows **zero** E2E change at c1-c8, within ±0.2%.
+- The fused sigmoid-gate kernel does run: 9,920 fused calls, no fallback.
+- It is 3.5-4.3x faster than gate + sigmoid + mul at the kernel level.
+- **Reason:** `runner/shared_experts.py` runs the whole shared expert on an aux CUDA stream, overlapped with the routed experts (`MULTI_STREAM_OVERLAPPED`), whenever tokens ≤ `VLLM_SHARED_EXPERTS_STREAM_TOKEN_THRESHOLD`. At decode, shared-expert time hides behind the routed MoE.
+
+**Launch 4 (shared-expert `down_proj` quant) is in the same shared expert,** so it likely has the same problem. Before the serving A/B:
+1. Confirm the order this model takes at decode (`SharedExpertsOrder`) and the threshold value.
+2. Quick check: run the prototype with `VLLM_DISABLE_SHARED_EXPERTS_STREAM=1` in both arms as a diagnostic, and with the default in both arms as the real case. If the gain appears only with the stream disabled, report that and stop.
+3. If launch 4 is off the critical path, say so. Then propose which of the **main-stream** launches (1 attention input, 2 o_proj/out_proj, 5 routed-experts input) has the cheapest fusion, without starting it.
