@@ -52,3 +52,7 @@ Full report: `results/b300/B2/SUMMARY.md` (+ `verified.json`, `verify_summary.js
 
 ## B3 — ack 2026-11-24
 - Read the B2 review (shared table). Setting up arms: base = e66bede56b, pr = 81159c69d6 + local one-line (10, 3) registration (not committed anywhere). TP1 real weights, c = 1, 2, 4, 8, order base/pr/base/pr, GSM8K per arm.
+
+## B3 — progress 2026-11-24
+- TP1 set 1: a run-counter bug in my script (loop variable shared with the cleanup function) made round 4 (pr) overwrite round 2 (pr). Kept: base r1, base r3, pr r4. All three code checks are as expected, AOT = 0. GSM8K: 0.963 / 0.962 (base), 0.961 (pr).
+- Fixed the script and rerunning a clean base/pr/base/pr set 2 now. Set 1 will be reported as supplementary.
