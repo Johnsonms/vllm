@@ -323,3 +323,34 @@ mode the linear-attention decode does not go through `fused_recurrent_gated_delt
 - Its tiling is fixed in C++ (`kChunkV = 32`, 256 threads, `choose_split_v` by SM count). Retuning it needs a build or
   a standalone harness like the one in the W7c addendum; I have not done that. These numbers come from the W3 profile
   traces (warm, under the profiler), not from a cold-L2 microbenchmark.
+
+## Extra (worker's own, negative result): the MTP decode kernel that runs under MTP3
+
+Follow-up to the W7a caveat. `VLLM_GDN_DECODE_KERNEL` selects between the C++ op
+(`torch.ops._C.fused_gdn_decode_post_conv_mtp`, the default on CUDA) and a Triton implementation
+(`fused_gdn_decode_post_conv_mtp_triton`). I timed both real ops on one idle B200 at Qwen3.8 shapes (K = V = 128, fp32
+state, bf16 inputs, H = HV / 3, random distinct state slots; CUPTI, CUDA graph, cold L2). L is tokens per request:
+1 for a plain speculative decode step as in the W3 profile, 4 for a full MTP3 verify step.
+
+| HV (TP) | L | B = 1 | 4 | 16 | 64 | 128 | 256 | C++ TB/s at 256 |
+|---|---|---|---|---|---|---|---|---|
+| 12 (TP4), C++ us | 1 | 6.9 | 7.9 | 10.9 | 23.5 | 41.9 | 76.9 | 5.2 |
+| 12 (TP4), Triton us | 1 | 7.4 | 8.1 | 14.7 | 32.7 | 52.9 | 96.0 | |
+| 12 (TP4), C++ us | 4 | 8.4 | 10.3 | 20.3 | 51.0 | 92.1 | 182.7 | 5.5 |
+| 12 (TP4), Triton us | 4 | 12.8 | 14.4 | 32.5 | 80.5 | 144.8 | 269.9 | |
+| 6 (TP8), C++ us | 1 | 6.6 | 6.7 | 8.9 | 13.7 | 23.8 | 42.5 | 4.7 |
+| 6 (TP8), C++ us | 4 | 8.5 | 8.5 | 14.0 | 27.9 | 51.8 | 96.8 | 5.2 |
+| 24 (TP2), C++ us | 1 | 6.9 | 9.2 | 13.9 | 41.4 | 75.7 | 147.1 | 5.5 |
+| 24 (TP2), C++ us | 4 | 8.6 | 14.1 | 28.0 | 90.3 | 173.7 | 357.7 | 5.6 |
+
+(TB/s counts state traffic only: one slot read and L slots written per request and head.)
+
+- **The default choice is right:** the C++ kernel is 1.02-1.76x faster than the Triton one at every shape
+  (1.2-1.6x from 16 requests up). Switching `VLLM_GDN_DECODE_KERNEL` cannot help.
+- **Little headroom left:** at 256 requests, L = 1, the C++ kernel takes 76.9 us. The non-speculative Triton kernel with
+  `BV = 4` moves the same state in 66.9 us (W7a) but does less work, since the C++ kernel also fuses the post-conv
+  preparation and the gated RMSNorm. It runs at 5.2-5.8 TB/s from 128 requests up.
+- The two implementations agree to a relative L2 of at most 9e-5 on the output.
+- The in-model figure from the W3 trace (72 us per call at 256 requests) matches the L = 1 row here (76.9 us cold).
+
+No change proposed for the MTP path.
