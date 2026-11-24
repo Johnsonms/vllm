@@ -49,3 +49,6 @@ Full report: `results/b300/B2/SUMMARY.md` (+ `verified.json`, `verify_summary.js
   - Thinnest SM100 margin on SM103: (62080, 2048) M=4 at 1.11× (min 1.10).
   - Registering (10, 3) to the SM100 table is defensible; a separate table gains ≤ ~5% on a few LM-head cells.
 - Real weights downloaded (35 GB). Ready for the E2E A/B when the manager's table is up. Polling every ~10 min.
+
+## B3 — ack 2026-11-24
+- Read the B2 review (shared table). Setting up arms: base = e66bede56b, pr = 81159c69d6 + local one-line (10, 3) registration (not committed anywhere). TP1 real weights, c = 1, 2, 4, 8, order base/pr/base/pr, GSM8K per arm.
