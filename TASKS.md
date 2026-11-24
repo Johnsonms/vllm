@@ -368,3 +368,55 @@ The human owner has asked to wrap up.
   - post a final `STATUS_WORKER.md` entry "W6 done, stood down".
 - Keep the raw traces on your node; do not push them here.
 Thanks for the work. W3/W3b/W4 became the local candidate U, and W5 found the prefill non-determinism.
+
+---
+
+## W7 — new exploration round (02:28Z, 2026-11-24). The human owner re-activated the worker.
+
+**Context since the round closed:** PR J was opened upstream (#69515). The manager node is re-testing L on the latest
+main.
+
+**Constraint:** your GPU 0 is still shared, so W7 is **single-GPU kernel microbenchmarks and profile analysis only**,
+on one idle GPU (4-7). Before each timed run, check that the GPU is idle. Run no multi-GPU or serving timing; the
+manager does end-to-end validation.
+
+**Rules:**
+- Edits are local only and must be reverted afterwards.
+- Never push code anywhere. Never comment on GitHub.
+- Run a duplicate search for each item and name the closest open PRs.
+- **Deliverable:** `results/worker/W7/SUMMARY.md`. Ack in STATUS_WORKER.md first.
+
+### W7a — GDN packed-decode kernel: retune for B200
+`fused_recurrent_gated_delta_rule_packed_decode` (`vllm/third_party/flash_linear_attention/ops/fused_recurrent.py`,
+around line 437).
+- On SM100 family it uses `BV = 4` if `B*HV <= 64`, else `BV = 8` for an fp32 state. These were "tuned on GB300".
+  Qwen3.8 has `mamba_ssm_dtype: float32` and K = V = 128, with HV per rank = 48 / TP: 24 at TP2, 12 at TP4, 6 at TP8.
+- The kernel takes 12.4 % of a TEP4 decode step at 256 requests (your W5).
+- **Sweep on B200:** B ∈ {1, 2, 4, 8, 16, 32, 64, 128, 256, 512} × HV ∈ {6, 12, 24} × BV ∈ {4, 8, 16, 32} ×
+  num_warps ∈ {1, 2, 4} × num_stages ∈ {2, 3}.
+  - Use the real launcher and patch only BV/warps/stages.
+  - Use CUPTI, CUDA graph, cold L2.
+  - Check correctness against the current config: outputs and final state, max abs diff.
+- Report, per (HV, B):
+  - best config vs current, with the speedup;
+  - the implied bytes/s (state read+write = B·HV·128·128·4·2 bytes plus q/k/v/out).
+- **Question:** is there a ≥10 % kernel gain at common decode sizes, and is a B200-specific branch justified?
+
+### W7b — per-step all-gather plus movedim copy (1.7 % at TEP4 d256)
+`tensor_model_parallel_all_gather -> CudaCommunicator.all_gather` runs once per step, followed by a
+`movedim` + `reshape` copy when `dim != 0`.
+- Find the **call site**: which model/runner code gathers what, with which shape and dim. Likely candidates are logits,
+  the sampler, PLE or the MTP path.
+- Measure the copy's cost vs batch size (single GPU: time only the copy on the real shape).
+- Propose a change that gathers straight into the final layout, and estimate the saving. Do not implement beyond a
+  local sketch.
+
+### W7c — `per_token_group_quant_8bit_register_kernel` (MoE input FP8 quant, 1-2 % per step)
+- At 8,192 tokens it runs about 26.6 us per call at about 2.4 TB/s (your W5).
+- Find how vLLM picks this kernel: `fp8_utils.py::per_token_group_quant_fp8`, the "register" variant vs others. Check
+  whether a faster existing variant is available for large N and why it is not chosen.
+- Microbenchmark the available variants on the real shape (N × 2560 bf16 -> fp8, group 128, scales in the layout the
+  TRT-LLM MoE expects), for N ∈ {1, 64, 256, 2048, 8192}.
+- **Question:** is there a ≥1.5x kernel gain at large N without new kernel code (selection or launch config only)?
+
+**Order:** W7a, then W7c, then W7b. Post after each item; do not wait to finish all three.
