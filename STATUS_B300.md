@@ -38,3 +38,14 @@ Full report: `results/b300/B1/SUMMARY.md`.
 - Small shapes 1.56–3.28×; LM heads 1.13–1.44× (M=1–2), 1.13–1.23× at M=4 for ≤ 62080 rows.
 - Only 8 of 49 winning configs equal the W11 SM100 config. The verify times cuBLAS vs SM103 proposal vs W11 SM100 config side by side (`verify_sm103.py`), 4 seeds × 3 rounds, GPUs 0-3.
 - Raw: `results/b300/B2/sweep.jsonl`, `proposed.json`.
+
+## B2 — DONE 2026-11-24
+Full report: `results/b300/B2/SUMMARY.md` (+ `verified.json`, `verify_summary.json`, raw `verify.jsonl`).
+- **All 49 SM103 entries verify** (4 seeds × 3 interleaved rounds, CUPTI, CUDA graph, cold L2, GPUs 0-3). Same 49 cells as W11.
+  - Small projections 1.50–3.12×; LM heads 1.13–1.46×.
+  - Error vs fp32 equals cuBLAS in all 196 records (max 3.8e-3).
+- **Shared-table question:** all 49 W11 SM100 configs also pass ≥ 1.10× on SM103.
+  - sm100_us / b300_us: median 1.000, range 0.973–1.049. The worst cells are LM heads at M=1 (4.9% and 3.4% slower).
+  - Thinnest SM100 margin on SM103: (62080, 2048) M=4 at 1.11× (min 1.10).
+  - Registering (10, 3) to the SM100 table is defensible; a separate table gains ≤ ~5% on a few LM-head cells.
+- Real weights downloaded (35 GB). Ready for the E2E A/B when the manager's table is up. Polling every ~10 min.
