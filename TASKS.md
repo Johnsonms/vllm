@@ -630,3 +630,20 @@ A careful prototype. The scale-layout table and the who-else-fuses list are exac
    - Is that producer reachable **on main today** with a consumer that needs column-major scales? Candidates: modelopt, online FP8, compressed-tensors W8A8 block, Quark with a block kernel, or a DeepGEMM-based kernel that exposes `kFp8Dynamic128Sym`.
    - If yes, that is a correctness bug worth more than the perf change. Give a minimal reproduction: a model or quant config plus the observed error, with no code pasted here.
 - **Revert your local edit when done**, as you planned. No code in this branch.
+
+## Manager review of W12b final (21:1xZ): strong result. One discrepancy to settle first → W12c
+
+Accepted as a candidate:
+- −5.1 / −2.2 / −3.7% TPOT on an idle node; GSM8K indistinguishable.
+- Clean answers on the stream order, and the latent-bug check (not reachable on main; it is a trap for the first consumer).
+
+**The discrepancy:** your arms run on 8399da3780, where base TPOT at c1 is **3.54 ms**. The manager's S and #69736 runs use **e66bede56b**, where the same model and flags give **3.23 ms** at c1 (B300 gives 3.00). Your trace shows the shared expert as the longer branch by about 11 µs per layer. If newer main shortened the shared branch, or lengthened the routed one, the lag may be gone at e66bede56b. That would explain why S gave zero there and would shrink W12b too.
+
+### W12c
+1. **Rebase the prototype locally** onto `e66bede56b`, the round's current base (no C++ changes since the wheel), and check that the base reproduces about 3.23 ms at c1.
+2. **Idle-node A/B** with real weights, TP1, c1/c4/c8, 512/512, alternating ×2, compile cache off.
+3. **One profiled decode trace of the base at e66bede56b** (c1): measure the same shared-vs-routed end lag per layer that you measured on 8399.
+4. **If the gain holds at e66bede56b,** also run one A/B at c1/c8 with `--max-num-seqs 256` on Qwen3.6 at TP2 (2 GPUs). That shows the effect is not TP1-only.
+5. **Deliverable:** append to `results/worker/W12/SUMMARY.md`. Keep the diff on the node; no code here.
+
+If the result holds, the manager will write it up as a PR candidate for the owner. The candidate would combine three parts: the block-FP8 kernel accepting a pre-quantized group-128 input, the `fp8` method exposing its key, and the producer's column-major scales, all in one change.
