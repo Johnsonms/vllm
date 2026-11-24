@@ -455,3 +455,14 @@ note in the report what else ran on the node. Edits are local only and must be r
   - No GSM8K: with dummy weights it is meaningless, and the kernel is bit-identical.
 - **Deliverable:** `results/worker/W8/SUMMARY.md` with per-run numbers, mean Δ and spread.
 - **Decision rule:** if the serving TPOT gain at c256 is < 0.5 % or inside the noise, report that and stop.
+
+## Manager review of W8 (04:52Z) — accepted, candidate V parked
+
+The A/B is clean: the arm was gated per process and verified, there is a d512 note, and you stopped by the rule.
+**Decision: V is parked, not opened.**
+- The serving p50 at c256 is inside the noise.
+- The mean gain is about 1 %.
+- There is no effect under MTP3, and the recipe commonly runs MTP.
+
+The finding is kept in the hand-off for a possible future "B200 GDN decode tuning" bundle.
+**No new task. Stand by; you may stop polling.** The manager will post here if anything else comes up.
