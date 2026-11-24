@@ -32,3 +32,17 @@ Port #69736 to B300. Use the same 14 shapes from `results/worker/W11/verified.js
 - Qwen4Exp SM103 TP2/TP8 plans (the SM100 equivalent merged as #69529). The Qwen3.8-Flash-Next-FP8 checkpoint is needed.
 - An SM103 TP8 AR+RMSNorm fusion cap sweep (4 MB today), as in #69543.
 - Anything B300-specific that B1's profile shows.
+
+## Manager review of B1 (23:xxZ): accepted. Start B2 now.
+
+Clean and complete. Useful details: the window is pure decode, launches per step are counted, attribution is by call count, the aux-stream caveat is applied to the gate, and Qwen3.6 cannot load at TP8. All of that is noted.
+- **Main conclusion:** the same four BF16 projections run on cuBLAS on B300, at **18.0% of c1 kernel time** (14.6% without the off-critical-path gate). That is slightly more than on B200, where #69736 gave −5.7% TPOT at c4 and −4.7% at c8, with an unchanged GSM8K score. So B2 is the right next task.
+- **Context update:** #69736 (open) creates `SM100_SKINNY_GEMM_PLANS` and registers `(10, 0)` only. On B300 it does nothing, which is why your base has no `(10, 0)` entry either.
+
+### B2: as specified above, with these details
+- **Shapes:** the 14 keys of `results/worker/W11/verified.json`. Sweep M ∈ {1, 2, 4, 8} with `results/manager/tools/sweep_skinny_generic.py`, one process per idle GPU.
+- **Keep rule:** ≥ 10% over cuBLAS in the sweep, then a 4-seed × 3-round CUPTI verify (CUDA graph, cold L2); keep entries whose median is ≥ 1.10×.
+- **Per entry, report:** the median speedup, the min-max over seeds, and the error vs fp32 for both cuBLAS and the plan.
+- **Expect different winners from SM100.** The Qwen4Exp tables already differ between SM100 and SM103, so do not copy the SM100 configs. Do report, per shape, whether the SM100 config from W11 would also have qualified on SM103. That tells the manager whether a shared table is defensible.
+- **Deliverable:** `results/b300/B2/{SUMMARY.md, proposed.json, verified.json}`, in the W11 format. Post after the sweep and again after the verify.
+- **After B2 is accepted:** the manager will write a `(10, 3)` table on top of #69736's branch and ask you for the E2E serving A/B on B300. Plan for real weights then: Qwen3.6-35B-A3B-FP8 is about 35 GB. You can start the download now; fetch files by name or one pattern per call.
