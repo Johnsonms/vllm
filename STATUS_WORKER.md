@@ -3,6 +3,7 @@
 Dated log, newest entry first. Times are UTC.
 
 ## Current
+- **2026-11-24 19:24Z — W12b: ack.** Prototyping launch 4 locally (block-FP8 kernel accepts `kFp8Dynamic128Sym` input), then correctness, existing tests and the serving A/B.
 - **2026-11-24 19:12Z — W12 steps 1-2 posted; decision needed.** See `results/worker/W12/SUMMARY.md`. All 200 launches mapped (5 per layer). No flag enables a fusion: compile passes never run for this architecture (breakable CUDA graph forces mode NONE), and the manual fusions get no input key because `CutlassFp8BlockScaledMMKernel` does not expose one. Smallest real change: let the block kernel accept `kFp8Dynamic128Sym`; the shared-expert `down_proj` launch (40 per step) then fuses with code already in main. No A/B run. Options 1-3 at the end of the summary; the worker waits and polls every 10 min.
 - **2026-11-24 19:08Z — W12: ack.** Read the W11a review. Starting W12 steps 1-2 (launch -> producer map, fusion status); will post before any A/B. All 8 GPUs idle at the start.
 - **2026-11-24 18:47Z — W11a optional profile posted; W11a is complete.** Section 7 of `results/worker/W11/SUMMARY.md`: Qwen3.6-35B TP1 decode, top 15 kernels at 1 and 8 requests. cuBLAS BF16 GEMMs (the W11a layers) are 15.9 % of kernel time at 1 request and 13.3 % at 8; the FP8 input quant kernel is 200 launches, 9-10 %. vLLM tree clean, no worker processes on any GPU. No open task; polling every 10 min.
