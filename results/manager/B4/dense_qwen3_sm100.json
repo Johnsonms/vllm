@@ -1,0 +1,175 @@
+{
+ "1280,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=160, outputs_per_block=2, k_unroll=2, vector_width=8, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=160, outputs_per_block=2, k_unroll=1, vector_width=8, static_k=5120)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=64, outputs_per_block=2, k_unroll=4, vector_width=8, static_k=5120)",
+  "8": "SkinnyGemmConfig(num_rows=8, block_size=64, outputs_per_block=2, k_unroll=1, vector_width=8, static_k=5120)"
+ },
+ "1792,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=256, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=5120)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=128, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=5120)"
+ },
+ "2560,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=160, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=5120)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=32, outputs_per_block=2, k_unroll=1, vector_width=8, static_k=5120)"
+ },
+ "3072,4096": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=4096)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=4096)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=32, outputs_per_block=2, k_unroll=2, vector_width=8, static_k=4096)"
+ },
+ "3584,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=1, k_unroll=1, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=5120)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=64, outputs_per_block=4, k_unroll=4, vector_width=4, static_k=5120)"
+ },
+ "4096,2048": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=2048)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=64, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=2048)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=64, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=2048)"
+ },
+ "4096,4096": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=4096)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=4096)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=64, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=4096)"
+ },
+ "4096,6144": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=1, k_unroll=1, vector_width=4, static_k=6144)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=6144)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=64, outputs_per_block=4, k_unroll=2, vector_width=4, static_k=6144)"
+ },
+ "4096,12288": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=256, outputs_per_block=2, k_unroll=1, vector_width=8, static_k=12288)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=64, outputs_per_block=4, k_unroll=4, vector_width=8, static_k=None)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=64, outputs_per_block=4, k_unroll=2, vector_width=4, static_k=12288)"
+ },
+ "5120,1024": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=1024)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=64, outputs_per_block=4, k_unroll=2, vector_width=4, static_k=1024)"
+ },
+ "5120,1280": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=1280)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=64, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=1280)"
+ },
+ "5120,2048": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=2048)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=32, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=2048)"
+ },
+ "5120,2560": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=2560)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=64, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=2560)"
+ },
+ "5120,3200": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=160, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=3200)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=32, outputs_per_block=4, k_unroll=2, vector_width=4, static_k=3200)"
+ },
+ "5120,4096": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=4096)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=4, vector_width=4, static_k=4096)"
+ },
+ "5120,4352": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=4352)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=32, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=4352)"
+ },
+ "5120,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=2, k_unroll=1, vector_width=8, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=5120)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=32, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=5120)"
+ },
+ "5120,6400": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=160, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=6400)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=32, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=6400)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=32, outputs_per_block=4, k_unroll=4, vector_width=8, static_k=6400)"
+ },
+ "5120,8192": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=1, k_unroll=1, vector_width=4, static_k=8192)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=4, k_unroll=4, vector_width=8, static_k=None)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=128, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=None)"
+ },
+ "5120,8704": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=1, k_unroll=1, vector_width=4, static_k=8704)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=32, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=8704)"
+ },
+ "5120,12800": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=160, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=12800)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=64, outputs_per_block=4, k_unroll=2, vector_width=8, static_k=12800)"
+ },
+ "5120,17408": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=2, k_unroll=4, vector_width=4, static_k=17408)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=4, k_unroll=1, vector_width=4, static_k=17408)"
+ },
+ "5120,25600": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=160, outputs_per_block=1, k_unroll=4, vector_width=4, static_k=25600)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=4, k_unroll=4, vector_width=8, static_k=25600)"
+ },
+ "6144,4096": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=4096)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=4, vector_width=4, static_k=4096)"
+ },
+ "6400,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=32, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=5120)"
+ },
+ "7168,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=1, k_unroll=1, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=64, outputs_per_block=1, k_unroll=4, vector_width=4, static_k=5120)"
+ },
+ "8704,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=2, k_unroll=1, vector_width=8, static_k=5120)"
+ },
+ "10240,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=160, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=5120)"
+ },
+ "12288,4096": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=128, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=4096)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=4096)"
+ },
+ "12800,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=2, k_unroll=4, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=5120)"
+ },
+ "17408,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=5120)"
+ },
+ "18992,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=32, outputs_per_block=4, k_unroll=1, vector_width=8, static_k=5120)"
+ },
+ "24576,4096": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=256, outputs_per_block=2, k_unroll=4, vector_width=4, static_k=4096)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=4096)"
+ },
+ "25600,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=1, k_unroll=1, vector_width=4, static_k=5120)"
+ },
+ "34816,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=2, k_unroll=4, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=4, vector_width=4, static_k=5120)"
+ },
+ "37984,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=160, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=5120)"
+ },
+ "51200,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=1, k_unroll=2, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=64, outputs_per_block=4, k_unroll=2, vector_width=8, static_k=5120)"
+ },
+ "75968,4096": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=64, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=4096)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=4096)"
+ },
+ "75968,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=64, outputs_per_block=2, k_unroll=2, vector_width=4, static_k=5120)"
+ },
+ "151936,4096": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=2, k_unroll=1, vector_width=4, static_k=4096)"
+ },
+ "151936,5120": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=32, outputs_per_block=1, k_unroll=1, vector_width=4, static_k=5120)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=128, outputs_per_block=4, k_unroll=4, vector_width=8, static_k=5120)"
+ }
+}

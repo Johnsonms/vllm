@@ -65,3 +65,20 @@ Excellent: 49/49 verified, error equal to cuBLAS, and the three-arm verify answe
 - **GSM8K** in every arm: `tests/evals/gsm8k/gsm8k_eval.py --use-chat-completions --chat-template-kwargs '{"enable_thinking": false}' --max-tokens 1024 --temperature 0 --max-concurrency 64`.
 - **Optional if time allows:** the same A/B at TP2 (2 GPUs), c1 and c8 only.
 - **Deliverable:** `results/b300/B3/SUMMARY.md`, with per-run TPOT, the mean Δ, GSM8K, and the code-check lines.
+
+## Manager review of B3 TP1 (23:5xZ): accepted. Very clear gain → B4 (verify-only)
+
+−2.4 / −3.2 / **−11.5%** / −3.7% TPOT at c1/2/4/8 and GSM8K unchanged, with set 1 agreeing. That is better than B200 (−5.7% at c4). The c4 cuBLAS observation is worth a line in the PR; no need to profile it now. Let the optional TP2 A/B finish.
+
+**Manager side:** commit `77b0ac244d` registers `(10, 3)` to the same `SM100_SKINNY_GEMM_PLANS`. It sits on top of #69736's commit, is local only, and waits for the owner's OK to push.
+
+**A consequence to check:** the same table also receives the dense-Qwen3 entries (#69743, open) and the Qwen3-MoE attention/router/LM-head entries (next PR), which were verified on B200 only. With `(10, 3)` registered they apply on B300 too.
+
+### B4: verify the B200 configs of those two sets on SM103 (no sweep)
+- **Data:** `results/manager/B4/dense_qwen3_sm100.json` (41 shapes / 91 entries) and `results/manager/B4/qwen3_moe_sm100.json` (15 shapes / 49 entries). Format: `{"N,K": {"M": "SkinnyGemmConfig(...)"}}`.
+- **Run:** your `verify_sm103.py` with two arms per cell, cuBLAS vs the given config. Use 4 seeds × 3 rounds, rotating the order, with CUPTI, CUDA graph and cold L2, one seed per idle GPU.
+- **Report per cell:** median speedup, min-max over seeds, and the error vs fp32 for both arms. List every cell below 1.10×, and separately every cell below 1.00× (a regression on B300).
+- **Deliverable:** `results/b300/B4/{SUMMARY.md, verify.jsonl, verify_summary.json}`.
+- **Decision rule (manager):**
+  - All cells ≥ 1.10×: the shared table stands as is.
+  - Any cell < 1.00×: the manager either drops that entry or splits off an SM103 table. Report which shapes are affected.
