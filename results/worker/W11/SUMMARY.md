@@ -197,5 +197,56 @@ Raw: `verify.jsonl`; per-cell summary: `verify_summary.json`.
 - Duplicates: no open upstream PR adds SM100 entries for these shapes. #64982 (open) is the SM90 counterpart for (1, 2048) and (64, 2048) only; it has no router or LM-head entry. #57848 (open) tunes the SM103 MoE router GEMM, a different path (`GateLinear` tiers); not read in detail.
 
 ## 6. Not done
-- The optional decode profile of Qwen3.6-35B at c1 / c8 is not done yet; it comes next if no other task arrives.
+- The optional decode profile is in section 7.
 - No expert-parallel walk for the 397B model. The shapes above do not depend on it as far as the code shows (gate and router are replicated), but that was not run.
+
+## 7. Optional: decode profile of Qwen3.6-35B-A3B-FP8, TP1, dummy weights (added 18:58Z)
+
+`vllm bench forward --profile-dir`, cases `1*1@1024` and `8*1@1024`, `--language-model-only`, 3 profiled replays, zipf routing.
+Kernel lists: `profile_d1.kernels.json`, `profile_d8.kernels.json`. Each step has 1,169 GPU activities.
+
+**1 request:** unprofiled step median 3390 us; under the profiler, span 4642 us and summed kernel time 4822 us (the profiler inflates the times, so read the shares).
+
+| # | kernel | us | % | calls |
+|---|---|---|---|---|
+| 1 | `cutlass_3x_gemm_fp8_blockwise` (FP8 linears) | 1383.3 | 28.7 | 160 |
+| 2 | `per_token_group_quant_8bit_register_kernel` | 481.1 | 10.0 | 200 |
+| 3 | TRT-LLM MoE `bmm_E4m3_E4m3E4m3` (FC2) | 384.2 | 8.0 | 40 |
+| 4 | TRT-LLM MoE `bmm_Bfloat16_E4m3E4m3` (FC1) | 244.2 | 5.1 | 40 |
+| 5 | FlashInfer fused add + RMSNorm | 186.2 | 3.9 | 80 |
+| 6 | `activationDeepSeekKernel` | 185.1 | 3.8 | 40 |
+| 7 | `splitKreduce_kernel` | 181.7 | 3.8 | 70 |
+| 8 | `routingIndicesBlockKernel` | 168.4 | 3.5 | 40 |
+| 9 | `nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN` | 160.4 | 3.3 | 40 |
+| 10 | `nvjet_sm100_tst_192x8_64x8_2x1_v_bz_TNT` | 146.9 | 3.0 | 1 |
+| 11 | `finalizeKernelSmallBatch` | 118.4 | 2.5 | 40 |
+| 12 | torch elementwise BF16 mul | 112.2 | 2.3 | 40 |
+| 13 | `dot_kernel` | 111.0 | 2.3 | 40 |
+| 14 | `nvjet_sm100_tst_32x64_64x16_2x1_v_bz_splitK_TNN` | 109.9 | 2.3 | 30 |
+| 15 | torch vectorized elementwise (sigmoid and others) | 108.7 | 2.3 | 82 |
+
+**8 requests:** unprofiled step median 4769 us; under the profiler, span 4852 us and summed kernel time 6437 us (the profiler inflates the times, so read the shares).
+
+| # | kernel | us | % | calls |
+|---|---|---|---|---|
+| 1 | `cutlass_3x_gemm_fp8_blockwise` (FP8 linears) | 1451.2 | 22.6 | 160 |
+| 2 | TRT-LLM MoE `bmm_E4m3_E4m3E4m3` (FC2) | 903.4 | 14.1 | 40 |
+| 3 | TRT-LLM MoE `bmm_Bfloat16_E4m3E4m3` (FC1) | 634.5 | 9.9 | 40 |
+| 4 | `per_token_group_quant_8bit_register_kernel` | 562.9 | 8.8 | 200 |
+| 5 | `splitKreduce_kernel` | 305.5 | 4.8 | 110 |
+| 6 | `activationDeepSeekKernel` | 274.3 | 4.3 | 40 |
+| 7 | FlashInfer fused add + RMSNorm | 228.8 | 3.6 | 80 |
+| 8 | `fused_recurrent_gated_delta_rule_packed_decode_kernel` | 222.5 | 3.5 | 30 |
+| 9 | `routingIndicesDynBlockKernel` | 211.7 | 3.3 | 40 |
+| 10 | `nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN` | 165.9 | 2.6 | 40 |
+| 11 | `nvjet_sm100_tst_192x8_64x8_2x1_v_bz_TNT` | 149.7 | 2.3 | 1 |
+| 12 | `nvjet_sm100_tst_8x64_64x16_1x1_h_bz_splitK_TNN` | 143.6 | 2.2 | 40 |
+| 13 | `finalizeKernelSmallBatch` | 136.3 | 2.1 | 40 |
+| 14 | torch vectorized elementwise (sigmoid and others) | 135.0 | 2.1 | 82 |
+| 15 | torch elementwise BF16 mul | 129.7 | 2.0 | 40 |
+
+What stands out (shares of summed kernel time under the profiler):
+- **cuBLAS BF16 GEMMs are 15.9 % at 1 request (768 us in 221 launches) and 13.3 % at 8 (856 us).** These are exactly the W11a layers: router (`nvjet 32x64 4x1 splitK`, 40), `in_proj_ba` (`nvjet 32x64 2x1 splitK`, 30), shared-expert gate (`dot_kernel` + `reduce_1Block_kernel`, 40 + 40 at 1 request; `nvjet 8x64` at 8), their `splitKreduce_kernel` launches (70 at 1 request, 110 at 8) and the LM head (`nvjet 192x8`, 1). A skinny plan turns each GEMM into one launch.
+- `per_token_group_quant_8bit_register_kernel`: 200 launches, 10.0 % and 8.8 %. At 1-8 tokens each launch is 2.4-2.8 us, so this is launch count (5 per layer), not the conversion cost W7c measured at thousands of tokens.
+- Three kernels of similar size run 40 times each around the shared expert: the gate GEMM, a torch sigmoid and a torch BF16 multiply (112 us for the multiply alone at 1 request). I did not trace which module issues the sigmoid and the multiply, so the link to the shared-expert gate is a guess from the call counts.
+- Not a GEMM, one launch each: torch softmax in the sampler (103-110 us) and the LM head (147-150 us).
