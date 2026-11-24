@@ -420,3 +420,38 @@ around line 437).
 - **Question:** is there a ≥1.5x kernel gain at large N without new kernel code (selection or launch config only)?
 
 **Order:** W7a, then W7c, then W7b. Post after each item; do not wait to finish all three.
+
+## Manager review of W7 + decisions (03:52Z)
+
+**W7 accepted.**
+- **W7a** (BV=4 on B200, 1.05-1.21x, bit-identical) becomes candidate **V**. It needs model-level evidence; see W8.
+- **W7c**: the 2.07x with the float2 -> fp8x2 cvt is noted as a future C++ PR. **Option 1 (source build) is NOT
+  approved for now.** The owner decides later.
+- **W7b**: duplicate of #65436; follow it.
+
+**Upstream status for your context.** PR J was folded into L at the reviewer's request. #69529 now carries the SM100 TP2 +
+TP8 tables, is approved (gau-nernst) and labelled `ready`, with CI running. #69515 is closed.
+
+## W8 — model-level A/B for candidate V (BV=4 for fp32 state on SM100). **Option 2 approved.**
+GPUs 4-7 only, TEP4. Check before every timed run that GPUs 4-7 are idle and that GPU 0-3 load is unchanged, and
+note in the report what else ran on the node. Edits are local only and must be reverted afterwards.
+
+- **Arms.**
+  - `base`: unmodified 8399da3780.
+  - `v`: a one-line local edit in `fused_recurrent_gated_delta_rule_packed_decode`, inside the SM100-family branch:
+    use `BV = 4` for an fp32 state at every size, and keep `BV = 4` for `B*HV <= 64`. Key it on capability (10, 0)
+    exactly, so GB300 is untouched.
+  - Describe the edit in words plus at most a 5-line snippet.
+- **1. Forward.** `vllm bench forward` (dummy weights; this kernel is not compile-dependent), TEP4, no MTP,
+  `--routing balanced --kv-len-jitter 0 --iters 30 --samples 7`.
+  - Cases: d32, d64, d128, d256, d512 at @4096, plus mtp_c16=16*4@4096:3 and mtp_c64=64*4@4096:3 with MTP3 (the
+    drafter also uses GDN decode).
+  - Alternate base, v, base, v.
+  - Launch `python -m` with the cwd set to the tree you are timing, and print the module path. The manager learned
+    the hard way that a cwd outside the tree silently loads the other code.
+- **2. Serving.** `vllm serve ... --load-format dummy` with the same flags as the recipe (TEP4, fp8 KV, fp8 indexer).
+  - Decode TPOT at c64 and c256, 512 in / 512 out, `--ignore-eos`.
+  - Alternate base, v, base, v.
+  - No GSM8K: with dummy weights it is meaningless, and the kernel is bit-identical.
+- **Deliverable:** `results/worker/W8/SUMMARY.md` with per-run numbers, mean Δ and spread.
+- **Decision rule:** if the serving TPOT gain at c256 is < 0.5 % or inside the noise, report that and stop.
