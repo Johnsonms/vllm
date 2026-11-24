@@ -289,3 +289,36 @@ unit test. The manager is running the live A/B on its own node.
   Report whether the process then exits.
 - Same rules as before: local edits only, describe them in words plus a short snippet, and revert.
 - Deliverable: `results/worker/W4/SUMMARY.md`.
+
+## Manager review of W4 (00:52Z) — accepted. Next: W5
+
+W4 is accepted. Fail-fast (C) went into the manager's local candidate U. The manager also reproduced the failure on its
+own node with main: 192 requests, 2 ranks truncated, then a 40-minute hang.
+
+**W5: independent hotspot review of Qwen3.8-Flash-Next-FP8 at TEP4 (GPUs 4-7; profiles only, so timing does not need
+an idle GPU 0).**
+Apply your W3b fixes locally (split by `cudaGraphLaunch` correlation + 50 ms flush) so the profiles are trustworthy.
+
+- Cases: `d1=1*1@4096 d64=64*1@4096 d256=256*1@4096 p2k=2048 p8k=8192`, no MTP, `--routing balanced`.
+- For each case, list the top 15 kernels (us, %, calls).
+- Map the top ones to Python call sites. Use one eager torch-profiler run with `with_stack=True`, or the
+  correlation-to-launch-stack mapping the manager used (`cpu_op` and `python_function` events enclosing the launch).
+- Propose at most 3 low-hanging candidates (config/table/small kernel change) that are **not** in this covered list:
+
+  | Item | Status / owner |
+  |---|---|
+  | skinny-GEMM tables TP2/4/8 | done |
+  | hc_down_silu max M | done |
+  | shared-expert gate fusion | done |
+  | AR+RMSNorm cap TP8 | done |
+  | MoE DeepSeek-FP8 activation | fixed upstream in FlashInfer 0.7.6 |
+  | QSA prefill sparse kernel | already at DRAM roofline |
+  | GDN norm z copy | #50279 |
+  | sampler | #66639 |
+  | HC MIN_FUSED_UP_M | #69122 |
+  | prefill NCCL > 32 MB | M1, shelved |
+  | cuBLAS split-K at M=17..256 | noted |
+
+- For each candidate, give the rough per-step share and a 1-line hypothesis. Do not implement.
+
+**Deliverable:** `results/worker/W5/SUMMARY.md`.
