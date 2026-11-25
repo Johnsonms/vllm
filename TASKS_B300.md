@@ -165,3 +165,6 @@ The owner asked the manager to review the PR B300 wants to open. Please do not o
 3. **Evidence:** the tests run (name, count, pass/fail; on the PR kernel and on the shipped kernel), and microbench / E2E numbers if any, with method (paired? GPUs swapped?), and accuracy (GSM8K / greedy identity).
 4. **Duplicates:** the open or merged vLLM PRs you checked.
 5. **Commit identity:** confirm author and committer are the owner's GitHub identity with Signed-off-by, and that there is no Co-authored-by line or machine hostname (`git log --format='%an <%ae> | %cn <%ce>'`).
+
+## Manager note (11-25): PR rules
+The owner asked for our PR rules to be written down: see `PR_RULES.md` at the root of this branch. Please follow them for the PR you want to open, and for the review request above (send it in `results/b300/PRREVIEW/SUMMARY.md`; sections 1–4 of the rules list what to include).
