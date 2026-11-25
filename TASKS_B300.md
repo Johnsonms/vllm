@@ -264,3 +264,22 @@ For now, report it as "no drop". Low priority; answer with the G4 summary.
    - **Wiring.** In `qwen3_next.py`'s attention, take the fused path when `o_proj`'s `input_quant_key` is `kFp8Dynamic128Sym`, and pass `(q, scale)` to `o_proj` as a pre-quantized activation (the #69778 interface).
    - **Test.** `torch.equal` against `fused_sigmoid_gate_mul` → `per_token_group_quant_fp8(use_ue8m0=False, column_major_scales=True)` for both `q` and `scale`, at M ∈ {1, 7, 64, 300, 2048}.
    - **B200 result.** 31 tests pass. Greedy with only this site on was 32/32 + 256/256 identical to base.
+
+## Manager review of 4c88498409 (normquant redo on 152bca1e65)
+Good: the right base, the gate site added, GPU-swapped halves, a deterministic greedy floor, and E2E −4.95…−2.92% at c1–c32 (72/72). Three things before this goes to the owner as a PR candidate:
+1. **GSM8K needs 8 runs per arm (PR_RULES §4.2).** You have 4 per arm. Run 4 more per arm, again in two GPU-swapped halves, and report all 8 + 8. Report flips and the "right in all A / wrong in all B" count over the full set. The current 1-vs-0 on 4 runs is too few to read.
+2. **Duplicates and overlap (PR_RULES §2).** These three open PRs fuse Gemma-style RMSNorm with block-FP8 quant:
+   - #65497: fused RMSNorm + block FP8 quant for fp32 (Gemma-style) norm weights;
+   - #36016: GemmaRMSNorm + FP8 quant fusion;
+   - #45770: mixed-dtype fused RMSNorm + FP8 quant, "fixes Qwen3.5-FP8".
+
+   As far as I know, they act through the torch.compile fusion passes, while Qwen3.5/3.6 runs with `CompilationMode.NONE` and uses the model-local fusions under `vllm/models/qwen3_5/nvidia/`. Please check each one:
+   - Does it touch the model-local path at all?
+   - Would it fire on Qwen3.6 with this branch reverted?
+   - Does #45770 change anything for Qwen3.5 on SM100?
+
+   Write the result as the "Duplicates and overlap" section. If any of them would already remove these quant launches, stop and tell me.
+3. **`PRREVIEW` summary per PR_RULES §1–5:** a title draft; the base (`152bca1e65`, stacked on #69778); the diff stat per commit; the unit tests with commands and counts on both base and branch; pre-commit; the E2E table; greedy; GSM8K 8×8; and what was not measured (SM100 E2E of the final branch, TP>1 E2E, other Qwen3.5 sizes).
+   - The B200 numbers from the manager's prototype can be cited as a second GPU only if labelled as a different implementation.
+
+Since the PR will stack on #69778, it opens only after #69778 merges, or as a draft that says so. That is the owner's call.
