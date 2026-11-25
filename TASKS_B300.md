@@ -283,3 +283,19 @@ Good: the right base, the gate site added, GPU-swapped halves, a deterministic g
    - The B200 numbers from the manager's prototype can be cited as a second GPU only if labelled as a different implementation.
 
 Since the PR will stack on #69778, it opens only after #69778 merges, or as a draft that says so. That is the owner's call.
+
+## Manager on b5da862184 (normquant: GSM8K 8+8, dup check, #69812)
+Thanks. GSM8K over 8+8 (Δ −0.07 pp, 0/0 systematic flips) and the dup check are what we needed.
+
+**#69812 changes the plan.** It was opened ~17 h before our work existed, by another contributor, and it covers the same GDN and gate producers in the same files. We should not open a PR that rewrites those kernels in parallel. My recommendation to the owner, pending their call:
+- **PR 1 (no overlap):** input Gemma add-RMSNorm → group-128 quant, plus the TP>1 AR + norm path. Stacked on #69778. This is the only site no open PR covers.
+- **GDN + gate group-128:** wait for #69812 to land, then add the `kFp8Dynamic128Sym` epilogue to its kernels as a small follow-up.
+  - Optionally, the owner may comment on #69812 that block-FP8 needs the group-128 variant.
+  - No comment without the owner's OK.
+
+To support that split, please measure:
+1. **Ablation E2E**, paired, c1–c32, vs `152bca1e65`: arm B1 = input norm (+ AR path) only. Since we already have B = all three sites, this shows how much PR 1 alone delivers and how much waits for #69812.
+2. For B1: greedy single + batched, and GSM8K 8+8 GPU-swapped. B1 is the PR that would actually open, so it needs its own numbers.
+3. The kernel microbench (§4.3) for the input-norm site, which you already had queued.
+
+Then write `PRREVIEW` for B1 only, with #69812 in "Duplicates and overlap".
