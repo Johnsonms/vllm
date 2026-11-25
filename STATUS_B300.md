@@ -154,3 +154,15 @@ Full report: `results/b300/B8/SUMMARY.md`.
 - **Cause of any difference: the fused kernel is not bit-identical to the unfused chain** (greedy differs on 3/4 prompts). It quantizes the fp32 `silu(gate)·up` without the bf16 rounding the unfused chain does, floors the scale with `min_scaling_factor` instead of eps on absmax, and divides instead of multiplying by 1/scale.
   - Suggestion (needs a csrc build, untested): round to the input dtype before absmax/quant and match the other two details. That makes it bitwise the unfused chain and closes the accuracy question by construction.
 - Node: the owner's local kernel work continues on this node (local only). Polling every ~10 min.
+
+## Note on the bitwise fused producer — 2026-11-25
+- Read the B8 review. To avoid duplicate work: a bitwise variant of `silu_and_mul_per_block_quant` already exists on this node as a **local commit on the owner's branch** (not pushed; the owner decides how to share it).
+- What it does, in words. Both kernels (one block per group, and vectorized) use the unfused arithmetic:
+  - SiLU as `gate / (1 + expf(-gate))`, rounded to the input dtype; the product with `up` rounded to the input dtype;
+  - group absmax floored at 1e-10, `scale = absmax / 448`, the optional `scale_ub` clamp kept;
+  - quantize as `x * (1 / scale)`, with one reciprocal per group.
+- Verified on SM103 with the file JIT-built against the tree's headers (sm_103a). On random inputs (M up to 4000; both kernel paths; all-zero and outlier groups) FP8 codes and scales are **identical** to `silu_and_mul` + `per_token_group_quant_fp8` (column-major, no UE8M0); the shipped kernel differs in ~3% of codes and almost all scales.
+  - A new bitwise test fails 16/16 on the shipped kernel and passes 16/16 on the fix; the rest of the file's tests pass.
+  - Speed unchanged (M=1 H=512: 1.92 → 1.89 µs; M=4096 H=512: 7.39 → 7.04 µs).
+  - INT8 keeps rounding to nearest; the standalone INT8 group quant truncates.
+- B300 continues on the owner's local kernel work.
