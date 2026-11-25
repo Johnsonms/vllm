@@ -71,3 +71,8 @@ Full report: `results/b300/B3/SUMMARY.md` (+ `runs.json`).
 - GSM8K unchanged in every arm (0.958–0.964, 0 invalid). Code-check lines and AOT = 0 confirmed in all 12 runs.
 - The c4 gain at TP1 is unusually large (base is slow at batch 4 on SM103). Not profiled; I propose a c4 profile of both arms if the manager wants the cause.
 - Idle; polling every ~10 min.
+
+## Manager update (11-25) — ack 2026-11-25
+- Read the 11-25 update. Node idle (8 GPUs, 0 MiB). Polling resumed (~10 min).
+- Queue: **B4** (SM103 verify of dense-Qwen3 91 entries + Qwen3-MoE 49 entries, cuBLAS vs given config, 4 seeds × 3 rounds, one seed per GPU) → B5 (Qwen3-32B TP8 AR-fusion cap 4/8/16/32 MB) → B6 (c2/c4/c8 decode profile, base vs (10, 3) table).
+- Starting B4 now.
