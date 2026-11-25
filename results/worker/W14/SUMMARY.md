@@ -1,6 +1,6 @@
-# W14 — next opportunities on Qwen3.8-Flash-Next TEP4 and Qwen3.5-397B TP4 (interim after step 1, 06:17Z)
+# W14 — next opportunities on Qwen3.8-Flash-Next TEP4 and Qwen3.5-397B TP4 (interim after step 1, first posted 06:17Z)
 
-Status: **step 1 (Flash-Next) and the step 2 profile are taken. Ranking (step 3) not done yet; first candidates are listed at the end.**
+Status: **done (06:34Z). Ranking is in the last section.** No code was edited for W14.
 
 ## Setup
 - Code: `sm100-skinny-qwen35-moe` at 740ff0d02c85, second worktree, `PYTHONPATH` set to it; each server log shows the loaded path and that the `(10, 0)` table is present.
@@ -179,9 +179,88 @@ q35_tp4_c8.kernels.json: 1591 launches/step, 11174 us summed/step
 - Dummy weights make the routing random, so the routed-MoE numbers at 8 requests are an upper bound on the number of distinct experts.
 - Top tables: `kernels/q35_tp4_top_c*.md`.
 
-## First candidates (not ranked yet, no PR search yet)
-1. **Flash-Next hyper-connection chain** (97 per step): the cuBLAS up projection (10240, 320) is on the critical path with no plan, and it sits between two small custom kernels. Fewer launches in this chain is worth about 2.5-3.7 us x 97 per kernel removed (6-9 % of TPOT at 1 request).
-2. **Flash-Next table gaps**: (10240, 320), (1, 2560), (2560, 160) at all M; router, LM head, input projections and `out_proj` at larger M. 13 % of kernel time at 1 request, 21 % at 16.
-3. **397B (and Qwen3.6): the block FP8 linear GEMM at small M** is 9 us per call where a BF16 skinny GEMM of similar size is 3-5 us.
+## Correction to the interim: two of the three "table gaps" are not plan gaps
+Standalone sweep of skinny configs against cuBLAS (W11 tool, CUDA graph, cold L2, one seed; `sweep/*.jsonl`):
 
-Next: step 3 (sizes, open upstream PRs, bit-identity), a standalone check of what a skinny plan gives on the three missing Flash-Next shapes, and the 397B launch map.
+| shape (N, K) | M=1 | M=2 | M=4 | M=8 | M=16 |
+|---|---|---|---|---|---|
+| hyper-connection up (10240, 320) | 1.06x | 0.97x | 0.82x | 0.60x | 0.44x |
+| shared `down_proj` TEP4 (2560, 160) | no config runs | - | - | - | - |
+| shared gate (1, 2560) | 2.08x | 2.16x | 1.97x | 2.23x | 1.75x |
+| router (512, 2560) | 2.18x | 2.08x | 1.96x | 1.66x | 1.18x |
+| GDN `out_proj` (2560, 1536) | 1.38x | 1.55x | 1.26x | 0.97x | 0.61x |
+| input projection (4096, 2560) | 1.21x | 1.36x | 1.14x | 0.88x | 0.52x |
+
+- (10240, 320) and (2560, 160) are short and wide (small K, many outputs). The skinny kernel does not help them, even with block sizes down to 10. They need a different kernel, not a table line.
+- The M=1 column ran while another of my jobs touched the same GPU; a rerun is in progress and I will correct the column if it moves.
+- Above M=8 the large projections are better left on cuBLAS, so the 21 % cuBLAS share at 16 requests is mostly not recoverable by plans.
+
+## The fused up-projection + gate-mix kernel exists but is off at decode sizes
+Main already has `qwen4_exp_hc_up_gate_mix` for SM100 (C++ op, present in my build). The model uses it only from M = 48 (`MIN_FUSED_UP_M`), i.e. for prefill. Standalone (`hc_up_bench.py`, CUDA graph, cold L2):
+
+| M | cuBLAS up projection + `hc_gate_mix` (us) | up projection alone (us) | existing fused op (us) |
+|---|---|---|---|
+| 1 | 5.86 | 4.29 | 6.82 |
+| 4 | 6.14 | 4.29 | 6.94 |
+| 16 | 6.78 | 4.67 | 6.94 |
+| 32 | 7.07 | 4.70 | 6.85 |
+| 48 | 7.68 | 4.96 | 6.82 |
+
+So the threshold is right for the kernel as it is (it has a flat cost of about 6.9 us), and lowering it would lose. The up projection reads 6.5 MB of weights in 4.3 us; the BF16 skinny kernels on this GPU read 20-40 MB in 5-10 us. A kernel sized for M = 1-16 has room to be 2-3 us for the pair. The fused op is already not bit-identical to the unfused pair (max difference 0.004-0.008).
+
+## Qwen3.5-397B TP4: where the layer goes (1 request, 85.9 us per layer, dummy weights)
+FP8 linear layers at TP4 (`walk_fp8.py`), with in-graph times of the quant + GEMM pair, and the BF16 skinny time for the same shape as a reference (standalone, cold L2):
+
+| layer | weight (N, K) | quant + FP8 GEMM in the model (us) | BF16 skinny, same shape, M=1 / M=4 (us) |
+|---|---|---|---|
+| input projection (GDN `in_proj_qkvz` / attention `qkv_proj`) | (5120, 4096) / (4608, 4096) | 3.1 + 11.2 | 9.8 / 11.5 |
+| `out_proj` | (4096, 2048) | 2.6 + 8.0 | 5.7 / 6.7 |
+| shared `gate_up_proj` | (512, 4096) | 2.2 + 11.0 | 3.3 / 3.6 |
+| shared `down_proj` | (4096, 256) | 2.6 + 6.1 | 2.8 / 3.4 |
+
+- These four pairs are 44 us of kernel time per 85.9 us layer.
+- The shared branch is the longer one here too: its last kernel ends about 10 us after the routed finalize (34.2 vs 24.5 us after the gate-up GEMM start). The shared `down_proj` GEMM starts 7 us after its input is ready (it waits behind the routed GEMM). So this model has the same pattern as Qwen3.6 in W12 / W13.
+- FP8 weights are half the bytes of BF16, so the BF16 skinny times are an upper bound for a W8A16 skinny kernel at the same shape.
+
+## Step 3: ranking
+Gain = kernel time removed from the critical path per step / TPOT. These are estimates from profiles and standalone timings, not A/Bs.
+
+| rank | candidate | model | expected TPOT gain | bit-identical | size |
+|---|---|---|---|---|---|
+| 1 | W8A16 skinny GEMM for block-FP8 linear layers on SM100, M = 1-4 | Qwen3.5-397B (also Qwen3.6-35B) | about -10 % at 1 request on 397B TP4; estimate range -8 to -15 % | no | medium-large, depends on #64980 |
+| 2 | fused up-projection + gate-mix kernel for M = 1-16 | Qwen3.8-Flash-Next | about -6 % at 1 request, -4 % at 16 | no (same as the existing fused op) | medium: one new kernel + dispatch |
+| 3 | Flash-Next SM100 table: (1, 2560) for all M, router (512, 2560) for M = 3-16, LM head M = 3-4 | Qwen3.8-Flash-Next | about -3 % at 4 requests, -1 % or less at 1 and 16 | no (skinny vs cuBLAS rounding, as in #69736) | small: table lines + verification |
+
+**1. W8A16 skinny GEMM for the block-FP8 linear layers on SM100.**
+- What changes: at 1-4 tokens the layer reads the BF16 activation directly and the FP8 weight with its 128x128 block scales, instead of quantizing the activation and running the cutlass block-FP8 GEMM. This removes the quant launch as well.
+- Estimate for 397B TP4 at 1 request. Main-stream pairs: input projection 14.3 -> at most 9.8 us, `out_proj` 10.6 -> at most 5.7 us: 9.4 us per layer. Shared branch: 13.2 -> 3.3 and 8.7 -> 2.8 us, but it only counts until the routed branch becomes the longer one (about 10 us of lag today). Taking 9.4 us on the main stream alone: 9.4 x 60 = 564 us = **-10 %** of the 5.556 ms TPOT. If the shared branch stops being critical, part of its 10 us lag adds to that (upper end about -15 %). With half the bytes the real kernel should beat the BF16 reference, which I did not measure.
+- Upstream: **#64980** (open) is this kernel for Hopper only, wired into the FlashInfer / DeepGEMM block-scale path with row-major scales; **#64983** (draft) is the routed-experts version, also SM90. Nothing for SM100. On SM100 the layer uses the cutlass block kernel with column-major scales (W12b), so the dispatch point and the scale layout differ.
+- Bit-identical: no. The activation is no longer quantized to FP8.
+- Size: SM100 plans for the five shapes (M = 1-4), a dispatch in the cutlass block-FP8 path, scale-layout handling. A few hundred lines on top of #64980.
+- Relation to the excluded items: at M = 1-4 this makes the SiLU-mul + quant fusion (#69778) and the RMSNorm + quant fusion unnecessary, because there is no activation quant left. They still matter above 4 tokens.
+
+**2. Flash-Next: fused up-projection + gate-mix for decode sizes.**
+- What changes: a small-M variant of the existing fused op (or a second code path in it) so that the cuBLAS (10240, 320) GEMM and `_hc_gate_mix_kernel` become one launch. 97 pairs per step.
+- Estimate: the pair is 3.7 + 2.4 us in the model at 1 request (5.9 us standalone). If one kernel does it in about 3.5 us, that is 2.5 us x 97 = 240 us = **-6 %** of 4.005 ms. At 16 requests the pair is 4.4 + about 2.6 us of a 6.658 ms step: about -4 %. The layer is serial at these points (busy union 96-97 % of TPOT), so the time converts.
+- Upstream: #64898, #66791, #69122 (merged) made the fused kernel and set the threshold to 48 on SM100; on SM90 the Triton version is used at all M. **#66865** (open, 37k lines) is an opt-in specialized decode for this model on GB300 only; I did not check whether it replaces this chain there. Nothing open for SM100 at small M.
+- Bit-identical: no, same as the existing fused op (FP32 gate before the sigmoid).
+- Size: one kernel (the existing C++ op is about 570 lines) plus the dispatch line. Needs a source build, which is not approved on this node.
+- Further in the same chain, larger: the all-reduce (4.4 us) is followed directly by `_hc_combine_norm_kernel` (3.1 us), also 97 times per step. Folding the combine + norm into the all-reduce epilogue would be another launch per pass, but it is a FlashInfer kernel change.
+
+**3. Flash-Next SM100 table additions.**
+- What changes: plan lines in the model's own table for the shared-expert gate (1, 2560) at M = 1-16 (about 2x), the router (512, 2560) at M = 3-16 (2.0x at 4, 1.7x at 8, 1.2x at 16), and the LM head (62080, 2560) at M = 3-4 (not swept here; the 62080-row LM head gained at M = 4 in W11).
+- Estimate: at 4 requests the router pair is about 7.3 us in the model against about 3.2 us skinny: 4 us x 48 = 190 us = **-3.6 %** of 5.313 ms. At 1 request only the shared gate is on cuBLAS and the shared and routed branches end together, so the gain is small (under 1 %). At 16 requests the router gain is about 1 us x 48.
+- Upstream: none for this table on SM100 (#67622 is a different model on SM120; #69736 does not touch K = 2560).
+- Bit-identical: no, as for every skinny plan.
+- Size: about 15 table lines, plus the 4-seed verification from W11.
+
+**Not ranked, but cheap to test:** P (aux-stream priority, W13) on Qwen3.5-397B. The 397B trace shows the same starved shared branch as Qwen3.6. It is one argument and output-identical. I could not run the paired A/B: TP4 needs 8 GPUs for two servers and 6 are available.
+
+## Caveats
+- All estimates assume the removed time is on the critical path. For the shared branch that is only true up to its current lag.
+- 397B used dummy weights: kernel times of the linear layers do not depend on the weights, but the routed-MoE part does.
+- The node was shared the whole time (owner's job on GPUs 0-1, my W13b A/B on GPUs 4-5).
+- The compiled library on this node is older than the Python tree (no source build). I checked that the fused hyper-connection op is present, so its absence at decode is the M >= 48 rule, not my build.
+
+## Files
+`kernels/` (tables, all kernels, cuBLAS name probes), `layer_q38_c1.txt`, `sweep/` (skinny sweeps), `prof.sh`, `kinds.py`, `cublas_names.py`, `hc_up_bench.py`, `sweep_small_k.py`, `walk_fp8.py`.
