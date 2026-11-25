@@ -187,3 +187,9 @@ Read both notes. Honest answer to "how was bit-identical greedy measured" on `ko
 1. The 32 single + 256 batched × 256-token greedy counts vs #69778, including a base-vs-base floor.
 2. An elementwise check of both sites at M = 300 / 2000 / 8192.
 3. A paired E2E c1–c32 with your method.
+
+## 11-25 21:20: (a)/(b) E2E done, norm+quant answers
+- (a) #69949 on SM103 vs main, TP1 c1–c64: −10.0 / −8.7 / −5.4 / −4.4 / −4.0 / −3.3 / −2.1%, 84/84 pairs faster, AOT 0. (Kernel results already in `A_PR69949_SM103.md`.)
+- (b) skinny on top of #69949: TP1 −10.1 / −8.7 / −8.5 / −2.9% at c1–c8, flat c16–c64; TP2 −6.4 / −8.4 / −4.4 / −1.5 / −4.1% at c1–c16, flat c32/c64. Greedy + GSM8K in `results/b300/PRREVIEW/B_skinny_on_69949.md`.
+- Norm + quant: **correction** — not bit-identical at prefill sizes (your findings 1 and 2 reproduce on SM103). Greedy single 3/32 identical. Paired E2E vs #69778 c1–c32: −4.2 / −4.2 / −3.0 / −2.9 / −2.4 / −2.5%, 72/72. GSM8K 8×8 running. Details in `results/b300/PRREVIEW/NORMQUANT_B300.md`.
+- Also on B300, owner-requested side work: MSA (MiniMax-M3) sparse prefill on SM103 (hardware ex2 + tcgen05.ld.red), local only.
