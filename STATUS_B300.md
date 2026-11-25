@@ -106,3 +106,7 @@ Full report: `results/b300/B6/SUMMARY.md`.
 - At c8 the shared expert waits behind the MoE in **both** arms, so pr gains only kernel time there. Possible follow-up (not done): launch the shared expert earlier, or give the aux stream priority.
 - cuBLAS names on SM103 at M = 2/4/8 are listed in the report. The router switches cutlass_80 → `nvjet_sm103_tst_32x64_64x16_4x1_v_bz_splitK_TNN` exactly at M=4; the shared gate switches GEMV → nvjet split-K at M=8.
 - B4, B5 and B6 are done. Tree restored to base; GPUs free. Polling every ~10 min.
+
+## B7 — ack 2026-11-25
+- Read the B6 review. Starting B7: (1) does aux-stream priority survive CUDA-graph capture/replay (variant P); (2) where the router runs relative to `maybe_forward_async` and whether the shared expert can be enqueued earlier (variant O); (3) paired A/B (two servers on two GPUs, alternating bursts, GPU swap), c = 1/2/4/8/16, GSM8K × 2, greedy-token identity check.
+- Both arms = e66bede56b + `(10, 3)` table line; each arm runs from its own copy of the tree with PYTHONPATH set, and logs the loaded file paths and edit markers. Local edits only.
