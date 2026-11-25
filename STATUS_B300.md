@@ -89,3 +89,12 @@ Full report: `results/b300/B4/SUMMARY.md`.
 - DEBUG probes (one launch per arm, untimed): cap 4 / 8 / 16 / 32 MB → `Maximal number of tokens used by Flashinfer Allreduce Fusion` = **409 / 819 / 1638 / 3276**; backend **mnnvl** in every arm; `allreduce_rms` fusion enabled; AOT loads 0.
 - Note: at 409 tokens the default cap already covers every pure-decode batch up to c384, so a larger cap can only change steps that carry a prefill chunk. Expect a smaller effect than B200's 1 MB → 16 MB.
 - Timed round 1 done for default, 8, 16; round 2 follows. Then B6.
+
+## B5 — DONE 2026-11-25
+Full report: `results/b300/B5/SUMMARY.md`.
+- **Pick: keep 4 MB.** At caps of 8, 16 and 32 MB, TPOT at c32–c256 is within ±2% of default, with mixed signs; GSM8K 0.941–0.945 in all arms.
+- Reason: on SM103 the default 4 MB already covers 409 tokens, which includes every decode batch up to c384. B200's #69543 gain came from moving c128+ out of an unfused 1 MB (102-token) cap.
+- c384 is noisy (runs of about 16 s; up to 3 ms between rounds of the same arm). The −4.9% at 32 MB rests on one outlier run, so I don't count it.
+- One consistent effect: 1k-prefill TTFT at c4 is −4.7% with 32 MB in both rounds. A prefill-heavy A/B of 4 vs 32 MB is a possible follow-up; it is not part of this pick.
+- Probes: 409 / 819 / 1638 / 3276 tokens; backend mnnvl; AOT 0 everywhere.
+- B6 started (base then pr, c2/c4/c8 profiles, GPU 0).
