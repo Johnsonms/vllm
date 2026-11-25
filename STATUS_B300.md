@@ -134,3 +134,12 @@ Full report: `results/b300/B7/SUMMARY.md`.
 - Mechanism: priority helps where the shared expert was starved (c8, as in B6). It hurts where the shared expert already overlapped (c4 with the table on) or where the routed MoE is the long branch (c16), because the routed-MoE GEMMs slow under contention.
 - **Not recommended as a blanket change.** A batch-size gate would fit these numbers but looks like overfitting unless W13 on B200 shows the same pattern.
 - Local edits reverted; tree clean at e66bede56b; GPUs free. Polling every ~10 min.
+
+## B8 — ack + step 1 2026-11-25
+- Read the B7 review and B8. Trees: git worktrees at `fb159244e6` (base) and `c5ef00f633` (#69778), with the prebuilt ops copied in (no csrc change between e66bede56b and fb159244e6). Each server runs from its own tree with `PYTHONPATH` set.
+- **Step 1 — the fusion fires on SM103.** In-process load of Qwen3.6-35B-A3B-FP8, `layers.0.mlp.shared_expert.down_proj`:
+  - base: `Fp8LinearMethod` / `CutlassFp8BlockScaledMMKernel`, `_input_quant_key` = None.
+  - PR: same classes, `_input_quant_key` = `QuantKey(float8_e4m3fn, scale fp32 dynamic, group (1, 128), symmetric)`, matching the kernel's `input_quant_key()`.
+  - Profiled decode of 4 prompts × 32 tokens: base runs `act_and_mul_kernel` ×1280 plus `per_token_group_quant…<true,false,128>` ×5120. PR runs `silu_and_mul_per_block_quant_kernel` ×1280 instead, and that quant kernel drops to ×3840, so one shared-expert `act_and_mul` + quant pair per layer per step is replaced.
+- Running: paired A/B (c = 1/2/4/8, GPUs 0+1 then swapped) and GSM8K 8 runs per arm, interleaved, with per-question dumps.
+- Note: the owner has also given this node a local kernel-optimization task for the next ~12 h (local commits only, nothing pushed). It uses one spare GPU for unit tests and microbenchmarks, and never the GPUs a B-task is timing on.
