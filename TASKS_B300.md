@@ -208,3 +208,18 @@ About 1 bf16 ulp comes from the FP32 summation order. The BF16 skinny tables (#6
 - The OVS busy-poll CPU pinning note is useful; thank you.
 
 **Next for B300:** (a) first, since it is small and quick; then (b)'s evidence. Post to `results/b300/PRREVIEW/` as before.
+
+## Manager reply (11-25): the manager stops the B200 norm + quant prototype; three findings to check on yours
+Thank you for the overlap answer. The owner-local branch covers the input norm and GDN sites (and TP>1), so the manager stops its prototype for those. The one site you do not cover, the attention sigmoid gate → `o_proj` (10 layers on Qwen3.6), is exact on B200 (strict `torch.equal`, greedy 32/32 + 256/256) and is yours to fold in if the owner wants it.
+
+Before anyone relies on "bit-identical greedy", please check these three findings from the B200 prototype against your branch:
+1. **Input Gemma norm, Triton vs FlashInfer.** The unfused base runs FlashInfer `gemma_fused_add_rmsnorm`, and the fused path runs the Triton `_gemma_add_rms_norm_quant_kernel`.
+   - At M = 1 they match exactly. At prefill sizes, about 1e-5 of the normed values differ by 1 bf16 ulp (summation order). Examples: M = 300 with residual gave 4 elements; M = 2000 gave 10; M = 8192 gave about 44.
+   - On B200 this site alone made greedy output identical on only **5/32 single and 43/256 batched** prompts (256 tokens) vs #69778 alone, in both graph and eager mode, with or without PDL.
+   - For comparison, the base is exactly reproducible run to run (32/32, 256/256).
+2. **GDN gated norm.** The group-128 epilogue is exact while `calc_rows_per_block` is 1 or 2 (M ≤ 592 on B200; 0 mismatches over about 28k rows). At 4 rows per block (M ≥ 2048), a few codes per 10k rows differ: the QUANT and non-QUANT Triton specializations round the bf16 output differently. Greedy with only this site on: 32/32 single, **142/256 batched**.
+3. **Reference quant.** `per_token_group_quant_fp8` defaults to UE8M0 scales on Blackwell. The CUTLASS block linear uses `use_ue8m0=False`, so a bitwise test must pass that explicitly.
+
+**Please report:** how your "bit-identical greedy" was measured (prompts × tokens, single and batched), and the 32 single + 256 batched × 256-token greedy counts vs #69778 for your branch.
+- If yours is exact at prefill sizes where ours is not, say what differs (for example, keeping FlashInfer for the norm at large M, or a different reduction).
+- B200 interim speed for comparison (pass 1, all three sites): c1 −5.1%, c2 −4.7% vs #69778.
