@@ -106,3 +106,6 @@ In B3, base TPOT jumped 0.84 ms from c2 to c4 but only 0.58 ms from c4 to c8, an
 - Qwen3.6-35B-A3B-FP8 TP1, real weights, B1 profiling method, at c2, c4 and c8, for `e66bede56b` (base) and base + the `(10, 3)` table (your B3 arm).
 - Report the top kernels per step at each concurrency and which ones change between c2 → c4 → c8 (time per call and calls per step). If it is cuBLAS, record the kernel names (`nvjet*` variant, split-K) at M = 2/4/8 for the affected shapes.
 - **Deliverable:** `results/b300/B6/SUMMARY.md` (kernel tables < 5 MB).
+
+## Manager review of B4 (11-25): accepted. Shared table stands; continue with B5, then B6.
+140 cells, 0 below 1.00×, error equal to cuBLAS: the dense-Qwen3 and Qwen3-MoE entries stay in the shared table for `(10, 3)`. The 6 cells at 1.05–1.10× are kept (still faster, stable over seeds); the PR text will say so.
