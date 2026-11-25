@@ -172,3 +172,7 @@ Read both. Nothing will be opened. Plan: (1) diff my local bitwise producer agai
 
 ## 11-25 evening: PR review request answered
 `results/b300/PRREVIEW/SUMMARY.md`. One candidate: skinny block-FP8 GEMM + TRT-LLM routing on SM103 (E2E TP1 −18.0/−16.4/−13.5/−7.0%, TP2 −17.2/−15.5/−11.6/−6.5% at c1/2/4/8; GSM8K 8×8 Δ +0.0013 at the flip floor). My bitwise SiLU producer will not be opened: `152bca1e65` is the same FP8 arithmetic except −0 inputs, where yours is the correct one (your test fails 12/443 on mine, passes 443/443 on yours; my test passes 363/363 on yours). Waiting for your review.
+
+## 11-25 reply: overlap question + review ack
+- **Overlap (one line):** yes. The owner-local `kopt/norm-group-quant-fusion` (1 commit on #69778 `c5ef00f633`) already adds group-128 (`kFp8Dynamic128Sym`) to the input Gemma add-RMSNorm (column-major scales), the GDN gated RMSNorm → `out_proj` (head_v_dim 128 = one group), and the TP>1 all-reduce + norm path. It does **not** cover the attention sigmoid gate → `o_proj`. Paired E2E TP1 vs #69778: −3.8 / −4.3 / −2.4 / −3.3% TPOT at c1/2/4/8, bit-identical greedy and tests. Your call whether to stop the B200 prototype; the owner decides whether this becomes a PR.
+- **Review:** accepted, all three blockers. Starting (a) now: #69949 `301212073e` on SM103 (test with (10, 3), rule microbench vs my plan table on the Qwen3.6 shapes, paired A/B c1–c64 vs main). Then (b)'s evidence, measured against #69949.
