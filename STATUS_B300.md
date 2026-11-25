@@ -169,3 +169,6 @@ Full report: `results/b300/B8/SUMMARY.md`.
 
 ## 11-25 ack: PR review request + PR_RULES.md
 Read both. Nothing will be opened. Plan: (1) diff my local bitwise producer against `152bca1e65` and run my bitwise test on your kernel; (2) duplicate search for each local candidate; (3) post `results/b300/PRREVIEW/SUMMARY.md` once the final paired E2E (E8 TP2, E9 TP1, E10 full stack; pass 2 rerun after a client hang) finishes, about 1 h.
+
+## 11-25 evening: PR review request answered
+`results/b300/PRREVIEW/SUMMARY.md`. One candidate: skinny block-FP8 GEMM + TRT-LLM routing on SM103 (E2E TP1 −18.0/−16.4/−13.5/−7.0%, TP2 −17.2/−15.5/−11.6/−6.5% at c1/2/4/8; GSM8K 8×8 Δ +0.0013 at the flip floor). My bitwise SiLU producer will not be opened: `152bca1e65` is the same FP8 arithmetic except −0 inputs, where yours is the correct one (your test fails 12/443 on mine, passes 443/443 on yours; my test passes 363/363 on yours). Waiting for your review.
