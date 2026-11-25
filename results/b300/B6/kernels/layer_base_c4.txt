@@ -1,0 +1,26 @@
+   -33.6    3.2   s3201  _causal_conv1d_update_kernel
+   -30.5    5.5   s3201  fused_recurrent_gated_delta_rule_packed_decode_kernel
+   -25.1    1.7   s3201  _fused_gdn_gated_rms_norm_kernel
+   -23.8    2.9   s3201  per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_
+   -21.0   10.5   s3201  cutlass::device_kernel<vllm::cutlass_3x_gemm_fp8_blockwise<cutlass::bf
+   -11.0    3.2   s3201  kernel_cutlass_kernel_flashinfernormkernelsfused_add_rmsnormFusedAddRM
+    -8.5    3.7   s3201  nvjet_sm103_tst_32x64_64x16_4x1_v_bz_splitK_TNN
+    -7.8    2.5   s29    per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_
+    -5.9    2.9   s3201  cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float
+    -5.0    7.6   s29    cutlass::device_kernel<vllm::cutlass_3x_gemm_fp8_blockwise<cutlass::bf
+    -4.0    3.0   s3201  per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_
+    -1.4    4.3   s3201  moe::dev::routing::routingCustom::routingIndicesBlockKernel<moe::dev::
+    +0.0   19.7 # s3201  bmm_E4m3_E4m3E4m3_Fp32_t128x8x128u2_s8_et64x8_m64x8x32_c1x1x1_rM_BN_tr
+   +13.2    1.9   s29    vllm::act_and_mul_kernel<c10::BFloat16, __nv_bfloat162, &(c10::BFloat1
+   +14.6    7.4   s3201  moe::dev::activation::activationDeepSeekKernel<moe::dev::activation::K
+   +15.0    2.7   s29    per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_
+   +15.5   16.3   s3201  bmm_Bfloat16_E4m3E4m3_Fp32_t128x8x128u2_s8_et64x8_m64x8x32_c1x1x1_rM_B
+   +28.9    6.7   s29    cutlass::device_kernel<vllm::cutlass_3x_gemm_fp8_blockwise<cutlass::bf
+   +30.4    2.8   s3201  moe::dev::finalize::finalizeKernelSmallBatch<moe::dev::finalize::Kerne
+   +35.6    2.6   s29    dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTensorStridedBatch
+   +38.3    1.9   s29    reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStridedBatched<flo
+   +40.2    1.5   s29    at::native::vectorized_elementwise_kernel<8, at::native::sigmoid_kerne
+   +41.8    3.0   s29    at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_noc
+   +44.9    1.4   s29    at::native::vectorized_elementwise_kernel<8, at::native::CUDAFunctor_a
+   +45.9    2.8   s29    kernel_cutlass_kernel_flashinfernormkernelsfused_add_rmsnormFusedAddRM
+   +48.1    2.5   s29    per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_

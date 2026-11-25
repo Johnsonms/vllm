@@ -1,0 +1,6 @@
+base/traces_c2: busy-union/step median 3433 us, summed 5316 us, overlap 1882 us
+base/traces_c4: busy-union/step median 4214 us, summed 5997 us, overlap 1784 us
+base/traces_c8: busy-union/step median 4796 us, summed 6693 us, overlap 1897 us
+pr/traces_c2: busy-union/step median 3271 us, summed 4806 us, overlap 1535 us
+pr/traces_c4: busy-union/step median 3760 us, summed 5746 us, overlap 1986 us
+pr/traces_c8: busy-union/step median 4524 us, summed 6243 us, overlap 1719 us

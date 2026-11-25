@@ -1,0 +1,499 @@
+[
+ {
+  "shape": "in_proj_ba (64,2048)",
+  "n": 64,
+  "k": 2048,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_32x64_64x16_2x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 2.75
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.76
+   }
+  ],
+  "total_us": 4.51
+ },
+ {
+  "shape": "in_proj_ba (64,2048)",
+  "n": 64,
+  "k": 2048,
+  "m": 2,
+  "kernels": [
+   {
+    "name": "void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8>(cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8::Params)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.69
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.79
+   }
+  ],
+  "total_us": 4.48
+ },
+ {
+  "shape": "in_proj_ba (64,2048)",
+  "n": 64,
+  "k": 2048,
+  "m": 3,
+  "kernels": [
+   {
+    "name": "void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8>(cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8::Params)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.83
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.82
+   }
+  ],
+  "total_us": 4.65
+ },
+ {
+  "shape": "in_proj_ba (64,2048)",
+  "n": 64,
+  "k": 2048,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8>(cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8::Params)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.82
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.98
+   }
+  ],
+  "total_us": 4.8
+ },
+ {
+  "shape": "in_proj_ba (64,2048)",
+  "n": 64,
+  "k": 2048,
+  "m": 5,
+  "kernels": [
+   {
+    "name": "void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8>(cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8::Params)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.94
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.18
+   }
+  ],
+  "total_us": 5.12
+ },
+ {
+  "shape": "in_proj_ba (64,2048)",
+  "n": 64,
+  "k": 2048,
+  "m": 6,
+  "kernels": [
+   {
+    "name": "void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8>(cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8::Params)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.94
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.86
+   }
+  ],
+  "total_us": 4.8
+ },
+ {
+  "shape": "in_proj_ba (64,2048)",
+  "n": 64,
+  "k": 2048,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8>(cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8::Params)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.83
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.03
+   }
+  ],
+  "total_us": 4.86
+ },
+ {
+  "shape": "shared_gate (1,2048)",
+  "n": 1,
+  "k": 2048,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "void dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> > >(cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> >)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.66
+   },
+   {
+    "name": "void reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStridedBatched<float>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16> >(float const*, float, cublasGemvTensorStridedBatched<float>, int, float const*, float, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, cublasPointerMode_t, cublasLtEpilogue_t, cublasGemvTensorStridedBatched<biasType<cublasGemvTensorStridedBatched<__nv_bfloat16>::value_type, float>::type const>)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.76
+   }
+  ],
+  "total_us": 3.42
+ },
+ {
+  "shape": "shared_gate (1,2048)",
+  "n": 1,
+  "k": 2048,
+  "m": 2,
+  "kernels": [
+   {
+    "name": "void dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> > >(cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> >)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.79
+   },
+   {
+    "name": "void reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStridedBatched<float>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16> >(float const*, float, cublasGemvTensorStridedBatched<float>, int, float const*, float, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, cublasPointerMode_t, cublasLtEpilogue_t, cublasGemvTensorStridedBatched<biasType<cublasGemvTensorStridedBatched<__nv_bfloat16>::value_type, float>::type const>)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.76
+   }
+  ],
+  "total_us": 3.55
+ },
+ {
+  "shape": "shared_gate (1,2048)",
+  "n": 1,
+  "k": 2048,
+  "m": 3,
+  "kernels": [
+   {
+    "name": "void dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> > >(cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> >)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.97
+   },
+   {
+    "name": "void reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStridedBatched<float>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16> >(float const*, float, cublasGemvTensorStridedBatched<float>, int, float const*, float, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, cublasPointerMode_t, cublasLtEpilogue_t, cublasGemvTensorStridedBatched<biasType<cublasGemvTensorStridedBatched<__nv_bfloat16>::value_type, float>::type const>)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.76
+   }
+  ],
+  "total_us": 3.73
+ },
+ {
+  "shape": "shared_gate (1,2048)",
+  "n": 1,
+  "k": 2048,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "void dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> > >(cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> >)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.97
+   },
+   {
+    "name": "void reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStridedBatched<float>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16> >(float const*, float, cublasGemvTensorStridedBatched<float>, int, float const*, float, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, cublasPointerMode_t, cublasLtEpilogue_t, cublasGemvTensorStridedBatched<biasType<cublasGemvTensorStridedBatched<__nv_bfloat16>::value_type, float>::type const>)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.89
+   }
+  ],
+  "total_us": 3.86
+ },
+ {
+  "shape": "shared_gate (1,2048)",
+  "n": 1,
+  "k": 2048,
+  "m": 5,
+  "kernels": [
+   {
+    "name": "void dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> > >(cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> >)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.08
+   },
+   {
+    "name": "void reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStridedBatched<float>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16> >(float const*, float, cublasGemvTensorStridedBatched<float>, int, float const*, float, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, cublasPointerMode_t, cublasLtEpilogue_t, cublasGemvTensorStridedBatched<biasType<cublasGemvTensorStridedBatched<__nv_bfloat16>::value_type, float>::type const>)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.92
+   }
+  ],
+  "total_us": 4.0
+ },
+ {
+  "shape": "shared_gate (1,2048)",
+  "n": 1,
+  "k": 2048,
+  "m": 6,
+  "kernels": [
+   {
+    "name": "void dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> > >(cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> >)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.11
+   },
+   {
+    "name": "void reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStridedBatched<float>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16> >(float const*, float, cublasGemvTensorStridedBatched<float>, int, float const*, float, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, cublasPointerMode_t, cublasLtEpilogue_t, cublasGemvTensorStridedBatched<biasType<cublasGemvTensorStridedBatched<__nv_bfloat16>::value_type, float>::type const>)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.76
+   }
+  ],
+  "total_us": 3.87
+ },
+ {
+  "shape": "shared_gate (1,2048)",
+  "n": 1,
+  "k": 2048,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_8x64_64x16_1x1_h_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 2.72
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.9
+   }
+  ],
+  "total_us": 4.62
+ },
+ {
+  "shape": "router (256,2048)",
+  "n": 256,
+  "k": 2048,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 2.98
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.92
+   }
+  ],
+  "total_us": 4.9
+ },
+ {
+  "shape": "router (256,2048)",
+  "n": 256,
+  "k": 2048,
+  "m": 2,
+  "kernels": [
+   {
+    "name": "void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8>(cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8::Params)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.78
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.97
+   }
+  ],
+  "total_us": 4.75
+ },
+ {
+  "shape": "router (256,2048)",
+  "n": 256,
+  "k": 2048,
+  "m": 3,
+  "kernels": [
+   {
+    "name": "void cutlass::Kernel2<cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8>(cutlass_80_tensorop_s16816gemm_bf16_64x64_64x6_tn_align8::Params)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.88
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.02
+   }
+  ],
+  "total_us": 4.9
+ },
+ {
+  "shape": "router (256,2048)",
+  "n": 256,
+  "k": 2048,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.09
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.98
+   }
+  ],
+  "total_us": 5.07
+ },
+ {
+  "shape": "router (256,2048)",
+  "n": 256,
+  "k": 2048,
+  "m": 5,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.17
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.98
+   }
+  ],
+  "total_us": 5.15
+ },
+ {
+  "shape": "router (256,2048)",
+  "n": 256,
+  "k": 2048,
+  "m": 6,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.17
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.82
+   }
+  ],
+  "total_us": 4.99
+ },
+ {
+  "shape": "router (256,2048)",
+  "n": 256,
+  "k": 2048,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.09
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.9
+   }
+  ],
+  "total_us": 4.99
+ },
+ {
+  "shape": "lm_head (248320,2048)",
+  "n": 248320,
+  "k": 2048,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_192x8_64x8_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 150.14
+   }
+  ],
+  "total_us": 150.14
+ },
+ {
+  "shape": "lm_head (248320,2048)",
+  "n": 248320,
+  "k": 2048,
+  "m": 2,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_192x8_64x8_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 152.53
+   }
+  ],
+  "total_us": 152.53
+ },
+ {
+  "shape": "lm_head (248320,2048)",
+  "n": 248320,
+  "k": 2048,
+  "m": 3,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_192x8_64x8_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 151.87
+   }
+  ],
+  "total_us": 151.87
+ },
+ {
+  "shape": "lm_head (248320,2048)",
+  "n": 248320,
+  "k": 2048,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_192x8_64x8_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 152.93
+   }
+  ],
+  "total_us": 152.93
+ },
+ {
+  "shape": "lm_head (248320,2048)",
+  "n": 248320,
+  "k": 2048,
+  "m": 5,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_192x8_64x8_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 154.98
+   }
+  ],
+  "total_us": 154.98
+ },
+ {
+  "shape": "lm_head (248320,2048)",
+  "n": 248320,
+  "k": 2048,
+  "m": 6,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_192x8_64x8_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 155.15
+   }
+  ],
+  "total_us": 155.15
+ },
+ {
+  "shape": "lm_head (248320,2048)",
+  "n": 248320,
+  "k": 2048,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm103_tst_192x8_64x8_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 156.05
+   }
+  ],
+  "total_us": 156.05
+ }
+]

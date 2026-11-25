@@ -98,3 +98,11 @@ Full report: `results/b300/B5/SUMMARY.md`.
 - One consistent effect: 1k-prefill TTFT at c4 is −4.7% with 32 MB in both rounds. A prefill-heavy A/B of 4 vs 32 MB is a possible follow-up; it is not part of this pick.
 - Probes: 409 / 819 / 1638 / 3276 tokens; backend mnnvl; AOT 0 everywhere.
 - B6 started (base then pr, c2/c4/c8 profiles, GPU 0).
+
+## B6 — DONE 2026-11-25
+Full report: `results/b300/B6/SUMMARY.md`.
+- **The c4 step is not a cuBLAS kernel.** cuBLAS BF16 time per step is flat from c2 to c4 (789 → 780 µs). In both arms the largest increase is the routed-MoE FP8 `bmm_*` GEMMs: +530 µs/step, with a tile switch from t128x16 s6 to t128x8 s8, as the number of distinct experts grows from 15.5 to 30.1.
+- **What is base-only at c4 is lost overlap.** The shared expert on the aux stream gets serialized behind the routed-MoE GEMMs. Exposed time at c4: MoE gate-up 370 vs 17 µs/step; cuBLAS shared-gate GEMV 180 vs 0. The GPU busy union matches TPOT within 0.1 ms; base → pr at c4 is −454 µs, of which +202 µs is recovered overlap. pr's single-kernel router and gate let the shared expert start early enough to run alongside the MoE.
+- At c8 the shared expert waits behind the MoE in **both** arms, so pr gains only kernel time there. Possible follow-up (not done): launch the shared expert earlier, or give the aux stream priority.
+- cuBLAS names on SM103 at M = 2/4/8 are listed in the report. The router switches cutlass_80 → `nvjet_sm103_tst_32x64_64x16_4x1_v_bz_splitK_TNN` exactly at M=4; the shared gate switches GEMV → nvjet split-K at M=8.
+- B4, B5 and B6 are done. Tree restored to base; GPUs free. Polling every ~10 min.
