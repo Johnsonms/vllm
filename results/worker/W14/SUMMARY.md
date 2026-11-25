@@ -264,3 +264,24 @@ Gain = kernel time removed from the critical path per step / TPOT. These are est
 
 ## Files
 `kernels/` (tables, all kernels, cuBLAS name probes), `layer_q38_c1.txt`, `sweep/` (skinny sweeps), `prof.sh`, `kinds.py`, `cublas_names.py`, `hc_up_bench.py`, `sweep_small_k.py`, `walk_fp8.py`.
+
+# Addendum (06:36Z), after the manager's note on the interim
+
+## Rank 1 is the manager's: what the `trtllm` backend rule covers on Qwen3.5-397B TP4
+My rank 1 (W8A16 skinny) overlaps the manager's bit-identical `gemm_fp8_nt_groupwise(..., backend="trtllm")` work, so read rank 1 as "the block-FP8 linear GEMM at small M", with the manager's approach first because it keeps the output. All five 397B TP4 block-FP8 linear shapes fall inside the rule `M*N <= 2^18` at decode sizes, and none hits the exception (K >= 7168 with 6144 <= N <= 8192):
+
+| layer | weight (N, K) | calls per step | covered up to M | time in the model at 1 request |
+|---|---|---|---|---|
+| GDN `in_proj_qkvz` | (5120, 4096) | 45 | 51 | 11.2 us (first of the 4 per layer) |
+| attention `qkv_proj` | (4608, 4096) | 15 | 56 | 11.2 us (same slot) |
+| `out_proj` (GDN and attention) | (4096, 2048) | 60 | 64 | 8.0 us |
+| shared `gate_up_proj` | (512, 4096) | 60 | 512 | 11.0 us (aux stream, runs next to the routed GEMM) |
+| shared `down_proj` | (4096, 256) | 60 | 64 | 6.1 us (aux stream) |
+
+240 calls per step, 2149 us per step of kernel time at 1 request (27.7 %), 2423 us at 8 requests (21.7 %). At 1.03-1.54x the kernel-time saving would be about 60-750 us per step; the two main-stream slots (120 calls, 19.2 us per layer) are the part that converts directly.
+
+## Rank 3 changes after the manager's note: taken as W15
+The Flash-Next table lines are now W15 (sweep running). Two facts for the PR text:
+- The model's own table opts a layer in by weight shape (`enable_qwen4_exp_low_latency_gemm`), so a new `(1, 2560)` entry is picked up by the shared-expert gate without other changes.
+- The lookup is by exact M. Every shape in the table has only some of M = 1, 2, 4, 8, 16, so 3, 5, 6 or 7 running requests fall back to cuBLAS for all of them. W15 sweeps those M too.
+- (10240, 320) and (2560, 160) are out: the skinny kernel does not beat cuBLAS on them (table in the correction section above).
