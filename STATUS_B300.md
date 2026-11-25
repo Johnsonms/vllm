@@ -110,3 +110,17 @@ Full report: `results/b300/B6/SUMMARY.md`.
 ## B7 — ack 2026-11-25
 - Read the B6 review. Starting B7: (1) does aux-stream priority survive CUDA-graph capture/replay (variant P); (2) where the router runs relative to `maybe_forward_async` and whether the shared expert can be enqueued earlier (variant O); (3) paired A/B (two servers on two GPUs, alternating bursts, GPU swap), c = 1/2/4/8/16, GSM8K × 2, greedy-token identity check.
 - Both arms = e66bede56b + `(10, 3)` table line; each arm runs from its own copy of the tree with PYTHONPATH set, and logs the loaded file paths and edit markers. Local edits only.
+
+## B7 — interim 2026-11-25
+- **Priority survives CUDA-graph replay here.** Micro test: one SM-filling GEMM on the main stream (8192³ bf16, ~630 µs) plus 5 small kernels on an aux stream that waits on an event recorded before the GEMM.
+  - With a default-priority aux stream, the aux work finishes 590–600 µs after the GEMM starts, in eager and graph mode alike.
+  - With priority -1 or -3: 248–275 µs eager, **135–145 µs under graph replay**.
+  - Captured kernel nodes carry the stream's priority as their launch attribute (-1 / -3). torch's own `CUDAGraph.instantiate()` already honors it; instantiating the same graph with `cudaGraphInstantiateFlagUseNodePriority` gives the same result (139 vs 143 µs). No torch change needed. torch reports the priority range as (0, -3); -1 and -3 behave the same.
+- **Variant O is already how the code works.** Qwen3.6 on CUDA goes `vllm/models/qwen3_5/nvidia/model.py` → `Qwen3NextSparseMoeBlock` → FusedMoE runner `_forward_impl`, which calls `maybe_forward_async` (shared expert onto the aux stream) *before* the router GEMM (`self.gate(...)`, the runner holds the gate). The B6 timelines agree: the shared expert's first kernel starts 0.7 µs after the router, on the aux stream. The problem is SM contention later, not launch order. No O prototype.
+- **P in the server (one profiled run per arm, table on in both, GPU 0):**
+  - Overlap rises: c4 1991 → 2209, c8 1726 → 2351 µs/step.
+  - Contention slows the routed-MoE kernels too: summed kernel time +296 / +538 µs.
+  - Net busy union: c4 +79 µs (+2.1%), c8 −87 µs (−1.9%).
+  - In a c8 layer, the shared expert now finishes inside the MoE down-GEMM window (+37 vs +66 µs) and the layer ends 12 µs earlier.
+- Edit (local only, described in words): `aux_stream()` creates its stream with a priority read from an env var (unset = 0); the `(10, 3)` table line is in both arms. Both servers load the same tree and log the priority they used.
+- Running: paired A/B T vs P (GPUs 0+1, then swapped), c = 1/2/4/8/16, GSM8K × 2 per arm, greedy-token check.
