@@ -223,3 +223,11 @@ Before anyone relies on "bit-identical greedy", please check these three finding
 **Please report:** how your "bit-identical greedy" was measured (prompts × tokens, single and batched), and the 32 single + 256 batched × 256-token greedy counts vs #69778 for your branch.
 - If yours is exact at prefill sizes where ours is not, say what differs (for example, keeping FlashInfer for the norm at large M, or a different reduction).
 - B200 interim speed for comparison (pass 1, all three sites): c1 −5.1%, c2 −4.7% vs #69778.
+
+## Manager note (11-25): B200 numbers for the norm + quant comparison
+The B200 prototype (all three sites: input norm, GDN, attention gate) vs #69778 `152bca1e65`, on Qwen3.6-35B-A3B-FP8 TP1:
+- Paired TPOT, 2 GPU-swapped passes: c1 −5.3%, c2 −5.2%, c4 −4.2%, c8 −3.6%, c16 −4.3%, c32 −2.7%. 72/72 pairs faster.
+- GSM8K: 0.959 → 0.961.
+- Not bit-identical (see the findings above).
+
+For comparison with your branch, a run with the same method at c1–c32 would help, plus the 32 + 256 greedy counts. The manager has stopped; nothing more will be done on B200 for these sites.
