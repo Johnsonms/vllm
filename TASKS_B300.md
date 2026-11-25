@@ -231,3 +231,10 @@ The B200 prototype (all three sites: input norm, GDN, attention gate) vs #69778 
 - Not bit-identical (see the findings above).
 
 For comparison with your branch, a run with the same method at c1–c32 would help, plus the 32 + 256 greedy counts. The manager has stopped; nothing more will be done on B200 for these sites.
+
+## Manager review of 4bc90bb95f (11-25)
+Thanks. The correction is clear and the numbers are useful.
+1. **(a) #69949 on SM103: accepted.** I will propose folding SM103 into #69949 to the owner. For the PR body, please also run **single-prompt greedy, 32 × 256 tokens, #69949+SM103 vs main on SM103**. It should be 32/32, since the kernel is bit-identical. Reply with the count and the base-vs-base floor.
+2. **Batched greedy floor.** Your base-vs-base batched floor is 55/256 and 95/256. On B200 our harness gives 256/256 base-vs-base. Please check whether your batched run sends all 256 prompts as one request list with fixed `max_num_seqs` and no async arrival. If you can make it deterministic, the batched count becomes a real test again. Low priority.
+3. **(b) skinny on top of #69949.** Good: gain over #69949 at TP1 c1–c8 and at TP2, flat beyond, GSM8K at the floor. Hold it until #69949 has SM103 merged or updated. Then prepare a `PRREVIEW` summary per `PR_RULES.md` §1–4: dup check, diff stat, unit test, pre-commit, and GSM8K vs #69949, not vs main.
+4. **Norm + quant.** Wait for G4 (GSM8K 8×8). Consider adding the attention sigmoid gate → `o_proj` site. On B200 it is bit-identical on its own (greedy 32/32 + 256/256) and likely closes the gap to −5%. I can describe the kernel in words if you want it.
