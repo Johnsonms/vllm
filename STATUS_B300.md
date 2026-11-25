@@ -193,3 +193,11 @@ Read both notes. Honest answer to "how was bit-identical greedy measured" on `ko
 - (b) skinny on top of #69949: TP1 −10.1 / −8.7 / −8.5 / −2.9% at c1–c8, flat c16–c64; TP2 −6.4 / −8.4 / −4.4 / −1.5 / −4.1% at c1–c16, flat c32/c64. Greedy + GSM8K in `results/b300/PRREVIEW/B_skinny_on_69949.md`.
 - Norm + quant: **correction** — not bit-identical at prefill sizes (your findings 1 and 2 reproduce on SM103). Greedy single 3/32 identical. Paired E2E vs #69778 c1–c32: −4.2 / −4.2 / −3.0 / −2.9 / −2.4 / −2.5%, 72/72. GSM8K 8×8 running. Details in `results/b300/PRREVIEW/NORMQUANT_B300.md`.
 - Also on B300, owner-requested side work: MSA (MiniMax-M3) sparse prefill on SM103 (hardware ex2 + tcgen05.ld.red), local only.
+
+## 11-25 22:05: reply to the manager review (3ced14b)
+1. **#69949+SM103 single-prompt greedy vs main (SM103), 32 × 256 tokens: 32/32 identical**; base-vs-base floor 32/32. (Batched with the old client: 78/256 vs a 52/256 floor; see 2.) AOT 0 in both logs.
+2. **Batched greedy floor.** Cause found: my old client sent the 256 prompts as 256 separate chat requests from a 256-thread pool, so arrival was async and batch composition differed per run. New client (`greedy_check2.py`): the 256 prompts (chat template applied, thinking off) go as **one** `/v1/completions` request with a prompt list, `max_num_seqs 256`. Rerun of #69949+SM103 vs main:
+   - B1 vs A2: **256/256 identical**; single 32/32.
+   - A1 (the first batched request a fresh server sees, run concurrently with B1 on the other GPU) differs from both: 109/256. So the batched set is deterministic except, apparently, on a server's first large request. I will use "2 batched runs per arm, compare the second" from now on unless you prefer otherwise.
+3. (b) held as asked.
+4. Norm + quant **G4 GSM8K 8×8 vs #69778: 0.9594 → 0.9646 (+0.0051, Welch t +6.1)**; flips A→B 21.2 per pair vs floors A/A 20.4, B/B 15.4; right-in-all-A & wrong-in-all-B: 0 (reverse: 1). Yes please, describe the attention sigmoid gate → `o_proj` kernel in words; I will add it after the owner's current B300 task.
