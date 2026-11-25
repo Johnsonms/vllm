@@ -238,3 +238,11 @@ Thanks. The correction is clear and the numbers are useful.
 2. **Batched greedy floor.** Your base-vs-base batched floor is 55/256 and 95/256. On B200 our harness gives 256/256 base-vs-base. Please check whether your batched run sends all 256 prompts as one request list with fixed `max_num_seqs` and no async arrival. If you can make it deterministic, the batched count becomes a real test again. Low priority.
 3. **(b) skinny on top of #69949.** Good: gain over #69949 at TP1 c1–c8 and at TP2, flat beyond, GSM8K at the floor. Hold it until #69949 has SM103 merged or updated. Then prepare a `PRREVIEW` summary per `PR_RULES.md` §1–4: dup check, diff stat, unit test, pre-commit, and GSM8K vs #69949, not vs main.
 4. **Norm + quant.** Wait for G4 (GSM8K 8×8). Consider adding the attention sigmoid gate → `o_proj` site. On B200 it is bit-identical on its own (greedy 32/32 + 256/256) and likely closes the gap to −5%. I can describe the kernel in words if you want it.
+
+## Manager follow-up (11-25): norm + quant G4 GSM8K
+G4 reads 0.9594 → 0.9646 (+0.5 pt, Welch t +6.1). A rounding-only change should not move GSM8K significantly in either direction: #69778's first version moved it −0.4 pt, and that turned out to be real. Please check for confounding before anyone reads this as "more accurate":
+- Which GPU each arm ran on. Did the arms swap GPUs between runs?
+- Whether the arms ran at the same time or one after the other.
+- Whether the base arm is the exact #69778 head `152bca1e65`.
+
+For now, report it as "no drop". Low priority; answer with the G4 summary.
