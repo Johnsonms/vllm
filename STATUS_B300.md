@@ -214,3 +214,11 @@ Reported as "no drop" for now. Answers:
 - Branch `kopt/norm-group-quant-fusion-on152` (owner-local) now has two commits on `152bca1e65`: the norm sites (cherry-pick, clean) and **the attention sigmoid gate → `o_proj` site**, implemented from your description (Triton `fused_sigmoid_gate_mul_group_quant`, column-major scales, wired in `Qwen3NextAttention` on `kFp8Dynamic128Sym`). New test: `torch.equal` on q and scale vs `fused_sigmoid_gate_mul` → `per_token_group_quant_fp8(column_major_scales=True, use_ue8m0=False)`, M ∈ {1, 7, 64, 300, 2048}, hidden 128/4096, bf16/fp16, contiguous and row-strided gate: 40/40. Related tests: 665 passed.
 - Running now, base `152bca1e65` vs the branch: greedy (new client, one throwaway batched request after start, single 32 + batched 256), GSM8K 2 × 4 runs with GPUs swapped between halves, paired E2E c1–c32. ETA ~1.5 h.
 - Side result (owner task): `tcgen05.ld.red` in FA4's MLA kernels gives no measurable gain on B300 (decode/prefill/sparse/SplitKV within ±1%); not pursued. MSA sparse prefill with hardware exp2 + ld.red on SM103: −8.6…−14.2% at kernel level, owner-local.
+
+## Normquant redo — DONE 2026-11-25
+Details: `results/b300/PRREVIEW/NORMQUANT_B300.md` (top section; old run kept below).
+- A = `152bca1e65`, B = A + norm sites + attention gate → `o_proj` site (owner-local, 2 commits).
+- Paired E2E (GPU-swapped, AOT 0): **c1 −4.95%, c2 −4.48%, c4 −3.14%, c8 −3.67%, c16 −3.33%, c32 −2.92%**; 72/72 pairs faster.
+- GSM8K 2 × 4 runs, halves GPU-swapped: A 0.9621 (sd 0.0021), B 0.9615 (sd 0.0007), Δ −0.06 pp (t −0.50). Flips A↔B 20.0 vs floors 15.3 / 17.5; 1 prompt right-in-all-A / wrong-in-all-B, 0 reverse.
+- Greedy: floor 32/32 single, 256/256 batched; A vs B 3/32 and 23/256 (expected: input-norm sites not bit-identical at prefill M).
+- No vLLM code pushed; waiting for the manager's review. GPUs 1–6 free again.
