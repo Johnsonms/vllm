@@ -1,0 +1,26 @@
+   -44.7   10.5   s3195  cutlass::device_kernel<vllm::cutlass_3x_gemm_fp8_blockwise<cutlass::bf
+   -34.0    2.8   s29    _causal_conv1d_update_kernel
+   -31.2    8.1   s29    fused_recurrent_gated_delta_rule_packed_decode_kernel
+   -23.2    1.7   s29    _fused_gdn_gated_rms_norm_kernel
+   -21.9    2.9   s29    per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_
+   -19.1   11.3   s29    cutlass::device_kernel<vllm::cutlass_3x_gemm_fp8_blockwise<cutlass::bf
+    -8.1    2.9   s29    kernel_cutlass_kernel_flashinfernormkernelsfused_add_rmsnormFusedAddRM
+    -5.7    2.7   s29    kernel_cutlass_kernel_vllmmodel_executorkernelslinearcute_dsl_skinny_g
+    -5.1    2.8   s3195  per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_
+    -3.4    2.5   s29    per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_
+    -2.3    8.4   s3195  cutlass::device_kernel<vllm::cutlass_3x_gemm_fp8_blockwise<cutlass::bf
+    -1.2    5.2   s29    moe::dev::routing::routingCustom::routingIndicesDynBlockKernel<moe::de
+    +0.0   32.0 # s29    bmm_E4m3_E4m3E4m3_Fp32_t128x8x128u2_s8_et64x8_m64x8x32_c1x1x1_rM_BN_tr
+   +25.4    3.1   s3195  vllm::act_and_mul_kernel<c10::BFloat16, __nv_bfloat162, &(c10::BFloat1
+   +26.8    7.6   s29    moe::dev::activation::activationDeepSeekKernel<moe::dev::activation::K
+   +27.9   20.9   s29    bmm_Bfloat16_E4m3E4m3_Fp32_t128x8x128_s8_et64x8_m64x8x32_c1x1x1_rM_BN_
+   +46.1    7.2   s3195  per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_
+   +46.3    4.4   s29    moe::dev::finalize::finalizeKernelSmallBatch<moe::dev::finalize::Kerne
+   +53.2    6.4   s3195  cutlass::device_kernel<vllm::cutlass_3x_gemm_fp8_blockwise<cutlass::bf
+   +59.1    2.5   s3195  kernel_cutlass_kernel_vllmmodel_executorkernelslinearcute_dsl_skinny_g
+   +61.5    1.6   s3195  at::native::vectorized_elementwise_kernel<8, at::native::sigmoid_kerne
+   +63.0    3.2   s3195  at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_noc
+   +66.1    1.7   s29    at::native::vectorized_elementwise_kernel<8, at::native::CUDAFunctor_a
+   +67.5    2.9   s29    kernel_cutlass_kernel_flashinfernormkernelsfused_add_rmsnormFusedAddRM
+   +70.0    2.8   s29    per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_
+   +70.6    3.0   s3195  kernel_cutlass_kernel_vllmmodel_executorkernelslinearcute_dsl_skinny_g

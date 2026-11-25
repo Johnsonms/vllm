@@ -1,0 +1,14 @@
+torch 2.14.0+cu132 priority range (least, greatest): (0, -3)
+captured graph (default aux): kernel-node priority attributes = [0, 0, 0, 0, 0, 0]
+captured graph (p-1 aux): kernel-node priority attributes = [0, -1, -1, -1, -1, -1]
+captured graph (high aux): kernel-node priority attributes = [0, -3, -3, -3, -3, -3]
+
+| mode | aux done after GEMM start (us) | GEMM dur (us) | first aux start (us) | samples |
+|---|---|---|---|---|
+| eager-default | 599.9 | 631.0 | -0.3 | 20 |
+| graph-default | 589.3 | 624.5 | -0.5 | 20 |
+| eager-p-1 | 275.4 | 635.4 | -0.3 | 20 |
+| graph-p-1 | 135.0 | 634.1 | -0.3 | 20 |
+| eager-high | 273.3 | 633.2 | -0.3 | 20 |
+| graph-high | 144.8 | 648.3 | -0.5 | 20 |
+| graph-high-nodeprio | 143.7 | 644.1 | -0.5 | 20 |

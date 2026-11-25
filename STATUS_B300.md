@@ -124,3 +124,13 @@ Full report: `results/b300/B6/SUMMARY.md`.
   - In a c8 layer, the shared expert now finishes inside the MoE down-GEMM window (+37 vs +66 µs) and the layer ends 12 µs earlier.
 - Edit (local only, described in words): `aux_stream()` creates its stream with a priority read from an env var (unset = 0); the `(10, 3)` table line is in both arms. Both servers load the same tree and log the priority they used.
 - Running: paired A/B T vs P (GPUs 0+1, then swapped), c = 1/2/4/8/16, GSM8K × 2 per arm, greedy-token check.
+
+## B7 — DONE 2026-11-25
+Full report: `results/b300/B7/SUMMARY.md`.
+- **Priority survives CUDA-graph replay** on torch 2.14 / CUDA 13.2. Captured nodes carry the aux priority; torch's instantiate honors it without `UseNodePriority`.
+- **Order (O) is already in place.** `maybe_forward_async` runs before the router GEMM in `moe_runner._forward_impl`, so no prototype was needed.
+- **P (aux priority −1), paired A/B with the GPUs swapped, mean of 2 passes:** c1 −1.1%, c2 −4.5%, **c4 +2.5%**, c8 −1.8%, **c16 +1.1%**. The sign is the same in both passes and in all 12 pairs per c.
+- Greedy tokens identical (4/4 per pass). GSM8K T 0.963/0.958 vs P 0.962/0.964.
+- Mechanism: priority helps where the shared expert was starved (c8, as in B6). It hurts where the shared expert already overlapped (c4 with the table on) or where the routed MoE is the long branch (c16), because the routed-MoE GEMMs slow under contention.
+- **Not recommended as a blanket change.** A batch-size gate would fit these numbers but looks like overfitting unless W13 on B200 shows the same pattern.
+- Local edits reverted; tree clean at e66bede56b; GPUs free. Polling every ~10 min.

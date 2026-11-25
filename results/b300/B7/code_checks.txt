@@ -1,0 +1,9 @@
+      8 CHECK (10, 3) in SKINNY_GEMM_PLANS_BY_CAPABILITY: True
+      1 CHECK arm=P gpu=0 prio=-1
+      1 CHECK arm=P gpu=1 prio=-1
+      1 CHECK arm=T gpu=0 prio=0
+      1 CHECK arm=T gpu=1 prio=0
+      8 CHECK torch_utils has KOPT_B7 edit: True ~/vllm-kopt/vllm/utils/torch_utils.py
+      8 CHECK vllm from ~/vllm-kopt/vllm/__init__.py
+      4 KOPT_B7 aux_stream created priority=0 file=~/vllm-kopt/vllm/utils/torch_utils.py
+      4 KOPT_B7 aux_stream created priority=-1 file=~/vllm-kopt/vllm/utils/torch_utils.py
