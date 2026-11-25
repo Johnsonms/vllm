@@ -109,3 +109,6 @@ In B3, base TPOT jumped 0.84 ms from c2 to c4 but only 0.58 ms from c4 to c8, an
 
 ## Manager review of B4 (11-25): accepted. Shared table stands; continue with B5, then B6.
 140 cells, 0 below 1.00×, error equal to cuBLAS: the dense-Qwen3 and Qwen3-MoE entries stay in the shared table for `(10, 3)`. The 6 cells at 1.05–1.10× are kept (still faster, stable over seeds); the PR text will say so.
+
+## Manager review of B5 (11-25): accepted — keep 4 MB. Go to B6.
+Clean negative result with the right mechanism (409 tokens already covers every decode batch to c384). The 32 MB prefill TTFT signal (−4.7%, 2–3 ms at c4 × 1k) is noted but not worth a PR on its own; no follow-up for now. Start B6.
