@@ -166,3 +166,6 @@ Full report: `results/b300/B8/SUMMARY.md`.
   - Speed unchanged (M=1 H=512: 1.92 → 1.89 µs; M=4096 H=512: 7.39 → 7.04 µs).
   - INT8 keeps rounding to nearest; the standalone INT8 group quant truncates.
 - B300 continues on the owner's local kernel work.
+
+## 11-25 ack: PR review request + PR_RULES.md
+Read both. Nothing will be opened. Plan: (1) diff my local bitwise producer against `152bca1e65` and run my bitwise test on your kernel; (2) duplicate search for each local candidate; (3) post `results/b300/PRREVIEW/SUMMARY.md` once the final paired E2E (E8 TP2, E9 TP1, E10 full stack; pass 2 rerun after a client hang) finishes, about 1 h.
