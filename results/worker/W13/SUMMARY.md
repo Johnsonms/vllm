@@ -76,7 +76,7 @@ Tree: `sm100-skinny-qwen35-moe` at ce7e3d5dd7 (main 04f0149d47 + the SM100 table
 - **No regression at any concurrency.** This is the opposite sign of B300's B7 at 4 requests (+2.5 % there).
 - The skinny table itself moved the base: 4 requests 4.459 -> 4.179 ms, 8 requests 5.128 -> 4.942 ms (W13 base vs this base; not a paired comparison). P's gain at 4 requests went from -6.7 % to -5.2 %, and at 1-2 requests it grew (-1.8 / -1.3 % -> -2.1 / -3.6 %).
 - Greedy output, 4 prompts, 256 tokens: identical byte for byte.
-- c32 and c64 are running now with the same method. Result will be appended.
+- c32 and c64: section 4 below. **P loses at 64 requests.**
 - Not idle: the owner's job is on GPUs 0-1, and my W14 profile runs on GPUs 2, 3, 6, 7 at the same time (the manager asked for W14 in parallel). Both arms see the same load.
 
 ## 2. GSM8K per question (tree with #69736, 3 runs per arm, 1319 questions, 64 concurrent, temperature 0)
@@ -112,3 +112,25 @@ Base 04f0149d47 **without** the skinny table, my local W12c prototype on in both
 - **With the fusion on, P costs 3.0 % at 16 requests (all 12 pairs).** Without the fusion P is neutral at 16. The fusion alone makes 16 requests faster (6.07 -> 5.87 ms across runs), and P gives that back.
 - So P and the fusion add at 2 and 4 requests but interact at 16. If both go upstream, P needs a re-test on top of #69778 with the skinny table, at 16 requests and above. I have not run that combination.
 - Greedy output with fusion: P identical to no-P.
+
+## 4. c32 and c64 (06:46Z): P is neutral at 32 and loses 2.1 % at 64
+Same tree (#69736 in both arms), same paired method, GPUs 4/5 then swapped.
+
+| requests | 32 | 64 |
+|---|---|---|
+| base TPOT p50 (ms), pass 1 / pass 2 | 7.478 / 7.489 | 9.499 / 9.528 |
+| P TPOT p50 (ms), pass 1 / pass 2 | 7.490 / 7.500 | 9.684 / 9.706 |
+| P vs base, pass 1 | +0.34 % | +2.15 % |
+| P vs base, pass 2 (GPUs swapped) | +0.58 % | +2.06 % |
+| **mean of the two passes** | **+0.5 %** | **+2.1 %** |
+| pairs with P faster | 4 / 12 | 0 / 12 |
+
+Full picture for P on B200 with the skinny table (TPOT p50): **-2.1 / -3.6 / -5.2 / -1.0 / -0.4 / +0.5 / +2.1 %** at 1 / 2 / 4 / 8 / 16 / 32 / 64 requests.
+
+- So P as a fixed setting is not a clean win: it helps up to 16 requests and costs 2 % at 64 (12 of 12 pairs). This matches the timeline at 8 requests in section 3 of the first part: once the two branches fill the SMs, priority makes the routed GEMMs slower by what the shared branch gains, and at 64 the routed branch is the one that matters.
+- The W12c fusion moved this crossover down (P cost 3 % at 16 requests there), so the crossover depends on what else is in the tree.
+- A version that could go upstream would need the priority to depend on the token count, which a captured graph allows only per capture size (the stream is chosen at capture). I did not prototype that. The aux stream is one global stream today, so it would mean two aux streams (one per priority) picked by the number of tokens, next to the existing 256-token threshold for the overlap.
+- 397B check not done: a paired A/B at TP4 needs 8 GPUs and 6 are available. The W14 profile shows the same starved shared branch on 397B TP4 at 1 request (shared branch ends about 10 us after the routed one).
+- The W14 profiling and sweeps ran on GPUs 2, 3, 6, 7 during these passes; both arms saw the same load.
+
+Local edits for W13 / W13b are reverted (see STATUS).
