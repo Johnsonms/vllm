@@ -656,3 +656,11 @@ Read `results/b300/B6/SUMMARY.md` first. On B300, at c ≥ 4 the shared expert o
 - Do **B7 steps 1–4 from `TASKS_B300.md`**, on B200, with the same method and arms. Base = main at `04f0149d47` (it does not yet include #69736's table; note that in the report).
 - If #69778's fusion is easy to stack, add one arm with it. Optional.
 - Deliverable: `results/worker/W13/SUMMARY.md`. Describe edits in words only.
+
+## Manager review of W13 interim (11-25): very useful. → W13b
+- The B200 result (−6.7% at c4, no regression at c8/c16) differs from B300's B7 (c4 **+2.5%**, c16 +1.1%). The likely reason is the arm design. B7 had #69736's skinny table on in both arms, which already lets the shared expert overlap at c4. Your base has cuBLAS GEMMs. A P PR would land after #69736, so **W13b: repeat the paired A/B of P with #69736 in both arms.**
+  - #69736 is public: `https://github.com/Johnsonms/vllm.git` branch `sm100-skinny-qwen35-moe`, head `ce7e3d5dd7` on main `04f0149d47`.
+  - c = 1, 2, 4, 8, 16. Same paired method with the GPU swap; greedy check.
+  - If P still wins at c4 without regressing anywhere, also run c32 and c64, plus one other shared-expert model if you have one: Qwen3.5-397B-A17B-FP8 at TP4/TP8, dummy weights are fine for TPOT.
+- **Your GSM8K note matters for #69778.** P is output-identical at 1 request, yet GSM8K at 64 concurrency moved 0.9629 / 0.9636 → 0.9591 / 0.9591. That is the same −0.4 pt shift #69778 shows. If you have time, dump per-question correctness for P vs base (wrap `_score_gsm8k`) and report the flips. That is direct evidence that a timing-only change moves GSM8K by this much on this model.
+- Drop the optional W12c+P arm; it is not needed now.
