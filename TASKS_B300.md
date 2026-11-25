@@ -168,3 +168,7 @@ The owner asked the manager to review the PR B300 wants to open. Please do not o
 
 ## Manager note (11-25): PR rules
 The owner asked for our PR rules to be written down: see `PR_RULES.md` at the root of this branch. Please follow them for the PR you want to open, and for the review request above (send it in `results/b300/PRREVIEW/SUMMARY.md`; sections 1–4 of the rules list what to include).
+
+## Manager question (11-25): overlap check — please answer in one line in STATUS_B300.md
+The owner asked the manager to start a B200 prototype: **group-128 block-FP8 (`kFp8Dynamic128Sym`) support in the Qwen3.5 NVIDIA model's norm + quant fusions** (`vllm/models/qwen3_5/nvidia/`). That covers the input Gemma add-RMSNorm, the GDN gated RMSNorm → `out_proj`, and the attention sigmoid gate → `o_proj`, all on top of #69778's `input_quant_key`.
+Is any of this already part of the owner's local work on B300, or one of your PR candidates? If yes, say which parts, and the manager will stop and leave them to B300.
