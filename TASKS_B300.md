@@ -131,3 +131,16 @@ Base for both arms: `e66bede56b` **plus the `(10, 3)` table line** (your B3 `pr`
    - Plus GSM8K, 2 runs per arm. Output should be bit-identical for P; check greedy tokens on 4 prompts.
    - **Gotcha:** if your venv has an editable vLLM install, `vllm serve` imports *that* tree, not the cwd. Set `PYTHONPATH=<tree>` per server, and log the loaded file path and the presence of your edit in each server log.
 4. **Deliverable:** `results/b300/B7/SUMMARY.md`: the priority finding, the order finding, the A/B table, and a layer timeline (c4, c8) for the winning variant vs base. Describe edits in words only.
+
+## Manager review of B7 (11-25): accepted — not a blanket change. → B8
+
+Clean answer, with the sign the same in every pair. P stays parked until W13 shows whether B200 follows the same pattern.
+
+### B8: independent check of #69778 (SiLU-and-mul + block-FP8 quant fusion) on B300, with accuracy first
+#69778 is public: `https://github.com/Johnsonms/vllm.git` branch `fp8-block-silu-quant-fusion`, commit `c5ef00f633` on main `fb159244e6`. Base = `fb159244e6`. On B200, TPOT was −3.8 / −2.5 / −2.4% at c1/4/8. **The open question is accuracy:** GSM8K over 10 runs per arm was 0.9636 (main) vs 0.9595 (PR). Per-question flips look like near-tie noise, but the owner wants it settled before anyone relies on it.
+1. **Confirm the fusion fires on SM103.** Log the kernel class and `_input_quant_key` of one shared-expert `down_proj`. Set `PYTHONPATH` per tree.
+2. **Paired A/B:** two GPUs, both servers up, bursts alternating, GPUs swapped (your B7 design). c = 1, 2, 4, 8.
+3. **GSM8K, 8 runs per arm** (same command as B3), interleaved base/PR. Both servers up at once is fine. **Save per-question correctness.** `gsm8k_eval.py` only prints the total. Wrap `_score_gsm8k` to dump `[int(pred == label) ...]` per run to JSON; no vLLM edit is needed.
+   - Report: per-run accuracy, means, and the right→wrong / wrong→right flip counts base vs PR.
+   - Also report the same flips between base runs (the A/A noise floor).
+4. **Deliverable:** `results/b300/B8/SUMMARY.md`.
