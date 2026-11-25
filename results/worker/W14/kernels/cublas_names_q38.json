@@ -1,0 +1,1002 @@
+[
+ {
+  "shape": "hc_up (10240,320)",
+  "n": 10240,
+  "k": 320,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_128x8_64x12_4x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 2.66
+   }
+  ],
+  "total_us": 2.66
+ },
+ {
+  "shape": "hc_up (10240,320)",
+  "n": 10240,
+  "k": 320,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_128x8_64x12_4x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 2.64
+   }
+  ],
+  "total_us": 2.64
+ },
+ {
+  "shape": "hc_up (10240,320)",
+  "n": 10240,
+  "k": 320,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_128x8_64x12_4x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 2.7
+   }
+  ],
+  "total_us": 2.7
+ },
+ {
+  "shape": "hc_up (10240,320)",
+  "n": 10240,
+  "k": 320,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_192x8_64x8_4x2_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.07
+   }
+  ],
+  "total_us": 3.07
+ },
+ {
+  "shape": "hc_up (10240,320)",
+  "n": 10240,
+  "k": 320,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_192x16_64x8_2x2_2cta_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.28
+   }
+  ],
+  "total_us": 3.28
+ },
+ {
+  "shape": "hc_up (10240,320)",
+  "n": 10240,
+  "k": 320,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_144x64_64x12_1x2_2cta_h_bz_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.28
+   }
+  ],
+  "total_us": 3.28
+ },
+ {
+  "shape": "shared_gate (1,2560)",
+  "n": 1,
+  "k": 2560,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "void dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> > >(cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> >)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.06
+   },
+   {
+    "name": "void reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStridedBatched<float>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16> >(float const*, float, cublasGemvTensorStridedBatched<float>, int, float const*, float, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, cublasPointerMode_t, cublasLtEpilogue_t, cublasGemvTensorStridedBatched<biasType<cublasGemvTensorStridedBatched<__nv_bfloat16>::value_type, float>::type const>)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.11
+   }
+  ],
+  "total_us": 4.17
+ },
+ {
+  "shape": "shared_gate (1,2560)",
+  "n": 1,
+  "k": 2560,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "void dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> > >(cublasDotParams<cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<float> >)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.21
+   },
+   {
+    "name": "void reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStridedBatched<float>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16> >(float const*, float, cublasGemvTensorStridedBatched<float>, int, float const*, float, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, cublasPointerMode_t, cublasLtEpilogue_t, cublasGemvTensorStridedBatched<biasType<cublasGemvTensorStridedBatched<__nv_bfloat16>::value_type, float>::type const>)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.11
+   }
+  ],
+  "total_us": 4.32
+ },
+ {
+  "shape": "shared_gate (1,2560)",
+  "n": 1,
+  "k": 2560,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_8x64_64x16_1x1_h_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.39
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.11
+   }
+  ],
+  "total_us": 5.5
+ },
+ {
+  "shape": "shared_gate (1,2560)",
+  "n": 1,
+  "k": 2560,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_1x1_h_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.26
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.11
+   }
+  ],
+  "total_us": 5.37
+ },
+ {
+  "shape": "shared_gate (1,2560)",
+  "n": 1,
+  "k": 2560,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_1x1_h_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.34
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.98
+   }
+  ],
+  "total_us": 5.32
+ },
+ {
+  "shape": "shared_gate (1,2560)",
+  "n": 1,
+  "k": 2560,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.39
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 1.99
+   }
+  ],
+  "total_us": 5.38
+ },
+ {
+  "shape": "shared_down (2560,160)",
+  "n": 2560,
+  "k": 160,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_24x64_64x16_4x1_v_bz_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 2.59
+   }
+  ],
+  "total_us": 2.59
+ },
+ {
+  "shape": "shared_down (2560,160)",
+  "n": 2560,
+  "k": 160,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64x64_64x6_tn_align8>(cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64x64_64x6_tn_align8::Params)",
+    "calls_per_linear": 1.0,
+    "median_us": 3.14
+   }
+  ],
+  "total_us": 3.14
+ },
+ {
+  "shape": "shared_down (2560,160)",
+  "n": 2560,
+  "k": 160,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_24x64_64x16_4x1_v_bz_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 2.56
+   }
+  ],
+  "total_us": 2.56
+ },
+ {
+  "shape": "shared_down (2560,160)",
+  "n": 2560,
+  "k": 160,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_4x2_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 2.29
+   }
+  ],
+  "total_us": 2.29
+ },
+ {
+  "shape": "shared_down (2560,160)",
+  "n": 2560,
+  "k": 160,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x16_64x16_2x2_2cta_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 2.42
+   }
+  ],
+  "total_us": 2.42
+ },
+ {
+  "shape": "shared_down (2560,160)",
+  "n": 2560,
+  "k": 160,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_40x64_64x16_4x1_v_bz_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 2.37
+   }
+  ],
+  "total_us": 2.37
+ },
+ {
+  "shape": "router (512,2560)",
+  "n": 512,
+  "k": 2560,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.41
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.18
+   }
+  ],
+  "total_us": 5.59
+ },
+ {
+  "shape": "router (512,2560)",
+  "n": 512,
+  "k": 2560,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.5
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.26
+   }
+  ],
+  "total_us": 5.76
+ },
+ {
+  "shape": "router (512,2560)",
+  "n": 512,
+  "k": 2560,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.49
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.4
+   }
+  ],
+  "total_us": 5.89
+ },
+ {
+  "shape": "router (512,2560)",
+  "n": 512,
+  "k": 2560,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.6
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.43
+   }
+  ],
+  "total_us": 6.03
+ },
+ {
+  "shape": "router (512,2560)",
+  "n": 512,
+  "k": 2560,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.62
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.34
+   }
+  ],
+  "total_us": 5.96
+ },
+ {
+  "shape": "router (512,2560)",
+  "n": 512,
+  "k": 2560,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x32_64x16_2x4_2cta_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 4.86
+   }
+  ],
+  "total_us": 4.86
+ },
+ {
+  "shape": "shared_gate_up (320,2560)",
+  "n": 320,
+  "k": 2560,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.57
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.24
+   }
+  ],
+  "total_us": 5.81
+ },
+ {
+  "shape": "shared_gate_up (320,2560)",
+  "n": 320,
+  "k": 2560,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.58
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.3
+   }
+  ],
+  "total_us": 5.88
+ },
+ {
+  "shape": "shared_gate_up (320,2560)",
+  "n": 320,
+  "k": 2560,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.42
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.37
+   }
+  ],
+  "total_us": 5.79
+ },
+ {
+  "shape": "shared_gate_up (320,2560)",
+  "n": 320,
+  "k": 2560,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.44
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.34
+   }
+  ],
+  "total_us": 5.78
+ },
+ {
+  "shape": "shared_gate_up (320,2560)",
+  "n": 320,
+  "k": 2560,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.33
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.37
+   }
+  ],
+  "total_us": 5.7
+ },
+ {
+  "shape": "shared_gate_up (320,2560)",
+  "n": 320,
+  "k": 2560,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x32_64x16_2x4_2cta_h_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.46
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.42
+   }
+  ],
+  "total_us": 5.88
+ },
+ {
+  "shape": "hc_down_inject (336,10240)",
+  "n": 336,
+  "k": 10240,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_4x1_v_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.6
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.64
+   }
+  ],
+  "total_us": 6.24
+ },
+ {
+  "shape": "hc_down_inject (336,10240)",
+  "n": 336,
+  "k": 10240,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_4x1_v_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.74
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.82
+   }
+  ],
+  "total_us": 6.56
+ },
+ {
+  "shape": "hc_down_inject (336,10240)",
+  "n": 336,
+  "k": 10240,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_4x1_v_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.74
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.72
+   }
+  ],
+  "total_us": 6.46
+ },
+ {
+  "shape": "hc_down_inject (336,10240)",
+  "n": 336,
+  "k": 10240,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_16x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 5.7
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.88
+   }
+  ],
+  "total_us": 8.58
+ },
+ {
+  "shape": "hc_down_inject (336,10240)",
+  "n": 336,
+  "k": 10240,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_16x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 4.9
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.5
+   }
+  ],
+  "total_us": 7.4
+ },
+ {
+  "shape": "hc_down_inject (336,10240)",
+  "n": 336,
+  "k": 10240,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_16x64_64x16_2x2_2cta_h_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 5.87
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.53
+   }
+  ],
+  "total_us": 8.4
+ },
+ {
+  "shape": "hc_mixer_down (320,10240)",
+  "n": 320,
+  "k": 10240,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_4x1_v_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.57
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.5
+   }
+  ],
+  "total_us": 6.07
+ },
+ {
+  "shape": "hc_mixer_down (320,10240)",
+  "n": 320,
+  "k": 10240,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_4x1_v_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.6
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.74
+   }
+  ],
+  "total_us": 6.34
+ },
+ {
+  "shape": "hc_mixer_down (320,10240)",
+  "n": 320,
+  "k": 10240,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_4x1_v_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.71
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.69
+   }
+  ],
+  "total_us": 6.4
+ },
+ {
+  "shape": "hc_mixer_down (320,10240)",
+  "n": 320,
+  "k": 10240,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 4.75
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.82
+   }
+  ],
+  "total_us": 7.57
+ },
+ {
+  "shape": "hc_mixer_down (320,10240)",
+  "n": 320,
+  "k": 10240,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_32x64_64x16_4x1_v_bz_splitK_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 3.87
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.8
+   }
+  ],
+  "total_us": 6.67
+ },
+ {
+  "shape": "hc_mixer_down (320,10240)",
+  "n": 320,
+  "k": 10240,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x32_64x16_2x4_2cta_h_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 4.54
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 2.46
+   }
+  ],
+  "total_us": 7.0
+ },
+ {
+  "shape": "gdn_out (2560,1536)",
+  "n": 2560,
+  "k": 1536,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x16_64x16_4x1_2cta_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.73
+   }
+  ],
+  "total_us": 3.73
+ },
+ {
+  "shape": "gdn_out (2560,1536)",
+  "n": 2560,
+  "k": 1536,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_24x64_64x16_4x1_v_bz_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 4.83
+   }
+  ],
+  "total_us": 4.83
+ },
+ {
+  "shape": "gdn_out (2560,1536)",
+  "n": 2560,
+  "k": 1536,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_24x64_64x16_4x1_v_bz_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 5.02
+   }
+  ],
+  "total_us": 5.02
+ },
+ {
+  "shape": "gdn_out (2560,1536)",
+  "n": 2560,
+  "k": 1536,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_4x2_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.81
+   }
+  ],
+  "total_us": 3.81
+ },
+ {
+  "shape": "gdn_out (2560,1536)",
+  "n": 2560,
+  "k": 1536,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x16_64x16_2x2_2cta_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 3.73
+   }
+  ],
+  "total_us": 3.73
+ },
+ {
+  "shape": "gdn_out (2560,1536)",
+  "n": 2560,
+  "k": 1536,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_48x64_64x16_4x2_2cta_h_bz_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 4.02
+   }
+  ],
+  "total_us": 4.02
+ },
+ {
+  "shape": "ple_kv (12800,2560)",
+  "n": 12800,
+  "k": 2560,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_2x1_v_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 10.4
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 3.49
+   }
+  ],
+  "total_us": 13.89
+ },
+ {
+  "shape": "ple_kv (12800,2560)",
+  "n": 12800,
+  "k": 2560,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_2x1_v_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 8.74
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 3.65
+   }
+  ],
+  "total_us": 12.39
+ },
+ {
+  "shape": "ple_kv (12800,2560)",
+  "n": 12800,
+  "k": 2560,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_2x1_v_bz_splitK_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 6.85
+   },
+   {
+    "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+    "calls_per_linear": 1.0,
+    "median_us": 3.36
+   }
+  ],
+  "total_us": 10.21
+ },
+ {
+  "shape": "ple_kv (12800,2560)",
+  "n": 12800,
+  "k": 2560,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_128x16_64x12_4x1_2cta_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 6.53
+   }
+  ],
+  "total_us": 6.53
+ },
+ {
+  "shape": "ple_kv (12800,2560)",
+  "n": 12800,
+  "k": 2560,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_192x16_64x8_1x2_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 8.7
+   }
+  ],
+  "total_us": 8.7
+ },
+ {
+  "shape": "ple_kv (12800,2560)",
+  "n": 12800,
+  "k": 2560,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_176x64_64x11_1x2_2cta_h_bz_TNN",
+    "calls_per_linear": 1.0,
+    "median_us": 8.38
+   }
+  ],
+  "total_us": 8.38
+ },
+ {
+  "shape": "lm_head (62080,2560)",
+  "n": 62080,
+  "k": 2560,
+  "m": 1,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 50.91
+   }
+  ],
+  "total_us": 50.91
+ },
+ {
+  "shape": "lm_head (62080,2560)",
+  "n": 62080,
+  "k": 2560,
+  "m": 4,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 50.67
+   }
+  ],
+  "total_us": 50.67
+ },
+ {
+  "shape": "lm_head (62080,2560)",
+  "n": 62080,
+  "k": 2560,
+  "m": 8,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x8_64x16_2x1_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 47.58
+   }
+  ],
+  "total_us": 47.58
+ },
+ {
+  "shape": "lm_head (62080,2560)",
+  "n": 62080,
+  "k": 2560,
+  "m": 16,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_64x16_64x16_2x1_2cta_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 48.12
+   }
+  ],
+  "total_us": 48.12
+ },
+ {
+  "shape": "lm_head (62080,2560)",
+  "n": 62080,
+  "k": 2560,
+  "m": 32,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_512x32_64x3_2x1_2cta_v_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 56.83
+   }
+  ],
+  "total_us": 56.83
+ },
+ {
+  "shape": "lm_head (62080,2560)",
+  "n": 62080,
+  "k": 2560,
+  "m": 128,
+  "kernels": [
+   {
+    "name": "nvjet_sm100_tst_448x64_64x3_1x2_h_bz_TNT",
+    "calls_per_linear": 1.0,
+    "median_us": 62.8
+   }
+  ],
+  "total_us": 62.8
+ }
+]

@@ -1,0 +1,354 @@
+{
+ "trace": "dp0_pp0_tp2_dcp0_ep2_rank2.1795586182220842095.pt.trace.json.gz",
+ "kernel_launches": 50880,
+ "summed_kernel_us": 248298.1,
+ "gpu_span_us": 189903.5,
+ "cublas_bf16_us": 0,
+ "cublas_bf16_share_pct": 0.0,
+ "cublas_bf16_launches": 0,
+ "kernels": [
+  {
+   "name": "void cutlass::device_kernel<vllm::cutlass_3x_gemm_fp8_blockwise<cutlass::bfloat16_t, 128, 1, 128, cute::tuple<cute::C<128>, cute::C<16>, cute::C<128> >, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cutlass::epilogue::BlockwiseNoSmemWarpSpecialized1Sm, cutlass::gemm::KernelTmaWarpSpecializedBlockwise1SmSm100, true>::GemmKernel>(vllm::cutlass_3x_gemm_fp8_blockwise<cutlass::bfloat16_t, 128, 1, 128, cute::tuple<cute::C<128>, cute::C<16>, cute::C<128> >, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cutlass::epilogue::BlockwiseNoSmemWarpSpecialized1Sm, cutlass::gemm::KernelTmaWarpSpecializedBlockwise1SmSm100, true>::GemmKernel::Params)",
+   "us": 68761.1,
+   "pct": 27.69,
+   "calls": 7680,
+   "cublas_bf16": false
+  },
+  {
+   "name": "bmm_E4m3_E4m3E4m3_Fp32_t128x8x128u2_s8_et64x8_m64x8x32_c1x1x1_rM_BN_transOut_dsFp8_schedS_bN_tma_tmaSf_rgTma_clmp_lbW2_dynB_sm100f",
+   "us": 26690.4,
+   "pct": 10.75,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void flashinfer::trtllm_mnnvl_allreduce::oneshotAllreduceFusionKernel<(unsigned char)4, __nv_bfloat16, true, (flashinfer::trtllm_mnnvl_allreduce::QuantType)0, float4>(flashinfer::trtllm_mnnvl_allreduce::AllReduceKernelParams<__nv_bfloat16>)",
+   "us": 23674.3,
+   "pct": 9.53,
+   "calls": 3840,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_e4m3fn, false, false, 128>(c10::BFloat16 const*, void*, float*, long, float, float, float, int, int)",
+   "us": 19936.1,
+   "pct": 8.03,
+   "calls": 7680,
+   "cublas_bf16": false
+  },
+  {
+   "name": "bmm_Bfloat16_E4m3E4m3_Fp32_t128x8x128_s8_et64x8_m64x8x32_c1x1x1_rM_BN_transOut_dsFp8_schedS_bN_rgTma_clmp_dynB_sm100f",
+   "us": 19884.6,
+   "pct": 8.01,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void moe::dev::routing::routingCustom::routingIndicesBlockKernel<moe::dev::routing::routingCustom::KernelParams<__nv_bfloat16, __nv_bfloat16, 512, 16, moe::dev::routing::TopKExpertSelect<moe::dev::routing::NoOpPreprocess, moe::dev::routing::SoftmaxPostprocess> > >(moe::dev::routing::routingCustom::KernelParams<__nv_bfloat16, __nv_bfloat16, 512, 16, moe::dev::routing::TopKExpertSelect<moe::dev::routing::NoOpPreprocess, moe::dev::routing::SoftmaxPostprocess> >)",
+   "us": 9375.9,
+   "pct": 3.78,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void moe::dev::activation::activationDeepSeekKernel<moe::dev::activation::KernelParams<cutlass::float_e4m3_t, 1, true> >(moe::dev::activation::KernelParams<cutlass::float_e4m3_t, 1, true>)",
+   "us": 8223.9,
+   "pct": 3.31,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "kernel_cutlass_kernel_vllmmodel_executorkernelslinearcute_dsl_skinny_gemmCuteSkinnyGemm_object_at__tensorptrbf16gmemalign8o14096i64div41_tensorptrbf16gmemalign8o4096i64div41_tensorptrbf16_0",
+   "us": 7798.2,
+   "pct": 3.14,
+   "calls": 3360,
+   "cublas_bf16": false
+  },
+  {
+   "name": "kernel_cutlass_kernel_vllmmodel_executorkernelslinearcute_dsl_skinny_gemmCuteSkinnyGemm_object_at__tensorptrbf16gmemalign16o14096i64div81_tensorptrbf16gmemalign16o4096i64div81_tensorptrbf_0",
+   "us": 6855.5,
+   "pct": 2.76,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void moe::dev::finalize::finalizeKernelSmallBatch<moe::dev::finalize::KernelParams<cutlass::bfloat16_t, cutlass::bfloat16_t, 2, false, true> >(moe::dev::finalize::KernelParams<cutlass::bfloat16_t, cutlass::bfloat16_t, 2, false, true>)",
+   "us": 5533.4,
+   "pct": 2.23,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_nocast<at::native::BinaryFunctor<c10::BFloat16, c10::BFloat16, c10::BFloat16, at::native::binary_internal::MulFunctor<float> > >(at::TensorIteratorBase&, at::native::BinaryFunctor<c10::BFloat16, c10::BFloat16, c10::BFloat16, at::native::binary_internal::MulFunctor<float> > const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::BinaryFunctor<c10::BFloat16, c10::BFloat16, c10::BFloat16, at::native::binary_internal::MulFunctor<float> > >(at::TensorIteratorBase&, at::native::BinaryFunctor<c10::BFloat16, c10::BFloat16, c10::BFloat16, at::native::binary_internal::MulFunctor<float> > const&)::{lambda(int)#1})",
+   "us": 5368.3,
+   "pct": 2.16,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void flashinfer::trtllm_mnnvl_allreduce::oneshotAllreduceFusionKernel<(unsigned char)4, __nv_bfloat16, false, (flashinfer::trtllm_mnnvl_allreduce::QuantType)0, float4>(flashinfer::trtllm_mnnvl_allreduce::AllReduceKernelParams<__nv_bfloat16>)",
+   "us": 4789.0,
+   "pct": 1.93,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_e4m3fn, false, true, 128>(c10::BFloat16 const*, void*, float*, long, float, float, float, int, int)",
+   "us": 4589.1,
+   "pct": 1.85,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_causal_conv1d_update_kernel",
+   "us": 4091.5,
+   "pct": 1.65,
+   "calls": 1440,
+   "cublas_bf16": false
+  },
+  {
+   "name": "fmhaSm100fKernel_QkvBfloat16OBfloat16H256PagedKvCausalP64MultiCtasKvCgaVarSeqQ8Kv256StaticGroupedSwapsAbForGen",
+   "us": 3866.9,
+   "pct": 1.56,
+   "calls": 480,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void vllm::act_and_mul_kernel<c10::BFloat16, __nv_bfloat162, &(c10::BFloat16 vllm::silu_kernel<c10::BFloat16>(c10::BFloat16 const&, float)), &(__nv_bfloat162 vllm::packed_silu_kernel<__nv_bfloat162>(__nv_bfloat162 const&, float)), true, true, false, false>(c10::BFloat16*, c10::BFloat16 const*, int, float, float, float)",
+   "us": 3653.9,
+   "pct": 1.47,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "fused_recurrent_gated_delta_rule_packed_decode_kernel",
+   "us": 3653.2,
+   "pct": 1.47,
+   "calls": 1440,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::(anonymous namespace)::cunn_SoftMaxForward<4, float, float, float, at::native::(anonymous namespace)::SoftMaxForwardEpilogue>(float*, float const*, int)",
+   "us": 3313.7,
+   "pct": 1.33,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::vectorized_elementwise_kernel<8, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul>, false>(int, at::native::sigmoid_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul>)",
+   "us": 3018.7,
+   "pct": 1.22,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::vectorized_elementwise_kernel<8, at::native::CUDAFunctor_add<c10::BFloat16>, std::array<char*, 3ul>, false>(int, at::native::CUDAFunctor_add<c10::BFloat16>, std::array<char*, 3ul>)",
+   "us": 2370.9,
+   "pct": 0.95,
+   "calls": 1920,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_fused_gdn_gated_rms_norm_kernel",
+   "us": 2262.6,
+   "pct": 0.91,
+   "calls": 1440,
+   "cublas_bf16": false
+  },
+  {
+   "name": "kernel_cutlass_kernel_vllmmodel_executorkernelslinearcute_dsl_skinny_gemmCuteSkinnyGemm_object_at__tensorptrbf16gmemalign16o1div2048i64div81_tensorptrbf16gmemalign16odiv2div2048i64div81_t_0",
+   "us": 2238.3,
+   "pct": 0.9,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_fused_qk_rmsnorm_rope_gate_kernel",
+   "us": 1484.9,
+   "pct": 0.6,
+   "calls": 480,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void flashinfer::sampling::RadixTopKMaskLogitsKernel_MultiCTA<1024u, 4u, false, float, int>(float*, float*, int*, unsigned int, unsigned int, unsigned int, flashinfer::sampling::RadixRowState*, unsigned int, unsigned int)",
+   "us": 1182.2,
+   "pct": 0.48,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void vllm::reshape_and_cache_flash_kernel<__nv_bfloat16, __nv_bfloat16, (vllm::Fp8KVCacheDataType)0>(__nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, long const*, long, long, long, long, long, int, int, int, float const*, float const*, int)",
+   "us": 1140.8,
+   "pct": 0.46,
+   "calls": 480,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void flashinfer::sampling::TopPSamplingFromProbKernel<1024u, (cub::_V_300600_SM_1000::BlockScanAlgorithm)2, (cub::_V_300600_SM_1000::BlockReduceAlgorithm)2, 4u, true, float, int>(float*, int*, bool*, int*, float*, float, unsigned int, unsigned long*, unsigned long, unsigned long*, unsigned long, unsigned int, unsigned int)",
+   "us": 1091.1,
+   "pct": 0.44,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_fused_sigmoid_gate_mul_kernel",
+   "us": 777.6,
+   "pct": 0.31,
+   "calls": 480,
+   "cublas_bf16": false
+  },
+  {
+   "name": "ncclDevKernel_AllGather_RING_LL(ncclDevKernelArgsStorage<4096ul>)",
+   "us": 408.8,
+   "pct": 0.16,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_temperature_kernel",
+   "us": 304.1,
+   "pct": 0.12,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<4> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<4> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1}>(long, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<4> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<4> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1})",
+   "us": 285.8,
+   "pct": 0.12,
+   "calls": 96,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<2> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<2> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1}>(long, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<2> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<2> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1})",
+   "us": 213.4,
+   "pct": 0.09,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_gather_block_tables_kernel",
+   "us": 133.2,
+   "pct": 0.05,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_post_update_kernel",
+   "us": 133.1,
+   "pct": 0.05,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, 4, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1> >(int, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#7}::operator()() const::{lambda(float)#1}, std::array<char*, 2ul>, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1>)",
+   "us": 127.0,
+   "pct": 0.05,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_prepare_rope_positions_kernel",
+   "us": 115.4,
+   "pct": 0.05,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_compute_slot_mappings_kernel",
+   "us": 111.8,
+   "pct": 0.05,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_get_num_sampled_and_rejected_kernel",
+   "us": 97.9,
+   "pct": 0.04,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_combine_sampled_and_draft_tokens_kernel",
+   "us": 96.5,
+   "pct": 0.04,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::index_elementwise_kernel<128, 4, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<8> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<8> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1}>(long, at::native::gpu_index_kernel<at::native::index_kernel_impl<at::native::OpaqueType<8> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1}>(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>, at::native::index_kernel_impl<at::native::OpaqueType<8> >(at::TensorIteratorBase&, c10::ArrayRef<long>, c10::ArrayRef<long>)::{lambda(char*, char const*, long)#1} const&, bool)::{lambda(int)#1})",
+   "us": 87.1,
+   "pct": 0.04,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<int>, std::array<char*, 1ul>, false>(int, at::native::FillFunctor<int>, std::array<char*, 1ul>)",
+   "us": 79.5,
+   "pct": 0.03,
+   "calls": 64,
+   "cublas_bf16": false
+  },
+  {
+   "name": "kernel_cutlass_kernel_flashinfernormkernelsrmsnormRMSNormKernel_object_at__tensorptrbf16gmemalign128oi64409640961_tensorptrbf16gmemalign16o40961_tensorptrbf16gmemalign128oi64409640961___T_0",
+   "us": 71.0,
+   "pct": 0.03,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::elementwise_kernel<128, 2, at::native::gpu_kernel_impl_nocast<at::native::CUDAFunctor_add<int> >(at::TensorIteratorBase&, at::native::CUDAFunctor_add<int> const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::CUDAFunctor_add<int> >(at::TensorIteratorBase&, at::native::CUDAFunctor_add<int> const&)::{lambda(int)#1})",
+   "us": 59.7,
+   "pct": 0.02,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "memcpy32_post",
+   "us": 58.9,
+   "pct": 0.02,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::unrolled_elementwise_kernel<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#4}::operator()() const::{lambda(long)#1}, std::array<char*, 2ul>, 4, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1> >(int, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#4}::operator()() const::{lambda(long)#1}, std::array<char*, 2ul>, TrivialOffsetCalculator<1, unsigned int>, TrivialOffsetCalculator<1, unsigned int>, at::native::memory::LoadWithCast<1>, at::native::memory::StoreWithCast<1>)",
+   "us": 57.4,
+   "pct": 0.02,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_prepare_pos_seq_lens_kernel",
+   "us": 53.2,
+   "pct": 0.02,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void vllm::vocab_embedding::vocab_parallel_embedding_kernel<int, uint4>(uint4*, int const*, uint4 const*, long, long, long, long, long, long, long)",
+   "us": 52.6,
+   "pct": 0.02,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "_scatter_num_accepted_kernel",
+   "us": 45.5,
+   "pct": 0.02,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void at::native::vectorized_elementwise_kernel<8, at::native::FillFunctor<bool>, std::array<char*, 1ul>, false>(int, at::native::FillFunctor<bool>, std::array<char*, 1ul>)",
+   "us": 41.1,
+   "pct": 0.02,
+   "calls": 32,
+   "cublas_bf16": false
+  },
+  {
+   "name": "void (anonymous namespace)::elementwise_kernel_with_index<int, at::native::arange_cuda_out(c10::Scalar const&, c10::Scalar const&, c10::Scalar const&, at::Tensor&)::{lambda()#1}::operator()() const::{lambda()#3}::operator()() const::{lambda(long)#1}>(int, at::native::arange_cuda_out(c10::Scalar const&, c10::Scalar const&, c10::Scalar const&, at::Tensor&)::{lambda()#1}::operator()() const::{lambda()#3}::operator()() const::{lambda(long)#1}, function_traits<at::native::arange_cuda_out(c10::Scalar const&, c10::Scalar const&, c10::Scalar const&, at::Tensor&)::{lambda()#1}::operator()() const::{lambda()#3}::operator()() const::{lambda(long)#1}>::result_type*)",
+   "us": 39.0,
+   "pct": 0.02,
+   "calls": 32,
+   "cublas_bf16": false
+  }
+ ]
+}

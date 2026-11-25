@@ -1,0 +1,33 @@
+One decoder layer of Qwen3.8-Flash-Next-FP8, TEP4, rank 0, 1 request (profiled). us from the routed gate-up GEMM start; duration; stream.
+    0.0  10.7 main routed MoE gate-up GEMM (bmm_E4m3)
+    2.9   2.2 aux  cuBLAS dot_kernel            <- shared-expert gate (1, 2560), GEMV kernel 1
+    5.5   1.8 aux  cuBLAS reduce_1Block_kernel  <- shared-expert gate, GEMV kernel 2
+    7.8   1.6 aux  sigmoid
+    8.7   3.7 main MoE activation
+    9.8   5.2 main routed MoE down GEMM (bmm_Bfloat16)
+   12.2   4.7 aux  mul (gate x shared output)
+   13.8   2.8 main MoE finalize
+   17.4   1.6 main add (routed + shared)
+   19.1   4.4 main all-reduce (one-shot, mnnvl)
+   22.9   3.1 main _hc_combine_norm_kernel
+   25.4   3.3 main hc_down_silu_fma (CuTe DSL)
+   28.7   3.7 main cuBLAS nvjet 128x8      <- hyper-connection up projection (10240, 320)
+   31.1   2.4 main _hc_gate_mix_kernel
+   33.5   5.2 main skinny GEMM (attention / GDN input projection)
+   36.1   2.5 main skinny GEMM
+   39.3   3.0 main _causal_conv1d_update_kernel
+   42.7   2.6 main fused_recurrent_gated_delta_rule_packed_decode_kernel
+   45.6   2.0 main layer_norm_fwd_kernel
+   47.7   3.5 main skinny GEMM (out_proj (2560, 1536))
+   51.3   4.4 main all-reduce
+   55.2   3.0 main _hc_combine_norm_kernel
+   57.4   3.0 main hc_down_silu_fma
+   60.2   3.5 main cuBLAS nvjet 128x8      <- hyper-connection up projection (10240, 320)
+   62.6   2.4 main _hc_gate_mix_kernel
+   65.0   2.8 main skinny GEMM (router (512, 2560))
+   65.5   2.4 aux  skinny GEMM (shared gate_up (320, 2560))
+   68.0   2.7 main FP8 group quant (routed-experts input)
+   68.4   2.0 aux  act_and_mul
+   69.5   4.8 main MoE routing
+   70.3   3.2 aux  cuBLAS nvjet 24x64      <- shared-expert down_proj (2560, 160)
+   71.5        next layer
