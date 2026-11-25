@@ -1,0 +1,17 @@
+{
+ "module": "language_model.model.layers.0.mlp.shared_expert.down_proj",
+ "quant_method": "Fp8LinearMethod",
+ "fp8_linear": "CutlassFp8BlockScaledMMKernel",
+ "input_quant_key": "None",
+ "kernel_input_quant_key": "None",
+ "shared_expert_types": {
+  "shared_expert": "Qwen3MoeMLP",
+  "act_fn": "SiluAndMul"
+ },
+ "vllm_file": "~/b8/base/vllm/__init__.py",
+ "act_quant_kernels_total_calls": {
+  "void per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_e4m3fn, true, false, 128>(c10::BFloat16 const*, void*, float*, lo": 5120,
+  "void per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_e4m3fn, true, true, 128>(c10::BFloat16 const*, void*, float*, lon": 1280,
+  "void vllm::act_and_mul_kernel<c10::BFloat16, __nv_bfloat162, &(c10::BFloat16 vllm::silu_kernel<c10::BFloat16>(c10::BFloat16 const&, float)),": 1280
+ }
+}

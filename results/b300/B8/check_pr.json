@@ -1,0 +1,17 @@
+{
+ "module": "language_model.model.layers.0.mlp.shared_expert.down_proj",
+ "quant_method": "Fp8LinearMethod",
+ "fp8_linear": "CutlassFp8BlockScaledMMKernel",
+ "input_quant_key": "QuantKey(dtype=torch.float8_e4m3fn, scale=ScaleDesc(dtype=torch.float32, static=False, group_shape=GroupShape(row=1, col=128)), scale2=None, symmetric=True)",
+ "kernel_input_quant_key": "QuantKey(dtype=torch.float8_e4m3fn, scale=ScaleDesc(dtype=torch.float32, static=False, group_shape=GroupShape(row=1, col=128)), scale2=None, symmetric=True)",
+ "shared_expert_types": {
+  "shared_expert": "Qwen3MoeMLP",
+  "act_fn": "SiluAndMul"
+ },
+ "vllm_file": "~/b8/pr/vllm/__init__.py",
+ "act_quant_kernels_total_calls": {
+  "void per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_e4m3fn, true, false, 128>(c10::BFloat16 const*, void*, float*, lo": 3840,
+  "void per_token_group_quant_8bit_register_kernel<c10::BFloat16, c10::Float8_e4m3fn, true, true, 128>(c10::BFloat16 const*, void*, float*, lon": 1280,
+  "void vllm::silu_and_mul_per_block_quant_kernel<c10::BFloat16, c10::Float8_e4m3fn, true, 128>(c10::Float8_e4m3fn*, float*, c10::BFloat16 cons": 1280
+ }
+}

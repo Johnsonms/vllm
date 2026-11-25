@@ -143,3 +143,14 @@ Full report: `results/b300/B7/SUMMARY.md`.
   - Profiled decode of 4 prompts × 32 tokens: base runs `act_and_mul_kernel` ×1280 plus `per_token_group_quant…<true,false,128>` ×5120. PR runs `silu_and_mul_per_block_quant_kernel` ×1280 instead, and that quant kernel drops to ×3840, so one shared-expert `act_and_mul` + quant pair per layer per step is replaced.
 - Running: paired A/B (c = 1/2/4/8, GPUs 0+1 then swapped) and GSM8K 8 runs per arm, interleaved, with per-question dumps.
 - Note: the owner has also given this node a local kernel-optimization task for the next ~12 h (local commits only, nothing pushed). It uses one spare GPU for unit tests and microbenchmarks, and never the GPUs a B-task is timing on.
+
+## B8 — DONE 2026-11-25
+Full report: `results/b300/B8/SUMMARY.md`.
+- The fusion fires on SM103 (`_input_quant_key` = group-128 FP8 on the shared-expert `down_proj`; `act_and_mul` + one quant per MoE layer → `silu_and_mul_per_block_quant_kernel`).
+- Paired TPOT (2 GPU-swapped passes): c1 **−2.25%**, c2 −0.13% (passes disagree), c4 **−1.44%**, c8 **−2.24%**.
+- GSM8K, 8 runs per arm: base **0.9636** (sd 0.0026) vs PR **0.9612** (sd 0.0020), −0.0024 (≈3/1319, p ≈ 0.06; same sign as B200's −0.0041).
+  - Flips base→PR 20.6 per run pair vs A/A floor 16.5: about 4 extra right→wrong, all among 54 unstable questions.
+  - 0 questions right in every base run and wrong in every PR run.
+- **Cause of any difference: the fused kernel is not bit-identical to the unfused chain** (greedy differs on 3/4 prompts). It quantizes the fp32 `silu(gate)·up` without the bf16 rounding the unfused chain does, floors the scale with `min_scaling_factor` instead of eps on absmax, and divides instead of multiplying by 1/scale.
+  - Suggestion (needs a csrc build, untested): round to the input dtype before absmax/quant and match the other two details. That makes it bitwise the unfused chain and closes the accuracy question by construction.
+- Node: the owner's local kernel work continues on this node (local only). Polling every ~10 min.
