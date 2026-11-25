@@ -681,3 +681,39 @@ Code under test: #69736 (approved, in CI), `https://github.com/Johnsonms/vllm.gi
 ## Manager note on W14 interim (11-25): good. Two things for the ranking.
 1. **Block-FP8 linear GEMM (397B: 27.7% at 9 µs per call) is the manager's.** The manager found that FlashInfer's `gemm_fp8_nt_groupwise(..., backend="trtllm")` is **bit-identical** to vLLM's `cutlass_scaled_mm` blockwise path and 1.03–1.54× faster at small M. It was swept over 45 N×K pairs; the rule is `M*N <= 2^18`, except K ≥ 7168 with 6144 ≤ N ≤ 8192. Qwen3.6 E2E is running. Do not duplicate this; just list the 397B shapes and calls per step it would cover.
 2. **The Qwen3.8 skinny-table gaps** ((10240, 320) at 97 calls/step, (1, 2560), (2560, 160), and larger M) fit the "single follow-up small-GEMM PR" promised on #69736. Rank them, and if they come out on top, **sweep + verify them as W15** (same method as W11/B2: sweep, then a 4-seed × 3-round verify; keep entries ≥ 1.10×). You can start that without waiting for the manager.
+
+## W16 (11-25): end-to-end check of the W15 Qwen3.8 skinny table entries
+W15 is good work: 32 of 35 entries ≥ 1.10× on all 4 seeds. Before any PR we need E2E, because in #69736 part 5 the router M4/M16 and LM-head M4 entries won at kernel level and lost in the full forward. You can start now.
+
+**Arms**
+- **Base:** current upstream main (it already contains #69736). Record the SHA.
+- **Candidate:** base plus the 32 `verified.json` entries added to the Flash-Next SM100 table. Local commit only; no push.
+- In each server log, log the loaded table file path and HEAD. Also log how often each new (N, K, M) entry is hit during one decode step at c1, c4 and c16, so we know the entries actually fire.
+
+**Model and setup**
+- Qwen3.8-Flash-Next-FP8, TEP4, with the W14 recipe flags and no speculative decoding.
+- `VLLM_DISABLE_COMPILE_CACHE=1`; the AOT count must be 0 in every server log.
+- Random 512 in / 512 out with `--ignore-eos` and no prefix caching.
+
+**A/B method.** Two TEP4 servers need 8 GPUs, and you have 6, so use interleaved restarts on the same 4 GPUs (2–5):
+- Run A B A B A B (at least 3 server starts per arm).
+- After each start, warm up, then run 4 bursts per concurrency.
+- Report, per arm, the median TPOT of each start and the spread across starts.
+- Report the Δ as the mean of the per-start medians. Count a gain as real only if it exceeds the base start-to-start spread.
+- Do not use one start per arm: that is the sequential A/B we have rejected before.
+
+**Concurrency.** c = 1, 2, 4, 8, 16. Also run c32 as a no-regression check; no entry covers M > 16, so it should be flat.
+
+**Correctness**
+- Greedy check: 32 single prompts + 256 batched prompts × 256 tokens, base vs candidate, plus a base-vs-base run as the floor.
+- If not identical, run GSM8K (5-shot, 1319 q) for at least 8 runs per arm, with per-question dumps and the base-vs-base flip floor.
+
+**If the E2E gain is under about 1% at every c, or any c is slower**
+- Ablate by layer group: (a) shared-expert gate (1, 2560); (b) router (512, 2560); (c) (24, 2560) + (320, 2560); (d) large projections M3; (e) LM head.
+- Report which groups carry the gain, so the PR keeps only those.
+
+**Dup check.** Search open PRs for "skinny", "Qwen3.8" / "Flash-Next" and "SM100 small GEMM" before writing up.
+
+**Deliverable.** `results/worker/W16/SUMMARY.md`, with the entries described in words or JSON only (no code patches). Post an interim after the c1–c4 A/B.
+
+GPUs 0–1 stay with the owner.
