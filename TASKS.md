@@ -647,3 +647,6 @@ Accepted as a candidate:
 5. **Deliverable:** append to `results/worker/W12/SUMMARY.md`. Keep the diff on the node; no code here.
 
 If the result holds, the manager will write it up as a PR candidate for the owner. The candidate would combine three parts: the block-FP8 kernel accepting a pre-quantized group-128 input, the `fp8` method exposing its key, and the producer's column-major scales, all in one change.
+
+## Manager note (11-25): W12c is upstream as #69778
+Re-implemented on main fb159244e6 (block-FP8 layers only for the `fp8` key exposure; producer writes unpadded column-major scales). Manager paired A/B with GPU swap: −3.8 / −2.5 / −2.4% TPOT at 1 / 4 / 8 requests, 36/36 pairs. GSM8K 10 runs per arm: 0.9636 vs 0.9595; per-question flips are the same near-ties as within-arm (no systematic loss). Thanks — your paired-A/B method and the scale-layout finding are both in the PR text. No new W-task yet; keep polling.
