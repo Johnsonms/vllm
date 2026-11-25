@@ -82,3 +82,27 @@ Excellent: 49/49 verified, error equal to cuBLAS, and the three-arm verify answe
 - **Decision rule (manager):**
   - All cells ≥ 1.10×: the shared table stands as is.
   - Any cell < 1.00×: the manager either drops that entry or splits off an SM103 table. Report which shapes are affected.
+
+## Manager update (11-25): B4 is still first; then B5 and B6, in that order
+
+The owner reports this node idle. **Resume polling** (`setup/B300_START.md`, every ~10 min) and work the queue below. Post an ack first.
+
+Context since B4 was assigned: #69736 now registers `(10, 3)` (pushed with your B2/B3 numbers in the PR text); Qwen3 MoE opened as #69773 (B200 only, no `(10, 3)`). The force-push of #69743 that brings the dense entries to `(10, 3)` waits for **B4**.
+
+### B4 (unchanged, top priority)
+As specified above. Report as soon as the verify is done; the decision rule is above.
+
+### B5: SM103 TP8 all-reduce + RMSNorm fusion cap (B300 counterpart of #69543)
+`FI_ALLREDUCE_FUSION_MAX_SIZE_MB[103][8]` is 4 MB (409 tokens at hidden 5120). On B200, raising the TP8 cap from 1 to 16 MB gave −9.6 / −6.5 / −5.9% TPOT at concurrency 128 / 192 / 256 on Qwen3-32B (#69543). Check whether SM103 also gains above 4 MB.
+- **Model:** `Qwen/Qwen3-32B`, real weights (~65 GB; download by name or one pattern per call). TP8, all 8 GPUs, idle node.
+- **Server:** `vllm serve Qwen/Qwen3-32B -tp 8 --max-num-seqs 512 --max-model-len 8192 --gpu-memory-utilization 0.9 --no-enable-prefix-caching`, `VLLM_DISABLE_COMPILE_CACHE=1` (AOT-load count 0).
+- **Arms:** default (4 MB) vs `--compilation-config '{"pass_config":{"fi_allreduce_fusion_max_size_mb": X}}'` for X = 8, 16, 32. No code edits. Order: default, 8, 16, 32, then again (two rounds).
+- **Bench:** random 512/512, `--ignore-eos`, concurrency 32, 96, 128, 192, 256, 384 (`--num-prompts 2c`, `--num-warmups` 8); median TPOT. Plus 1k-prefill TTFT at c4 as a control.
+- **Checks:** GSM8K (same command as B3) for default and the best X; with `VLLM_LOGGING_LEVEL=DEBUG` once per arm, report the logged `Maximal number of tokens used by Flashinfer Allreduce Fusion` and the backend (`mnnvl` / `trtllm`).
+- **Deliverable:** `results/b300/B5/SUMMARY.md` with the per-run table and your pick of X (or "keep 4 MB").
+
+### B6: c4 decode profile on B300 (follow-up to your B3 observation)
+In B3, base TPOT jumped 0.84 ms from c2 to c4 but only 0.58 ms from c4 to c8, and the skinny plan removed most of it. Find out which kernel causes the c4 step on SM103; it may hit other BF16 GEMMs at M = 4 too.
+- Qwen3.6-35B-A3B-FP8 TP1, real weights, B1 profiling method, at c2, c4 and c8, for `e66bede56b` (base) and base + the `(10, 3)` table (your B3 arm).
+- Report the top kernels per step at each concurrency and which ones change between c2 → c4 → c8 (time per call and calls per step). If it is cuBLAS, record the kernel names (`nvjet*` variant, split-K) at M = 2/4/8 for the affected shapes.
+- **Deliverable:** `results/b300/B6/SUMMARY.md` (kernel tables < 5 MB).
