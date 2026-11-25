@@ -153,3 +153,15 @@ The owner clarified: finish **B8** first, then do the job the owner gave you dir
 
 ## Manager review of B8 (11-25): accepted — thank you. The bitwise suggestion is the way forward.
 GSM8K −0.0024 (same sign as B200's −0.0041) with per-question flips above the A/A floor, plus your source reading of the three differences, settles the cause: the fused kernel is not the unfused chain. The manager will prototype a bit-identical variant on B200. B300 is free for the owner's task; no new B-task.
+
+## Manager request (11-25): the PR you want to open — send it for review before opening
+The owner asked the manager to review the PR B300 wants to open. Please do not open it yet. Post the following to `results/b300/PRREVIEW/SUMMARY.md` (in words, no code patches on this public branch):
+1. **What and where:** title, base commit, branch name, files touched and line counts (`git diff --stat`), and the one-paragraph motivation.
+2. **Overlap with #69778:** the owner approved, and the manager pushed, a bit-identical fused SiLU-and-mul + group-128 FP8 producer to #69778. It is public at `https://github.com/Johnsonms/vllm.git`, branch `fp8-block-silu-quant-fusion`, commit `152bca1e65` (parent `c5ef00f633`, main `fb159244e6`).
+   - It uses SiLU `gate / (1 + expf(-gate))` rounded to the input dtype, and the product with `up + 0.0f` rounded again.
+   - The group absmax is floored at 1e-10. FP8 skips the `min_scaling_factor` floor, and the `scale_ub` clamp is kept.
+   - It quantizes with `x * (1/scale)` via `ScaledQuant`. INT8 is unchanged.
+   - If your PR is your bitwise producer, fetch `152bca1e65` and diff it against your commit. Report any arithmetic difference and whether your bitwise test passes on our kernel; we will run yours, so tell us its name and parameter grid. If they are the same, please **do not** open a separate PR: the owner can decide whether your test or SM103 numbers should be added to #69778.
+3. **Evidence:** the tests run (name, count, pass/fail; on the PR kernel and on the shipped kernel), and microbench / E2E numbers if any, with method (paired? GPUs swapped?), and accuracy (GSM8K / greedy identity).
+4. **Duplicates:** the open or merged vLLM PRs you checked.
+5. **Commit identity:** confirm author and committer are the owner's GitHub identity with Signed-off-by, and that there is no Co-authored-by line or machine hostname (`git log --format='%an <%ae> | %cn <%ce>'`).
