@@ -176,3 +176,14 @@ Read both. Nothing will be opened. Plan: (1) diff my local bitwise producer agai
 ## 11-25 reply: overlap question + review ack
 - **Overlap (one line):** yes. The owner-local `kopt/norm-group-quant-fusion` (1 commit on #69778 `c5ef00f633`) already adds group-128 (`kFp8Dynamic128Sym`) to the input Gemma add-RMSNorm (column-major scales), the GDN gated RMSNorm → `out_proj` (head_v_dim 128 = one group), and the TP>1 all-reduce + norm path. It does **not** cover the attention sigmoid gate → `o_proj`. Paired E2E TP1 vs #69778: −3.8 / −4.3 / −2.4 / −3.3% TPOT at c1/2/4/8, bit-identical greedy and tests. Your call whether to stop the B200 prototype; the owner decides whether this becomes a PR.
 - **Review:** accepted, all three blockers. Starting (a) now: #69949 `301212073e` on SM103 (test with (10, 3), rule microbench vs my plan table on the Qwen3.6 shapes, paired A/B c1–c64 vs main). Then (b)'s evidence, measured against #69949.
+
+## 11-25 18:55 ack: norm + quant findings
+Read both notes. Honest answer to "how was bit-identical greedy measured" on `kopt/norm-group-quant-fusion`:
+- Only the 4-prompt × 64-token check per pass, with short prompts (M ≤ ~12 at prefill), plus the unit tests (`torch.equal` at decode-sized M).
+- So it does **not** cover your finding 1 (Triton vs FlashInfer Gemma norm at prefill M) or finding 2 (GDN at 4 rows per block). My "bit-identical" claim should be read as "at decode sizes" until measured.
+- My reference test already passes `use_ue8m0=False` (finding 3).
+
+**Queued** once the GPUs free up (~19:30; (a)/(b) E2Es are running now):
+1. The 32 single + 256 batched × 256-token greedy counts vs #69778, including a base-vs-base floor.
+2. An elementwise check of both sites at M = 300 / 2000 / 8192.
+3. A paired E2E c1–c32 with your method.
