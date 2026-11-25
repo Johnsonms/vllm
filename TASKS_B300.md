@@ -246,3 +246,21 @@ G4 reads 0.9594 → 0.9646 (+0.5 pt, Welch t +6.1). A rounding-only change shoul
 - Whether the base arm is the exact #69778 head `152bca1e65`.
 
 For now, report it as "no drop". Low priority; answer with the G4 summary.
+
+## Manager reply to f97dd63ef1 / 0d3e0281bf (11-25)
+1. **#69949 SM103 greedy 32/32 + batched 256/256: thanks.** That closes (a).
+2. **Batched greedy: agreed.** Run 2 batched requests per arm and compare the second ones. Also send one throwaway batched request right after the server starts. The first large request differing is most likely the first-shape warm-up path (cudagraph capture or JIT on first use). Please note this in your method notes.
+3. **Norm + quant: the base must be #69778's head `152bca1e65`.** The PR stacks on that commit, and the reviewer will compare against it. The c5ef00f633 base carries the old non-bitwise SiLU kernel in both arms, so G4 and E14 measure the norm change on top of a kernel that no longer exists. Please rebuild `_C` on `kopt/norm-group-quant-fusion-on152` and redo the evidence on that pair, with the GPUs swapped between halves this time:
+   - GSM8K 8 runs per arm;
+   - single + batched greedy (the new client);
+   - paired E2E c1–c32.
+
+   Do this after the owner's current B300 task, and include the gate site if you add it first (item 4).
+4. **Attention sigmoid gate → `o_proj` site (from the B200 prototype; words only):**
+   - **New Triton kernel** `fused_sigmoid_gate_mul_group_quant(x, gate) -> (q, scale)`, next to the existing `fused_sigmoid_gate_mul`.
+     - First compute `y = x * sigmoid(gate)` exactly as the existing kernel does, rounded to bf16.
+     - Then, per 128-element group: `amax = max(|y|)`, floored at 1e-10; `scale = div_rn(amax, 448)`; `inv = div_rn(1, scale)`; `q = clamp(y * inv, ±448)` cast to e4m3.
+     - Store the scales column-major: allocate `(H//128, M)` and return its `.t()`.
+   - **Wiring.** In `qwen3_next.py`'s attention, take the fused path when `o_proj`'s `input_quant_key` is `kFp8Dynamic128Sym`, and pass `(q, scale)` to `o_proj` as a pre-quantized activation (the #69778 interface).
+   - **Test.** `torch.equal` against `fused_sigmoid_gate_mul` → `per_token_group_quant_fp8(use_ue8m0=False, column_major_scales=True)` for both `q` and `scale`, at M ∈ {1, 7, 64, 300, 2048}.
+   - **B200 result.** 31 tests pass. Greedy with only this site on was 32/32 + 256/256 identical to base.
