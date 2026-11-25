@@ -2,7 +2,7 @@
 
 Qwen3.6-35B-A3B-FP8, TP1, real weights, B3 serve flags, compile cache off (0 AOT loads in every server). Base = main at 04f0149d47. **This base does not include #69736's SM100 skinny table**, so both arms run the cuBLAS BF16 GEMMs (different from B7, where the skinny plans are on in both arms).
 
-Status: **P (aux-stream priority) measured: -6.7 % TPOT at 4 requests, -1 to -2 % at 1 and 2, nothing at 8 and 16; output identical.** O is already what main does. One optional arm (P stacked on the W12c fusion) is running.
+Status (superseded by the W13b section at the end): **P (aux-stream priority) measured: -6.7 % TPOT at 4 requests, -1 to -2 % at 1 and 2, nothing at 8 and 16; output identical.** O is already what main does. The optional stack arm and W13b are at the end.
 
 ## Result
 | requests | 1 | 2 | 4 | 8 | 16 |
@@ -58,3 +58,57 @@ Bold = the later branch, which sets the end of the layer.
 
 ## Files
 `prio_probe.py` (priority in graph nodes), `prof.sh`, `layers.py` (table in section 3), `paired.sh`, `pairsum.py`, `tokens.sh`, `gsm.sh`, `layer_*.txt`.
+
+# W13b (06:05Z): P with #69736 in both arms — still a gain on B200; GSM8K flips are noise
+
+Tree: `sm100-skinny-qwen35-moe` at ce7e3d5dd7 (main 04f0149d47 + the SM100 table) in both arms; P = aux stream created with priority -1. Same paired method (6 rounds, 5 x c prompts, order flipped, GPUs 4/5 then swapped). Each server log shows the loaded file path and the priority in use. 0 AOT loads.
+
+## 1. Paired A/B, c = 1 to 16
+| requests | 1 | 2 | 4 | 8 | 16 |
+|---|---|---|---|---|---|
+| base TPOT p50 (ms), pass 1 / pass 2 | 3.401 / 3.378 | 3.709 / 3.687 | 4.179 / 4.172 | 4.942 / 4.937 | 6.090 / 6.100 |
+| P TPOT p50 (ms), pass 1 / pass 2 | 3.306 / 3.327 | 3.555 / 3.568 | 3.951 / 3.960 | 4.876 / 4.901 | 6.060 / 6.065 |
+| P vs base, pass 1 | -2.76 % | -3.94 % | -5.41 % | -1.32 % | -0.42 % |
+| P vs base, pass 2 (GPUs swapped) | -1.44 % | -3.26 % | -5.03 % | -0.65 % | -0.46 % |
+| **mean of the two passes** | **-2.1 %** | **-3.6 %** | **-5.2 %** | **-1.0 %** | **-0.4 %** |
+| pairs with P faster | 12 / 12 | 12 / 12 | 12 / 12 | 12 / 12 | 10 / 12 |
+
+- **No regression at any concurrency.** This is the opposite sign of B300's B7 at 4 requests (+2.5 % there).
+- The skinny table itself moved the base: 4 requests 4.459 -> 4.179 ms, 8 requests 5.128 -> 4.942 ms (W13 base vs this base; not a paired comparison). P's gain at 4 requests went from -6.7 % to -5.2 %, and at 1-2 requests it grew (-1.8 / -1.3 % -> -2.1 / -3.6 %).
+- Greedy output, 4 prompts, 256 tokens: identical byte for byte.
+- c32 and c64 are running now with the same method. Result will be appended.
+- Not idle: the owner's job is on GPUs 0-1, and my W14 profile runs on GPUs 2, 3, 6, 7 at the same time (the manager asked for W14 in parallel). Both arms see the same load.
+
+## 2. GSM8K per question (tree with #69736, 3 runs per arm, 1319 questions, 64 concurrent, temperature 0)
+`gsm_dump.py` runs the unchanged eval and also saves each question's prediction, label and text.
+
+| run | base r1 | base r2 | base r3 | P r1 | P r2 | P r3 |
+|---|---|---|---|---|---|---|
+| correct | 1271 | 1271 | 1270 | 1270 | 1272 | 1267 |
+| accuracy | 0.9636 | 0.9636 | 0.9629 | 0.9629 | 0.9644 | 0.9606 |
+
+| compared runs | questions whose correctness differs | questions whose output text differs |
+|---|---|---|
+| base vs base (3 pairs) | 13, 15, 18 | 693-710 of 1319 |
+| P vs P (3 pairs) | 16, 19, 19 | 696-722 |
+| base vs P (9 pairs) | 11-18 | 652-725 |
+
+- **Two runs of the same arm differ as much as two arms.** More than half of the outputs differ in text between any two runs, with base against itself too.
+- 32 questions are not unanimous over the 6 runs. **None is right in all 3 base runs and wrong in all 3 P runs, and none the other way round.**
+- So the 0.9629 / 0.9636 vs 0.9591 / 0.9591 in the interim was run-to-run noise. One run of this eval at 64 concurrent moves by about +-0.2 points (the 6 runs span 1267-1272 correct), and the earlier P runs were at the low end.
+- Why outputs differ at all with temperature 0: at 1 request P is identical to base, so it is the batch composition under 64 concurrent requests (which requests share a step changes the batch size and the kernels picked). I did not isolate it further.
+- For #69778: a change that is output-identical at 1 request sits inside a +-0.2 point band here, so a -0.4 point shift from 2 runs per arm is not evidence of a loss; 3 or more runs per arm and the per-question table are needed.
+
+## 3. Optional stack arm (done before it was dropped): W12c fusion with and without P
+Base 04f0149d47 **without** the skinny table, my local W12c prototype on in both arms. Paired, GPUs swapped.
+
+| requests | 1 | 2 | 4 | 8 | 16 |
+|---|---|---|---|---|---|
+| fusion TPOT p50 (ms), pass 1 / pass 2 | 3.368 / 3.349 | 3.733 / 3.725 | 4.354 / 4.352 | 4.979 / 4.952 | 5.872 / 5.867 |
+| fusion + P, pass 1 / pass 2 | 3.348 / 3.363 | 3.644 / 3.648 | 4.119 / 4.131 | 4.987 / 4.993 | 6.050 / 6.031 |
+| **P on top of fusion, mean of passes** | **-0.1 %** | **-2.3 %** | **-5.2 %** | **+0.6 %** | **+3.0 %** |
+| pairs with P faster | 6 / 12 | 12 / 12 | 12 / 12 | 2 / 12 | 0 / 12 |
+
+- **With the fusion on, P costs 3.0 % at 16 requests (all 12 pairs).** Without the fusion P is neutral at 16. The fusion alone makes 16 requests faster (6.07 -> 5.87 ms across runs), and P gives that back.
+- So P and the fusion add at 2 and 4 requests but interact at 16. If both go upstream, P needs a re-test on top of #69778 with the skinny table, at 16 requests and above. I have not run that combination.
+- Greedy output with fusion: P identical to no-P.

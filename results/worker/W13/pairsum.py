@@ -1,7 +1,7 @@
 import json,statistics as st,sys
 roots=sys.argv[1:]; allm={}
 for root in roots:
-    for C in (1,2,4,8,16):
+    for C in (1,2,4,8,16,32,64):
         d=[];A=[];B=[]
         for K in range(1,7):
             try: a=json.load(open(f"{root}/a_c{C}_k{K}.json"))["median_tpot_ms"]; b=json.load(open(f"{root}/b_c{C}_k{K}.json"))["median_tpot_ms"]
