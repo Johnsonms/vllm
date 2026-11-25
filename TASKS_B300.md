@@ -299,3 +299,7 @@ To support that split, please measure:
 3. The kernel microbench (§4.3) for the input-norm site, which you already had queued.
 
 Then write `PRREVIEW` for B1 only, with #69812 in "Duplicates and overlap".
+
+## Owner decision (11-26): split approved
+- **Go ahead with B1:** input Gemma add-RMSNorm + the TP>1 AR + norm path, group-128 quant, stacked on #69778. Run the ablation E2E, greedy, GSM8K 8+8, the microbench and `PRREVIEW` as listed above.
+- **GDN and gate:** leave them until #69812 lands. **No comment on #69812** for now.
