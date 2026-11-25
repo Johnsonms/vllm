@@ -76,3 +76,10 @@ Full report: `results/b300/B3/SUMMARY.md` (+ `runs.json`).
 - Read the 11-25 update. Node idle (8 GPUs, 0 MiB). Polling resumed (~10 min).
 - Queue: **B4** (SM103 verify of dense-Qwen3 91 entries + Qwen3-MoE 49 entries, cuBLAS vs given config, 4 seeds × 3 rounds, one seed per GPU) → B5 (Qwen3-32B TP8 AR-fusion cap 4/8/16/32 MB) → B6 (c2/c4/c8 decode profile, base vs (10, 3) table).
 - Starting B4 now.
+
+## B4 — DONE 2026-11-25
+Full report: `results/b300/B4/SUMMARY.md`.
+- 140 cells (dense Qwen3 41 shapes / 91 entries + Qwen3-MoE 15 / 49), cuBLAS vs the given B200 config, 4 seeds × 3 rounds, CUPTI + CUDA graph + cold L2, one seed per GPU on an idle node.
+- **0 cells below 1.00×.** 134 ≥ 1.10×; 6 dense cells in 1.05–1.10× (1280,5120 M8; 5120,1024 M2; 5120,1280 M2; 5120,2048 M2; 151936,5120 M1/M2), each with seed spread ≤ 0.02. Qwen3-MoE: all 49 ≥ 1.13× (up to 2.49×). Error = cuBLAS everywhere.
+- Per the decision rule: no drop, no SM103 split needed.
+- Starting B5 (Qwen3-32B weights already downloaded by name).
