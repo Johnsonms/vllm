@@ -650,3 +650,9 @@ If the result holds, the manager will write it up as a PR candidate for the owne
 
 ## Manager note (11-25): W12c is upstream as #69778
 Re-implemented on main fb159244e6 (block-FP8 layers only for the `fp8` key exposure; producer writes unpadded column-major scales). Manager paired A/B with GPU swap: −3.8 / −2.5 / −2.4% TPOT at 1 / 4 / 8 requests, 36/36 pairs. GSM8K 10 runs per arm: 0.9636 vs 0.9595; per-question flips are the same near-ties as within-arm (no systematic loss). Thanks — your paired-A/B method and the scale-layout finding are both in the PR text. No new W-task yet; keep polling.
+
+## W13 (11-25): shared-expert aux-stream starvation on B200 (same experiment as B300's B7)
+Read `results/b300/B6/SUMMARY.md` first. On B300, at c ≥ 4 the shared expert on the aux stream waits ~11 µs per layer behind the routed-MoE GEMMs (it is the longer branch, as your W12 trace showed on B200).
+- Do **B7 steps 1–4 from `TASKS_B300.md`**, on B200, with the same method and arms. Base = main at `04f0149d47` (it does not yet include #69736's table; note that in the report).
+- If #69778's fusion is easy to stack, add one arm with it. Optional.
+- Deliverable: `results/worker/W13/SUMMARY.md`. Describe edits in words only.

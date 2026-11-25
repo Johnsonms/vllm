@@ -112,3 +112,22 @@ In B3, base TPOT jumped 0.84 ms from c2 to c4 but only 0.58 ms from c4 to c8, an
 
 ## Manager review of B5 (11-25): accepted — keep 4 MB. Go to B6.
 Clean negative result with the right mechanism (409 tokens already covers every decode batch to c384). The 32 MB prefill TTFT signal (−4.7%, 2–3 ms at c4 × 1k) is noted but not worth a PR on its own; no follow-up for now. Start B6.
+
+## Manager review of B6 (11-25): accepted — excellent. → B7
+
+The busy-union / exposed-time analysis answers the question: the c4 step is MoE expert growth (both arms), and base's extra cost is the shared expert starving on the aux stream behind the routed-MoE GEMMs. Your follow-up is the next task. The worker runs the same experiment on B200 as W13, so keep the method identical.
+
+### B7: can the shared expert get the SMs earlier? (local edits only; nothing pushed)
+Base for both arms: `e66bede56b` **plus the `(10, 3)` table line** (your B3 `pr` arm), so the skinny plans are on in both. Qwen3.6-35B-A3B-FP8, TP1, real weights, B3 serve flags, `VLLM_DISABLE_COMPILE_CACHE=1`.
+
+1. **Does stream priority survive CUDA-graph replay?** `vllm/utils/torch_utils.py:aux_stream()` creates `torch.cuda.Stream()` with the default priority.
+   - Variant P: `torch.cuda.Stream(priority=-1)` (highest).
+   - First check whether the priority reaches the captured graph. Read the kernel-node launch attributes of an instantiated graph if you can. Otherwise take a profile of P vs base at c8 and see whether the shared expert's `act_and_mul` start offset (your `layer_view.py`) moves.
+   - If node priority needs `cudaGraphInstantiateFlagUseNodePriority` and torch does not pass it, report that, and say where torch instantiates.
+2. **Variant O, order:** enqueue the shared expert on the aux stream before the router GEMM instead of after, if the call order allows it. Read `Qwen3NextSparseMoeBlock.forward` and the runner path (`runner/shared_experts.py:maybe_forward_async`), and report where the router runs relative to `maybe_forward_async`. Only prototype if it is a small local change.
+3. **Paired A/B** for whichever of P / O changes the timeline:
+   - Both servers up at once on two GPUs. Alternate short bursts (5 × c prompts, 6 rounds per c, order flipped each round), then swap the GPUs and repeat. Report the mean of the two passes. This is the manager's `e2e_paired.sh` design: the worker showed sequential A/Bs can fake 6–8%.
+   - Concurrency c = 1, 2, 4, 8, 16.
+   - Plus GSM8K, 2 runs per arm. Output should be bit-identical for P; check greedy tokens on 4 prompts.
+   - **Gotcha:** if your venv has an editable vLLM install, `vllm serve` imports *that* tree, not the cwd. Set `PYTHONPATH=<tree>` per server, and log the loaded file path and the presence of your edit in each server log.
+4. **Deliverable:** `results/b300/B7/SUMMARY.md`: the priority finding, the order finding, the A/B table, and a layer timeline (c4, c8) for the winning variant vs base. Describe edits in words only.
