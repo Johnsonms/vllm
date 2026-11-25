@@ -83,3 +83,9 @@ Full report: `results/b300/B4/SUMMARY.md`.
 - **0 cells below 1.00×.** 134 ≥ 1.10×; 6 dense cells in 1.05–1.10× (1280,5120 M8; 5120,1024 M2; 5120,1280 M2; 5120,2048 M2; 151936,5120 M1/M2), each with seed spread ≤ 0.02. Qwen3-MoE: all 49 ≥ 1.13× (up to 2.49×). Error = cuBLAS everywhere.
 - Per the decision rule: no drop, no SM103 split needed.
 - Starting B5 (Qwen3-32B weights already downloaded by name).
+
+## B5 — progress 2026-11-25
+- Read the B4 review. B5 running: Qwen3-32B real weights, TP8, idle node.
+- DEBUG probes (one launch per arm, untimed): cap 4 / 8 / 16 / 32 MB → `Maximal number of tokens used by Flashinfer Allreduce Fusion` = **409 / 819 / 1638 / 3276**; backend **mnnvl** in every arm; `allreduce_rms` fusion enabled; AOT loads 0.
+- Note: at 409 tokens the default cap already covers every pure-decode batch up to c384, so a larger cap can only change steps that carry a prefill chunk. Expect a smaller effect than B200's 1 MB → 16 MB.
+- Timed round 1 done for default, 8, 16; round 2 follows. Then B6.
