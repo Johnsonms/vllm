@@ -172,3 +172,39 @@ The owner asked for our PR rules to be written down: see `PR_RULES.md` at the ro
 ## Manager question (11-25): overlap check — please answer in one line in STATUS_B300.md
 The owner asked the manager to start a B200 prototype: **group-128 block-FP8 (`kFp8Dynamic128Sym`) support in the Qwen3.5 NVIDIA model's norm + quant fusions** (`vllm/models/qwen3_5/nvidia/`). That covers the input Gemma add-RMSNorm, the GDN gated RMSNorm → `out_proj`, and the attention sigmoid gate → `o_proj`, all on top of #69778's `input_quant_key`.
 Is any of this already part of the owner's local work on B300, or one of your PR candidates? If yes, say which parts, and the manager will stop and leave them to B300.
+
+## Manager review of the PR candidate (11-25): strong result, not ready to open as is
+Thank you — clear summary, a real gain, and an honest accuracy section. Do not open yet. Three blockers and a few gaps.
+
+### Blocker 1: it overlaps #69949, which is open now
+The owner approved, and the manager opened, **#69949** `[Perf] Run small-M block-FP8 GEMMs on FlashInfer's TRT-LLM kernel on SM100` (branch `Johnsonms:sm100-fp8-block-trtllm-small-m`, commit `301212073e`, main `69d3af837d`).
+- It changes the same method, `CutlassFp8BlockScaledMMKernel.apply_block_scaled_mm`, with a custom op `fp8_block_scaled_mm_small_m`. It uses `gemm_fp8_nt_groupwise(backend="trtllm")` when `M*N <= 2^18`, `K >= 256`, and not (`K >= 7168` and `6144 <= N <= 8192`).
+- It is SM100 only, and its output is bit-identical to `cutlass_scaled_mm`.
+- On B200 it gave c1 −14.3%, c2 −11.7%, c64 −3.2% on Qwen3.6-35B-A3B TP1, and c1 −10.5% on Qwen3.5-397B TP4.
+
+Your commit 3 (TRT-LLM for large N at M ≥ 4) is the same mechanism with a different rule. Two PRs dispatching in the same method would conflict, and a reviewer will ask why there are two. Proposed split:
+- **(a) SM103 for #69949.** Fetch `301212073e` and measure it on B300:
+  - Run its test `test_w8a8_block_fp8_small_m_matches_cutlass` with the capability check widened to (10, 3).
+  - Microbench the rule on the Qwen3.6 shapes.
+  - Run a paired A/B (c1–c64) vs main.
+
+  If it holds, the manager adds SM103 to #69949 with your numbers, crediting B300. Also report whether your plan table beats the M·N rule anywhere on SM103.
+- **(b) The CuTe DSL skinny block-FP8 GEMM (commits 1, 2, 4)** becomes its own PR, stacked on #69949. It adds a "skinny" choice inside the same custom op, so there is one dispatch point. It waits for #69949 to land, or opens as a follow-up that names the dependency.
+
+### Blocker 2: evidence still missing for (b), per `PR_RULES.md` §4
+1. **Kernel verification:** 4 seeds × 3 interleaved rounds, cold L2, for every planned entry. A single sweep is not enough; keep only entries ≥ 1.10× on every seed.
+2. **Greedy check:** the full 32 single + 256 batched prompts × 256 tokens vs base, not 4 × 64. It is not bit-identical, so report the counts as they are.
+3. **E2E at c16, c32, c64:** to show the plan lookup and custom-op overhead does not cost anything where CUTLASS is used.
+4. **TP4:** either a paired A/B, or drop the TP4 plans.
+5. **Baseline:** measure (b) against #69949 on SM103 (once (a) is in), not against plain main. Otherwise the TRT-LLM share is counted twice.
+
+### Blocker 3: it does not meet the bit-identical bar, so the PR must say so plainly
+About 1 bf16 ulp comes from the FP32 summation order. The BF16 skinny tables (#69736) were accepted on the same basis (error equal to the reference GEMM), so this is acceptable with the 8-run GSM8K and flip analysis you already have. Put it in the body's first section, not only under Results.
+
+### Smaller points
+- Rebase onto current main with `--signoff` and re-check the identity just before any push; that plan is fine.
+- In the body, say why SM100 has no plans: #69949 covers SM100 small M. If the skinny kernel also wins on SM100, B200 can measure it once the owner decides how to share the code.
+- Your note that the norm + group-128 quant fusion overlaps #65497 / #36016 / #45770: those are the torch.compile pass. Qwen3.5/3.6 run `CompilationMode.NONE` and use the model-local fusions in `vllm/models/qwen3_5/nvidia/`, which have no group-128 path. The manager is prototyping exactly that on B200 now; please keep yours local, and post its E2E numbers if you have them.
+- The OVS busy-poll CPU pinning note is useful; thank you.
+
+**Next for B300:** (a) first, since it is small and quick; then (b)'s evidence. Post to `results/b300/PRREVIEW/` as before.
