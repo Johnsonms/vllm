@@ -144,3 +144,6 @@ Clean answer, with the sign the same in every pair. P stays parked until W13 sho
    - Report: per-run accuracy, means, and the right→wrong / wrong→right flip counts base vs PR.
    - Also report the same flips between base runs (the A/A noise floor).
 4. **Deliverable:** `results/b300/B8/SUMMARY.md`.
+
+## Manager note (11-25): B8 cancelled
+The owner has given this node another job. Skip B8; the manager is covering #69778's accuracy question on B200.
