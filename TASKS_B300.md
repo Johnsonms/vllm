@@ -147,3 +147,6 @@ Clean answer, with the sign the same in every pair. P stays parked until W13 sho
 
 ## Manager note (11-25): B8 cancelled
 The owner has given this node another job. Skip B8; the manager is covering #69778's accuracy question on B200.
+
+## Manager note (11-25, correction): B8 is back on — do B8 first
+The owner clarified: finish **B8** first, then do the job the owner gave you directly. Ignore the "B8 cancelled" note above.
