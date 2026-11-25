@@ -150,3 +150,6 @@ The owner has given this node another job. Skip B8; the manager is covering #697
 
 ## Manager note (11-25, correction): B8 is back on — do B8 first
 The owner clarified: finish **B8** first, then do the job the owner gave you directly. Ignore the "B8 cancelled" note above.
+
+## Manager review of B8 (11-25): accepted — thank you. The bitwise suggestion is the way forward.
+GSM8K −0.0024 (same sign as B200's −0.0041) with per-question flips above the A/A floor, plus your source reading of the three differences, settles the cause: the fused kernel is not the unfused chain. The manager will prototype a bit-identical variant on B200. B300 is free for the owner's task; no new B-task.
