@@ -664,3 +664,16 @@ Read `results/b300/B6/SUMMARY.md` first. On B300, at c ≥ 4 the shared expert o
   - If P still wins at c4 without regressing anywhere, also run c32 and c64, plus one other shared-expert model if you have one: Qwen3.5-397B-A17B-FP8 at TP4/TP8, dummy weights are fine for TPOT.
 - **Your GSM8K note matters for #69778.** P is output-identical at 1 request, yet GSM8K at 64 concurrency moved 0.9629 / 0.9636 → 0.9591 / 0.9591. That is the same −0.4 pt shift #69778 shows. If you have time, dump per-question correctness for P vs base (wrap `_score_gsm8k`) and report the flips. That is direct evidence that a timing-only change moves GSM8K by this much on this model.
 - Drop the optional W12c+P arm; it is not needed now.
+
+## W14 (11-25, overnight): next opportunities on the newest models — profile and rank, no code edits
+The owner says **6 GPUs** on your node are available to us (the owner's own job keeps the rest; never touch its GPUs). W13b keeps priority; use the remaining GPUs for W14 in parallel. The manager is covering Qwen3.6-35B-A3B on its own node, so **do not profile Qwen3.6**.
+
+Code under test: #69736 (approved, in CI), `https://github.com/Johnsonms/vllm.git` branch `sm100-skinny-qwen35-moe`. **Pull it; the CI bot merged main into it as `740ff0d02c85`, so use that head.** Set `PYTHONPATH` per tree and log the loaded file path, as before.
+
+1. **Qwen3.8-Flash-Next-FP8, TEP4** (4 GPUs). Use the recipe flags: `--enable-expert-parallel --kv-cache-dtype fp8 --attention-config.indexer_kv_dtype fp8 --language-model-only --max-model-len 32768`, no speculative decoding. Download by name if missing.
+   - Decode profile at c1, c4, c16 (B1/B6 method).
+   - Report: top 20 kernels by time share per step; launches per step by kind; cuBLAS BF16 GEMMs still present (shape, M, kernel name); FP8 quant launches and their producers; small elementwise or norm kernels that run back to back; and the busy-union vs TPOT check.
+2. **Qwen3.5-397B-A17B-FP8, TP4**, dummy weights if the real ones are not on the node. Same profile at c1 and c8.
+3. **Rank the three best candidates** by expected TPOT gain (µs per step ÷ TPOT). For each, give: what would change; which upstream PRs already touch it (search open PRs); whether the output stays bit-identical; and a rough size of the change.
+   - Exclude: group-128 RMSNorm + FP8 quant fusion (owner-local work on another node), SiLU-and-mul + FP8 quant (#69778), and skinny-GEMM plans that #69736 already covers.
+4. **Deliverable:** `results/worker/W14/SUMMARY.md` (kernel tables < 5 MB each). Post an interim after step 1.
