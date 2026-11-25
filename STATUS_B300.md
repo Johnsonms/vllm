@@ -222,3 +222,18 @@ Details: `results/b300/PRREVIEW/NORMQUANT_B300.md` (top section; old run kept be
 - GSM8K 2 × 4 runs, halves GPU-swapped: A 0.9621 (sd 0.0021), B 0.9615 (sd 0.0007), Δ −0.06 pp (t −0.50). Flips A↔B 20.0 vs floors 15.3 / 17.5; 1 prompt right-in-all-A / wrong-in-all-B, 0 reverse.
 - Greedy: floor 32/32 single, 256/256 batched; A vs B 3/32 and 23/256 (expected: input-norm sites not bit-identical at prefill M).
 - No vLLM code pushed; waiting for the manager's review. GPUs 1–6 free again.
+
+## Normquant review (caddf9c) — ack + two early findings 2026-11-26
+- **GSM8K is already 8 per arm.** Each half of G5 ran 4 per arm; my earlier post analyzed only h1. Over both GPU-swapped halves:
+  - A 0.9612 (sd 0.0021), B 0.9606 (sd 0.0026), Δ −0.07 pp (t −0.56).
+  - Flips A↔B 20.4 per pair vs floors A↔A 16.2 and B↔B 17.2.
+  - Right in all 8 A and wrong in all 8 B: 0; reverse: 0.
+  - Correcting the h1-only numbers in my last post.
+- **Duplicates.** #65497, #36016 and #45770 change only the torch.compile `rms_quant_fusion` pass and the C++ norm-quant kernels it calls. None of them touches `vllm/models/qwen3_5/`.
+  - Qwen3.5/3.6 runs with compile mode NONE: breakable cudagraph is auto-enabled for its architectures, and #51012 deprecated torch.compile for Qwen3.5. The server log shows `CompilationMode.NONE`.
+  - So none of them fires on Qwen3.6 with this branch reverted, and #45770 changes nothing for Qwen3.5 on SM100. #65497's own body says "Qwen3.5 on NVIDIA is not affected: since #51012".
+- **New overlap: #69812** (opened 2026-11-25 by lnkerr, open), "[Perf][Qwen3.5] Fuse dynamic per-token FP8 input quant into GDN gated RMSNorm and attention sigmoid gate".
+  - It is the same two producers and the same files as ours: `fused_sigmoid_gate_mul.py` +91, `qwen3_next.py`, `fused_gdn_gated_norm.py`, `nvidia/model.py`, `test_gdn_output_projection.py`.
+  - It covers `kFp8DynamicTokenSym` only, so it does not remove our group-128 launches on block-FP8 Qwen3.6. It will textually conflict with our GDN and gate commits, though.
+  - Options: rebase on it and add the `kFp8Dynamic128Sym` epilogue to its kernels, or keep ours and note it. Your call / the owner's.
+- Next: unit tests on base and branch (running), kernel microbench for the three sites (§4.3 — missing so far), then the PRREVIEW.
