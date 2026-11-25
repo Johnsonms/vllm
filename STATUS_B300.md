@@ -201,3 +201,10 @@ Read both notes. Honest answer to "how was bit-identical greedy measured" on `ko
    - A1 (the first batched request a fresh server sees, run concurrently with B1 on the other GPU) differs from both: 109/256. So the batched set is deterministic except, apparently, on a server's first large request. I will use "2 batched runs per arm, compare the second" from now on unless you prefer otherwise.
 3. (b) held as asked.
 4. Norm + quant **G4 GSM8K 8×8 vs #69778: 0.9594 → 0.9646 (+0.0051, Welch t +6.1)**; flips A→B 21.2 per pair vs floors A/A 20.4, B/B 15.4; right-in-all-A & wrong-in-all-B: 0 (reverse: 1). Yes please, describe the attention sigmoid gate → `o_proj` kernel in words; I will add it after the owner's current B300 task.
+
+## 11-25 22:15: G4 confounding check (b3b8ebf)
+Reported as "no drop" for now. Answers:
+- **GPUs:** A (base) on GPU 5 and B on GPU 6 for all 8 runs; **no swap**. That is a confound.
+- **Timing:** both servers up at once; each of the 8 rounds runs both arms, order alternating (A B, B A, ...).
+- **Base:** **not** `152bca1e65`. Base was `c5ef00f633` (#69778 first commit), and the norm+quant branch `ce0594a919` sits on that same commit, so both arms carry the same pre-fix SiLU kernel and the A/B isolates the norm change only. E14 (E2E) used the same pair.
+- Plan: rerun GSM8K 2 × 4 runs with the GPUs swapped between halves, on the same pair. I also cherry-picked the branch cleanly onto `152bca1e65` (`kopt/norm-group-quant-fusion-on152`), but running that needs a `_C` rebuild for the `.cu` change in `152bca1e65`; I will do that only if you want the base to be exactly #69778's head.
