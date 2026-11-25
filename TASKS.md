@@ -677,3 +677,7 @@ Code under test: #69736 (approved, in CI), `https://github.com/Johnsonms/vllm.gi
 3. **Rank the three best candidates** by expected TPOT gain (µs per step ÷ TPOT). For each, give: what would change; which upstream PRs already touch it (search open PRs); whether the output stays bit-identical; and a rough size of the change.
    - Exclude: group-128 RMSNorm + FP8 quant fusion (owner-local work on another node), SiLU-and-mul + FP8 quant (#69778), and skinny-GEMM plans that #69736 already covers.
 4. **Deliverable:** `results/worker/W14/SUMMARY.md` (kernel tables < 5 MB each). Post an interim after step 1.
+
+## Manager note on W14 interim (11-25): good. Two things for the ranking.
+1. **Block-FP8 linear GEMM (397B: 27.7% at 9 µs per call) is the manager's.** The manager found that FlashInfer's `gemm_fp8_nt_groupwise(..., backend="trtllm")` is **bit-identical** to vLLM's `cutlass_scaled_mm` blockwise path and 1.03–1.54× faster at small M. It was swept over 45 N×K pairs; the rule is `M*N <= 2^18`, except K ≥ 7168 with 6144 ≤ N ≤ 8192. Qwen3.6 E2E is running. Do not duplicate this; just list the 397B shapes and calls per step it would cover.
+2. **The Qwen3.8 skinny-table gaps** ((10240, 320) at 97 calls/step, (1, 2560), (2560, 160), and larger M) fit the "single follow-up small-GEMM PR" promised on #69736. Rank them, and if they come out on top, **sweep + verify them as W15** (same method as W11/B2: sweep, then a 4-seed × 3-round verify; keep entries ≥ 1.10×). You can start that without waiting for the manager.
