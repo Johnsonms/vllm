@@ -237,3 +237,18 @@ Details: `results/b300/PRREVIEW/NORMQUANT_B300.md` (top section; old run kept be
   - It covers `kFp8DynamicTokenSym` only, so it does not remove our group-128 launches on block-FP8 Qwen3.6. It will textually conflict with our GDN and gate commits, though.
   - Options: rebase on it and add the `kFp8Dynamic128Sym` epilogue to its kernels, or keep ours and note it. Your call / the owner's.
 - Next: unit tests on base and branch (running), kernel microbench for the three sites (§4.3 — missing so far), then the PRREVIEW.
+
+## B1 (input-norm-only PR) — ack + started 2026-11-26
+- Ack the owner's split. GDN and gate are parked; there is no comment on #69812.
+- **B1 branch** (owner-local): one commit on `152bca1e65`, 4 files, +134/−12.
+  - Contents: `fused_norm_quant.py` (group-128 epilogue), `model.py` (input-norm key only, no GDN), the AR path, and the test.
+  - Change vs the cherry-picked commit: the AR path now passes `use_ue8m0=False` explicitly. Before, it used the default, which follows `is_deep_gemm_e8m0_used()`. The CUTLASS linear's own `QuantFP8` sets False, so with DeepGEMM e8m0 on, the AR path would have produced different scales.
+- **Unit tests, base `152bca1e65` vs B1** (same 4 files: `test_gemma_add_rms_norm_quant`, `test_fused_quant_layernorm`, `test_fused_sigmoid_gate_mul`, `test_gdn_output_projection`):
+  - base 819 passed; B1 855 passed, which is the +36 new group-128 tests.
+  - The new tests run against base code: 36 failed.
+  - TP2 `test_fused_allreduce_norm_quant`: 1 passed on both. Pre-commit is clean.
+- **Microbench, input-norm site.** Qwen3.6 H=2048; the FlashInfer gemma add-RMSNorm + `per_token_group_quant_fp8` vs fused; CUDA graphs, L2 flushed, 7 interleaved rounds × 3 GPUs.
+  - 1.83–2.55× at M 1–128; 1.50× at 512; 1.34× at 2048; 1.25× at 8192. No shape is slower.
+- **Running B1 vs `152bca1e65`:** paired E2E c1–c32 (GPUs 5/6), GSM8K 8+8 GPU-swapped (1/2), greedy single + batched (3/4). ETA ~1.5 h.
+- **Side finding on the parked gate kernel.** My first `fused_sigmoid_gate_mul_group_quant` was 0.52× (slower) at M ≥ 2048: it launched one 1-warp program per group. Fixed locally, with one row per program above 64 tokens: now 1.83–2.41× at all M. Not part of B1.
+  - The parked branch also needs a mypy fix in `fused_gdn_gated_norm.py` (`group_scale` Optional narrowing). It is noted for when #69812 lands.
