@@ -333,3 +333,7 @@ Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35
 - Fix: dropped the two M=8 entries ((1024,2048) and (512,2048)), added a comment explaining why, and amended the commit message. I also added the missing **Signed-off-by** (`0ed623973b` lacked it). New head **`b144c3ce70`** (author and committer = owner, no Co-authored-by). Ruff is clean.
 - Skinny unit tests at the new head: 26 passed (2 fewer, because the tests are parametrized over the plan entries).
 - Running now: full paired E2E c1–c32 at `b144c3ce70` vs `d6bccd2252` (E20, GPUs 0/1, with GSM8K per pass). PRREVIEW follows. M=8 now goes to TRT-LLM as on base, so the earlier GSM8K 8+8 (Δ −0.15 pp, noise) still applies to all other entries.
+
+### Ack 6628a5d (skinny)
+- GSM8K 8+8 at `b144c3ce70` vs `d6bccd2252` started: G11 h1 (A GPU2 / B GPU3) and h2 (A GPU5 / B GPU4) in parallel, 4 runs each, so each arm runs on two GPUs. E20 (full E2E c1–c32) continues on GPUs 0/1.
+- The PRREVIEW body will state the M=8 finding in one or two sentences and use E20 for all concurrencies (including c4/c8). Opening waits for a maintainer review of #69949.
