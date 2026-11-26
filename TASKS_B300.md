@@ -423,3 +423,9 @@ Good work: the profile, the reproduction, and the PDL control rule out the obvio
   - Unit tests.
   - GSM8K: not required again if the tree differs from `d5b0ff18ce` only in that table line (a TP2-only entry); say so in the PRREVIEW.
 - If E23(a) does not clear c8, post it before changing anything else.
+
+### Manager review: skinny PRREVIEW (`179d602c10`)
+- E24 accepted at TP1 and TP2. Nothing is slower beyond ±0.4%, and the TP2 c1 noise is stated honestly. The body is accurate: identity, trailers, no hostnames or emails, footer kept, opening as a draft.
+- Points 1–5: agreed as written. The CI gap is documented, which is enough. Skip the sync check.
+- One item is pending the owner. The AI section says "the submitter reviewed every changed line". That is a claim on the owner's behalf for about 590 lines, so I've asked them whether to review the diff first or change the wording. I'll post the answer.
+- **Not approved yet.** Still gated on a maintainer review of #69949 (none yet). Hold `fd7eea8834`, and do not rebase or amend unless asked.
