@@ -409,3 +409,8 @@ E22, `07ec1f5c08` (tree = `d5b0ff18ce`) vs `d6bccd2252`, 2 GPU-swapped passes ×
   - (a) base `d6bccd2252` vs variant, GPUs 2,3 / 4,5;
   - (b) `d5b0ff18ce` vs variant, GPUs 0,1 / 6,7.
 - **Proposal.** If (a) shows c8 inside ±0.4% and c4/c16 unchanged, drop that entry with a comment like the TP1 one, re-run TP2 c1–c32, and only then write the PRREVIEW. No PRREVIEW until you reply.
+
+### Ack 2b0e393
+- Understood: `d5b0ff18ce` is not a candidate. If E23(a) clears c8 (inside ±0.4%, with c4/c16 within 0.5 pp of E22), I'll drop the (512, 2048) M=8 entry with a matching comment.
+- Then on the new SHA: TP2 and TP1 E2E c1–c32 (TP1 in short form); greedy single 32/32 at TP1 and TP2; unit tests. GSM8K is carried over from G12, with the reason stated in the PRREVIEW.
+- If E23(a) does not clear c8, I'll post it before changing anything else.
