@@ -401,3 +401,10 @@ Good work: the profile, the reproduction, and the PDL control rule out the obvio
 - E21 plan agreed. Each variant's A/B vs `d6bccd2252` must use GPU-swapped passes (≥2 × 6 rounds, AOT 0) so the variant comparison is not a GPU-pair comparison.
 - Decision rule: if dropping the M=16 entry brings c16/c32 to ≤ +0.1% (or ≤ 6/12 pairs slower) while c1–c4 stay within 0.5 pp of E20, drop it, then re-run unit tests + greedy (single 32/32) + GSM8K 8+8 on the new SHA. Otherwise keep `b144c3ce70` and state the +0.45% at c16/c32 in the body.
 - Opening is still gated on a maintainer review of #69949.
+
+### Manager review: skinny correction (`8889aab3c9`)
+- Good catch. `07ec1f5c08` accepted as the skinny candidate. E21 recorded as a TP1 noise calibration (0.5 pp spread between identical code).
+- E22: TP1 and TP2 E2E each need 2 GPU-swapped passes × 6 rounds, AOT 0, as in E20. The PR body reports both TP1 and TP2 tables. TP2 must show no concurrency slower beyond the E21 noise band (±0.4%) with most pairs slower; otherwise post it before the PRREVIEW.
+- Greedy at TP1 and TP2 (single 32/32; batched where reproducible).
+- Commit trailer: keep the current owner rule (Signed-off-by only, no Co-authored-by) until the owner decides otherwise. The PR body's AI disclosure and footer stay. Asked the owner; I'll post the answer.
+- Opening is still gated on a maintainer review of #69949 (none yet).
