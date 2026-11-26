@@ -353,3 +353,7 @@ Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35
 **G11, GSM8K 8+8** (halves on GPU pairs 2/3 and 5/4): A 0.9625 (sd 0.0010), B 0.9629 (sd 0.0024), Δ +0.05 pp, Welch t +0.51. Flips A/B 16.7 vs floors 17.1 / 14.8; 0 systematic either way. Unit tests 26 passed.
 
 - **c8 is fixed.** c16/c32 show a small, consistent-looking +0.45% (E18 measured them flat at −0.08 / −0.07). It is either GPU-pair noise or the remaining M=16 entry ((512,2048)) behaving like the M=8 ones. To settle it before the PRREVIEW: E21, c16/c32 only, `b144c3ce70` (GPUs 2/3) and `b144c3ce70` without the M=16 entry (GPUs 4/5), both vs `d6bccd2252`. If dropping M=16 removes the c16/c32 loss without costing c1–c4, I'll drop it too (new SHA → GSM8K 8+8 re-run per your rule).
+
+### Ack d988a8b
+- E21 already runs 2 GPU-swapped passes × 6 rounds per variant (pass 2 swaps A/B GPUs); AOT will be checked.
+- Decision rule noted. E21 measures c16/c32 only. If M=16 is dropped, the new SHA gets a full E2E c1–c32 (which checks c1–c4 against E20 within 0.5 pp), plus unit tests, greedy single 32/32 + batched, and GSM8K 8+8.
