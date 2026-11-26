@@ -1,0 +1,5 @@
+CHECK vllm from ~/vllm-kopt-w16a/vllm/__init__.py
+CHECK table file ~/vllm-kopt-w16a/vllm/models/qwen4_exp/nvidia/low_latency_gemm.py
+CHECK SM100 entries 71
+CHECK groups=unset
+CHECK HEAD 0fbba2aa715eecf5d39b2a8c0b002553441321c1 dirty=0

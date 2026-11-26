@@ -58,3 +58,41 @@ One arm per group (only that group's new entries on top of base), 2 rounds of [b
 
 ## #69907 interaction
 #69907 changes the default backend inside the generic unquantized linear method (FlashInfer cute-dsl for M <= 32). The Flash-Next table replaces the layer's method with its own, which calls the table op directly, so layers whose shape is in the table are not routed by #69907. But today the gate (1, 2560) is **not** in the SM100 table, so after #69907 it would run on FlashInfer cute-dsl in the base. Adding the gate lines would then move it from that kernel to the skinny kernel at M <= 16, and to plain torch linear at M = 17-32. So if #69907 merges first, this A/B must be repeated against it; I have not measured that.
+
+## FINAL (2026-11-26 05:26Z): gate-only set (11 entries) — gain at 2-16 requests, no regression, GSM8K unchanged
+
+**Arms.** Base = main 0fbba2aa71. Candidate = base + (1, 2560) at M = 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16 (local commit ec909d402c, `final_entries.json`). Same setup and method as the interim: A B A B A B, 3 starts per arm, 4 bursts per concurrency per start, AOT count 0 in all 6 logs. Data in `final/`.
+
+| requests | base per start (ms) | base spread | candidate per start (ms) | cand spread | delta |
+|---|---|---|---|---|---|
+| 1 | 3.998 3.994 3.993 | 0.14 % | 3.978 3.986 3.994 | 0.42 % | -0.23 % |
+| 2 | 4.523 4.506 4.519 | 0.38 % | 4.464 4.491 4.497 | 0.75 % | **-0.70 %** |
+| 4 | 5.331 5.313 5.316 | 0.35 % | 5.196 5.203 5.201 | 0.14 % | **-2.26 %** |
+| 8 | 6.107 6.097 6.102 | 0.17 % | 5.920 5.917 5.914 | 0.10 % | **-3.03 %** |
+| 16 | 6.648 6.660 6.646 | 0.20 % | 6.611 6.579 6.577 | 0.51 % | **-0.94 %** |
+| 32 | 8.110 8.103 8.081 | 0.35 % | 8.084 8.087 8.129 | 0.55 % | +0.02 % |
+
+- 2, 4, 8 and 16 requests: every candidate start is faster than every base start, and the delta exceeds the base spread.
+- **1 request: -0.23 % is not a clear gain.** One candidate start equals the base, and the candidate spread (0.42 %) is larger than the delta. The ablation had -0.58 % and the 32-entry run -1.00 % here, so the 1-request effect is somewhere in 0.2-1 %.
+- 32 requests: flat, as expected (no entry above M = 16).
+- The 16-request regression of the 32-entry set is gone.
+
+**Greedy, 32 single prompts x 256 tokens.** Candidate vs base: 2 of 32 differ, in all 9 start pairs. Base vs base: 0 of 32. Candidate vs candidate: 0 of 32. Not output-identical.
+
+**Batched greedy (256 prompts in one request).** Not usable: expert-parallel batched greedy is nondeterministic on this setup. Base vs base differs on 0-233 of 256 between starts, candidate vs candidate on 247-251, base vs candidate on 208-250.
+
+**GSM8K, 5-shot, 1319 questions, 8 runs per arm** (3 + 3 + 2 over the three starts, 64 concurrent, thinking off, per-question dumps in `final/*/gsm_perq_*.json`).
+- Correct counts — base: 1275 1277 1275 1276 1275 1278 1279 1275 (mean 0.9676). Candidate: 1277 1277 1275 1275 1279 1279 1274 1275 (mean 0.9677).
+- Per-question flips between two runs: base vs base 9-20 (median 14, 28 pairs); candidate vs candidate 8-20 (median 14, 28 pairs); base vs candidate 8-20 (median 14, 64 pairs).
+- No question differs by 4 or more of 8 runs between the arms. No question is always right in one arm and always wrong in the other.
+- So the cross-arm flips are the same near-ties that flip inside one arm.
+
+## What a PR would contain
+- 11 lines for (1, 2560) in the Flash-Next SM100 table, plus the comment. The shape is replicated at every TP size, so the lines also apply at TP8 (not measured there).
+- Not included, with the reason: router lines (16-request loss, no gain at 4); (24, 2560) / (320, 2560) odd M, large projections M3 and LM head M3 / M4 (no measurable E2E effect); M = 7 (never fires).
+
+## Not measured
+- TP8 / TEP8, B300 (SM103), speculative decoding (MTP) on, prefill.
+- The base after #69907 (see above).
+- A unit test for the new lines (the existing table test would need the new shape; not written).
+- The compiled kernels are the precompiled ones from an older wheel; main removed the mamba C++ sources since, which these runs do not use.
