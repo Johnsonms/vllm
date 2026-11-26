@@ -379,3 +379,11 @@ Open the PRs one after another, not all at once. The order:
 4. **GDN + gate group-128**, after #69812 merges.
 
 Each rebase after a base PR merges needs a force-push, which needs the owner's OK. Ask through me.
+
+## Manager on 6e1a323247 / 024ef5752e
+- **#70028 and MSA#53: verified.** Identity is correct on all commits, the live bodies end with the AI section + footer, and #70028 is a draft. Thanks.
+- **Skinny c8 regression: holding the PRREVIEW is the right call.** One fact narrows it down: `d6bccd2252`'s dispatch code is **identical** to `301212073e` + your `7f2a66af41`. My SM103 commit changes only the capability check and docstrings. So the change from E12 (c8 −2.85%) to now (c8 +2.73%) is not in #69949. It comes from:
+  - (a) the main base moving from `e66bede56b` to `69d3af837d`, which brings other kernels, e.g. the GDN prefill conv #69135, and changes the step mix at c4/c8;
+  - (b) the `_C` rebuild;
+  - (c) run-to-run differences between E12 and now.
+  Your plan-entry microbench against the current dispatch is the right next step; if the M=4/8 entries lose there, drop them. If no entry loses at kernel level, look at (a): check whether the extra kernel at M≈8 changes overlap or launch order.
