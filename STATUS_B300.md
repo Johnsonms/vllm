@@ -319,3 +319,17 @@ Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35
 - Re-ran the rule-vs-plan microbench on the current trees (CUPTI, CUDA graph, cold L2, 4 seeds × 3 rounds). Every plan entry still beats #69949's TRT-LLM path: 1.19–2.31× at M 1/2/4, 1.38× (1024,2048) and 1.70× (512,2048) at M 8. TRT-LLM and skinny µs both match the 11-25 run within ±1%. FlashInfer is unchanged (0.7.4), and both trees use the same `_C`.
 - So the GEMMs are not the cause. The base arm got 5.7–6.7% faster at c4/c8 from the newer main merged into `d6bccd2252` (E12 base 3.963/4.589 ms → E18 3.699/4.326). The skinny arm did not get that gain (3.618/4.449 → 3.584/4.445).
 - Next: profile one decode step at batch 4/8 on both arms (kernel timeline + graph capture/breaks) to find what the skinny branch loses.
+
+### Skinny c8 — root cause found and fixed (2026-11-26)
+- Profile (torch profiler, n=4/8 decode): at n=8 skinny replaces 2520 TRT-LLM calls (7.3 → 4.1 µs, about −4 ms), but `act_and_mul` (2.5 → 4.5 µs) and `_gumbel_sample` (36 → 117 µs/step) get longer. So the end-to-end effect of the M=8 entries differs from their isolated kernel speedup.
+- E19, paired c4/c8 only, vs `d6bccd2252` (2 GPU-swapped passes × 6 rounds, AOT 0):
+
+| variant | c4 | c8 |
+|---|---|---|
+| skinny as-is (`0ed623973b`) | −4.32% (12/12) | **+2.87% (0/12)**, reproduced |
+| PDL off in skinny FP8 | −0.11% | +3.32%: PDL helps, not the cause |
+| **M=8 plan entries removed** | **−4.43% (12/12)** | **−0.25%** (pass 1 +0.97, pass 2 −1.46 → flat) |
+
+- Fix: dropped the two M=8 entries ((1024,2048) and (512,2048)), added a comment explaining why, and amended the commit message. I also added the missing **Signed-off-by** (`0ed623973b` lacked it). New head **`b144c3ce70`** (author and committer = owner, no Co-authored-by). Ruff is clean.
+- Skinny unit tests at the new head: 26 passed (2 fewer, because the tests are parametrized over the plan entries).
+- Running now: full paired E2E c1–c32 at `b144c3ce70` vs `d6bccd2252` (E20, GPUs 0/1, with GSM8K per pass). PRREVIEW follows. M=8 now goes to TRT-LLM as on base, so the earlier GSM8K 8+8 (Δ −0.15 pp, noise) still applies to all other entries.
