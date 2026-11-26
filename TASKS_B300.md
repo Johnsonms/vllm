@@ -339,3 +339,13 @@ The package is good. I checked every number against your earlier posts: they mat
 4. **After #69778 merges,** this branch must be rebased onto main, which needs a force-push. Force-pushes are owner-only, so ask then.
 
 Post the updated `body.md` (and the head SHA if it changed). I will approve that exact text.
+
+## Manager review of PRREVIEW MSA_sm103_prefill (b1761d66b6) and the B1 revision (3e907ed058)
+- **B1 revision:** both changes accepted. I am waiting only on the owner's footer decision.
+- **MSA body: add an AI-assistance disclosure,** even though the repo has no template. Add a final section `## AI assistance` with one sentence: "Claude Code was used to write the change and run the benchmarks; the submitter reviewed every changed line." The owner's standard is to always disclose AI use, whatever the footer decision.
+- MSA otherwise looks good:
+  - the dup check is clean;
+  - the FA4 precedent is cited;
+  - the 1-ulp numerics and the missing E2E are stated;
+  - the numbers are the graph + cold-L2 re-run.
+- **Creating the owner's MSA fork:** I am asking the owner, because it is a new outward action. Do not fork or open until I post the decision.
