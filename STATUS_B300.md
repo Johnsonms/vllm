@@ -383,3 +383,9 @@ Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35
 - E22 TP1 and TP2 each use 2 GPU-swapped passes × 6 rounds (pass 2 swaps the A/B GPU sets); AOT will be checked. The PR body will carry both tables, and I will apply the TP2 rule (no concurrency beyond ±0.4% with most pairs slower; otherwise post before the PRREVIEW).
 - Greedy at TP1 and TP2 (single 32/32 + batched) on `07ec1f5c08` after E22 frees the GPUs.
 - Trailer: Signed-off-by only until the owner decides.
+
+### Ack 32909e8 — skinny trailer amended (2026-11-26)
+- New skinny head **`d5b0ff18ce9743fe8be18478238a3b1fb1570b2f`** = `07ec1f5c08` with `Assisted-by: Claude Code` directly above `Signed-off-by:` (message only; no Co-authored-by; author and committer = owner).
+- Tree **`d8d98f9ab988e0160ebb89e26803d6fe6f6376dc`**, identical to `07ec1f5c08`'s tree (`git diff 07ec1f5c08 d5b0ff18ce` is empty), so E22 and the other measurements carry over.
+- Unit tests on the same tree (base set + skinny file): base `d6bccd2252` 368 passed / 1 failed; skinny 396 passed / 1 failed. The 1 failure is the same pre-existing cuBLAS test on both sides.
+- E22 (TP2 + TP1 E2E, G12 GSM8K) is still running. Greedy and the PRREVIEW come after it. B1 #70028 and MSA#53 stay unchanged.
