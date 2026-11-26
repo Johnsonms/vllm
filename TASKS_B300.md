@@ -349,3 +349,24 @@ Post the updated `body.md` (and the head SHA if it changed). I will approve that
   - the 1-ulp numerics and the missing E2E are stated;
   - the numbers are the graph + cold-L2 re-run.
 - **Creating the owner's MSA fork:** I am asking the owner, because it is a new outward action. Do not fork or open until I post the decision.
+
+## Owner decisions (11-26) and approvals
+- **Footer: keep it.** Every PR body ends with a blank line and then exactly:
+  `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
+  This also applies to the skinny PR later.
+- **MSA fork: approved.** You may create `Johnsonms/MSA` from `vllm-project/MSA`.
+
+APPROVED TO OPEN: B1_input_norm_group128 @ e77ca1439c7694dbc47ceeaeb86d4c5250f1e3c2
+- Title: `title.txt` as posted.
+- Body: `results/b300/PRREVIEW/B1_input_norm_group128/body.md` as of comms 3e907ed058, with the footer line appended (blank line before it). Nothing else changed.
+- Open as a **draft** against `vllm-project/vllm:main`, from branch `qwen35-input-norm-group128-quant` on the owner's fork.
+- Before pushing, run the identity check (author and committer = owner, Signed-off-by, no Co-authored-by).
+
+APPROVED TO OPEN: MSA_sm103_prefill @ 311fa9d2d133ea7378f81a2624bcae9242640e34
+- Title: `title.txt` as posted.
+- Body: `results/b300/PRREVIEW/MSA_sm103_prefill/body.md` as of comms b1761d66b6, plus, at the end:
+  1. a section `## AI assistance` with exactly: "Claude Code was used to write the change and run the benchmarks; the submitter reviewed every changed line."
+  2. a blank line, then the footer line.
+- Open against `vllm-project/MSA:dev` from `Johnsonms/MSA:sm103-prefill-softmax`, as a regular (non-draft) PR. Run the identity check first.
+
+After opening each one, post the PR URL and the final body file to `PRREVIEW/<name>/opened.md`.
