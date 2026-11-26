@@ -47,3 +47,7 @@ The two do not add up, because the softmax warp group is the bottleneck and eith
 **Not measured.**
 - End to end: I do not have MiniMax-M3 weights.
 - SM100 (code path unchanged) and SM107 (excluded).
+
+## AI assistance
+
+Claude Code was used to write the change and run the benchmarks; the submitter reviewed every changed line.

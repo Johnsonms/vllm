@@ -18,4 +18,4 @@
 
 ## Needs a decision before opening
 1. **The owner has no MSA fork** (`Johnsonms/MSA` does not exist). Opening needs one. Creating a fork under the owner's account is a new outward action: please confirm it is covered by the delegation.
-2. **Attribution footer:** same question as B1 (PR_RULES §5.5 footer vs the owner's earlier instruction). This body has no AI-assistance section, because MSA PRs do not use the vLLM template; tell me if you want one.
+2. **Attribution footer:** same question as B1 (PR_RULES §5.5 footer vs the owner's earlier instruction). AI-assistance section added per 5f97b92.
