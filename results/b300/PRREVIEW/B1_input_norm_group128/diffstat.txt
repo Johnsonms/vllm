@@ -1,0 +1,27 @@
+Branch (to push to the owner's fork): qwen35-input-norm-group128-quant
+Head SHA: e77ca1439c7694dbc47ceeaeb86d4c5250f1e3c2
+Stacked on #69778 head 152bca1e65 (main base fb159244e6)
+
+== this PR's own commit (e77ca1439c)
+ .../qwen3_5/test_gemma_add_rms_norm_quant.py       | 75 ++++++++++++++++++++++
+ vllm/models/qwen3_5/nvidia/model.py                |  6 +-
+ .../nvidia/ops/fused_allreduce_norm_quant.py       | 11 +++-
+ vllm/models/qwen3_5/nvidia/ops/fused_norm_quant.py | 54 +++++++++++++---
+ 4 files changed, 134 insertions(+), 12 deletions(-)
+
+== full diff vs main base fb159244e6 (includes #69778's two commits until it merges)
+e77ca1439c [Perf] Qwen3.5: fuse block-FP8 (group-128) input quant into the input RMSNorm
+152bca1e65 [Kernel] Make the fused SiLU-and-mul + block FP8 quant bit-identical to the unfused ops
+c5ef00f633 [Perf] Fuse SiLU-and-mul with block-FP8 input quant for the CUTLASS block kernel
+ .../fused_kernels/fused_silu_mul_block_quant.cu    | 74 ++++++++++++++++-----
+ .../passes/test_silu_mul_quant_manual_fusion.py    | 57 ++++++++++++++++
+ .../core/test_fused_silu_mul_block_quant.py        | 52 +++++++++++++++
+ .../qwen3_5/test_gemma_add_rms_norm_quant.py       | 75 ++++++++++++++++++++++
+ .../linear/scaled_mm/BlockScaledMMLinearKernel.py  | 19 +++++-
+ .../kernels/linear/scaled_mm/cutlass.py            | 11 ++++
+ .../layers/fusion/fused_act_quant.py               |  7 +-
+ vllm/model_executor/layers/quantization/fp8.py     |  5 ++
+ vllm/models/qwen3_5/nvidia/model.py                |  6 +-
+ .../nvidia/ops/fused_allreduce_norm_quant.py       | 11 +++-
+ vllm/models/qwen3_5/nvidia/ops/fused_norm_quant.py | 54 +++++++++++++---
+ 11 files changed, 341 insertions(+), 30 deletions(-)

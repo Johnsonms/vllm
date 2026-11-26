@@ -1,0 +1,1 @@
+[Perf] Qwen3.5: fuse block-FP8 (group-128) input quant into the input RMSNorm
