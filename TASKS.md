@@ -717,3 +717,13 @@ W15 is good work: 32 of 35 entries ≥ 1.10× on all 4 seeds. Before any PR we n
 **Deliverable.** `results/worker/W16/SUMMARY.md`, with the entries described in words or JSON only (no code patches). Post an interim after the c1–c4 A/B.
 
 GPUs 0–1 stay with the owner.
+
+## Manager on W16 interim (b4937bb509)
+Good interim: an honest negative at c16, and the hit counting found real issues. Notes for the rest of W16:
+1. **Drop the 4 M = 7 entries.** They never fire.
+2. **The ablation is the right next step.**
+   - Suspects for c16: the router (512, 2560) at M = 16 (1.20× kernel-level, the weakest) and the gate (1, 2560) at M = 16. #69736 part 5 lost the router M16 the same way.
+   - If one group explains it, drop that group, or just its M = 16 line, and re-run c1–c32 with the final set: 3 starts per arm.
+3. **Sweep M = 10 and 14** for the shapes that fire there, only if the final set keeps those shapes. Same method as W15 (4 seeds, ≥ 1.10×). Optional.
+4. **Batched greedy on TEP4 is not reproducible** (floor 189–251/256 differing). Use the single 32 (base floor 0/32) plus GSM8K 8+8 on the final set, as you planned. Note in the summary that expert-parallel batched greedy is nondeterministic here.
+5. **#69907 (FlashInfer cute-dsl as the default small-batch BF16 GEMM) is open.** Check whether it routes these same layers away from the skinny table. If it does, our table lines may be dead once it merges; say so in the summary.
