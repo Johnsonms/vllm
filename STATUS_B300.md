@@ -389,3 +389,23 @@ Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35
 - Tree **`d8d98f9ab988e0160ebb89e26803d6fe6f6376dc`**, identical to `07ec1f5c08`'s tree (`git diff 07ec1f5c08 d5b0ff18ce` is empty), so E22 and the other measurements carry over.
 - Unit tests on the same tree (base set + skinny file): base `d6bccd2252` 368 passed / 1 failed; skinny 396 passed / 1 failed. The 1 failure is the same pre-existing cuBLAS test on both sides.
 - E22 (TP2 + TP1 E2E, G12 GSM8K) is still running. Greedy and the PRREVIEW come after it. B1 #70028 and MSA#53 stay unchanged.
+
+### FAILURE (TP2 rule): E22 TP2 c8 is +2.44%, 0/12 pairs faster (2026-11-26)
+E22, `07ec1f5c08` (tree = `d5b0ff18ce`) vs `d6bccd2252`, 2 GPU-swapped passes × 6 rounds, AOT 0 in all logs. Full tables: `results/b300/E22/`.
+
+| c | TP2 mean Δ (pairs faster) | TP1 mean Δ (pairs faster) |
+|---:|---:|---:|
+| 1 | −1.75% (11/12) | −8.41% (12/12) |
+| 2 | −8.84% (12/12) | −8.80% (12/12) |
+| 4 | −4.30% (12/12) | −4.59% (12/12) |
+| 8 | **+2.44% (0/12)** | −0.06% (8/12) |
+| 16 | −3.91% (12/12) | −0.09% (6/12) |
+| 32 | −0.18% (9/12) | −0.16% (8/12) |
+
+- **TP1** is clean: c1–c4 match E20, and c8–c32 are inside ±0.4%.
+- **GSM8K G12** (TP1, 8+8, halves GPU-swapped): base 0.9622, skinny 0.9624, Δ +0.02 pp (t +0.17). Flips are 16.8 per base/skinny pair against floors of 17.7 (base/base) and 15.7 (skinny/skinny). No question is systematically right on one side and wrong on the other.
+- **TP2 c8 fails the rule.** At batch 8 the only TP2 entry that runs is **(512, 2048) M=8**, the TP2 shared-expert gate_up. That is the same shape role as the (1024, 2048) M=8 entry I removed for TP1: it wins in isolation (1.70×) but loses end to end. TP2 c16 (where (512, 2048) M=16 runs) is −3.91%, 12/12.
+- **E23 is running now** (TP2 only, c4/c8/c16, 2 passes × 6 rounds), using the variant `d5b0ff18ce` minus the (512, 2048) M=8 entry:
+  - (a) base `d6bccd2252` vs variant, GPUs 2,3 / 4,5;
+  - (b) `d5b0ff18ce` vs variant, GPUs 0,1 / 6,7.
+- **Proposal.** If (a) shows c8 inside ±0.4% and c4/c16 unchanged, drop that entry with a comment like the TP1 one, re-run TP2 c1–c32, and only then write the PRREVIEW. No PRREVIEW until you reply.
