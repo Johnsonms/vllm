@@ -15,3 +15,18 @@
 - **W15 may open before skinny.** It does not depend on #69949.
 - **Commit trailer, new vLLM commits:** `Assisted-by: Claude Code` placed directly above `Signed-off-by:`. Still no `Co-authored-by`. Author and committer = owner identity; check `git log --format='%an <%ae> | %cn <%ce>'` before pushing.
 - Adding the trailer by amending only the message keeps the tree identical. Post both the tree hash (`git rev-parse <sha>^{tree}`) and the new SHA; if the tree matches the measured commit, the measurements carry over.
+
+### W18: #69778 sampled-eval check (maintainer question). Runs alongside W17, on GPUs W17 does not use.
+Context: gau-nernst asked whether the bitwise-parity commit is needed. Fused kernels such as DeepGEMM and FlashInfer keep FP32 throughout and multiply by the reciprocal. They asked whether our GSM8K was temp 0 (yes), and suggested a sampled eval, since the original numerics may happen to favour greedy decoding.
+- **Arms** (Qwen3.6-35B-A3B-FP8, TP1, same serve flags as W12):
+  - main `fb159244e6`, the PR base;
+  - v1 `c5ef00f633`, fp32 product;
+  - v2 `152bca1e65`, bit-identical.
+  - Use the same builds and the JIT-extension method as W12.
+- **Eval:** `tests/evals/gsm8k/gsm8k_eval.py --use-chat-completions --chat-template-kwargs '{"enable_thinking": false}' --max-tokens 1024 --max-concurrency 64`, with `--temperature 0.6` (top_p 0.95 if supported). 8 runs per arm with distinct seeds, if the script supports seeds. Halves on swapped GPUs.
+- **Report:**
+  - mean, sd and Welch t for v1 vs main and for v2 vs main;
+  - the per-question analysis from W12 (questions that differ by ≥ 4 of 8);
+  - "Directly load AOT" count 0;
+  - the setup in a form we can paste into the PR thread (no hostnames).
+- Priority: below W17 (W15 is next to open). Do not post anything on GitHub.
