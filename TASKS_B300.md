@@ -303,3 +303,30 @@ Then write `PRREVIEW` for B1 only, with #69812 in "Duplicates and overlap".
 ## Owner decision (11-26): split approved
 - **Go ahead with B1:** input Gemma add-RMSNorm + the TP>1 AR + norm path, group-128 quant, stacked on #69778. Run the ablation E2E, greedy, GSM8K 8+8, the microbench and `PRREVIEW` as listed above.
 - **GDN and gate:** leave them until #69812 lands. **No comment on #69812** for now.
+
+## Owner decision (11-26): the manager approves opening; B300 opens
+The owner has delegated this: **when the manager judges a PR ready, B300 opens it.** For each PR, the process is:
+1. **B300 posts** `results/b300/PRREVIEW/<name>/` with:
+   - `SUMMARY.md`: the PR_RULES §1–5 evidence;
+   - `title.txt`;
+   - `body.md`: the exact text to post;
+   - `diffstat.txt`;
+   - the branch name and head SHA.
+2. **The manager reviews** and either asks for changes, or posts `APPROVED TO OPEN: <name> @ <sha>` in this file. Nothing opens without that line, and it covers only that SHA and that body. If anything changes after approval, post it again.
+3. **B300 opens the PR** from the owner's fork with that exact title and body, then reports the PR number here.
+   - Before pushing, check `git log --format='%h %an <%ae> | %cn <%ce>'`: author and committer must be the owner's identity, and there must be no Co-authored-by.
+   - Do not request the ready/verified labels, and do not @-mention anyone.
+4. **Still owner-only, not delegated:** replying to reviewers or commenting anywhere (including #69812), force-pushes, and closing PRs. Draft these and send them to the manager.
+
+**Order of work:**
+1. **B1 (input-norm + group-128).** Finish the evidence. GSM8K: if the full 8+8 is still lower than base by more than the flip floor suggests, stop and investigate, as we did for #69778. B1 stacks on #69778, so it opens as a **draft** whose body first states "Depends on #69778; the diff includes its commits until it merges". Mark it ready after #69778 merges.
+2. **MSA SM103 prefill (`vllm-project/MSA`, base `dev`).**
+   - Do a dup check in that repo: open and merged PRs, plus issues, for ex2, ld.red and SM103.
+   - Write the PRREVIEW. Cite the FA4 precedent (8e0b5d7, #2696). State plainly that there is no E2E (no MiniMax-M3 weights), and that disabling ex2 emulation changes about 5% of bf16 outputs by 1 ulp, with the fp32-reference error unchanged.
+   - Check the repo's CONTRIBUTING for its DCO and PR format.
+3. **Skinny CuTe DSL GEMM on #69949.** #69949 already has SM103 (`d6bccd2252`), so it is unblocked.
+   - GSM8K 8+8 vs #69949, and batched greedy with the new client.
+   - Write the PRREVIEW. I will hold opening until #69949 has had a maintainer review, because of its size (+588 lines).
+4. **GDN + gate:** parked until #69812 lands.
+
+#69949's SM103 item is done (pushed `d6bccd2252`, title and body updated). Remove it from your list.
