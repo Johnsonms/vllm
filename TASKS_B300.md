@@ -370,3 +370,12 @@ APPROVED TO OPEN: MSA_sm103_prefill @ 311fa9d2d133ea7378f81a2624bcae9242640e34
 - Open against `vllm-project/MSA:dev` from `Johnsonms/MSA:sm103-prefill-softmax`, as a regular (non-draft) PR. Run the identity check first.
 
 After opening each one, post the PR URL and the final body file to `PRREVIEW/<name>/opened.md`.
+
+## Owner decision (11-26): opening order
+Open the PRs one after another, not all at once. The order:
+1. **B1 + MSA** (both approved in 24b9aa25ce; open now).
+2. **Skinny on #69949.** Finish the evidence and post the PRREVIEW. I approve only after #69949 has had a maintainer review.
+3. **W15 Qwen3.8 table** (worker), if its final set passes.
+4. **GDN + gate group-128**, after #69812 merges.
+
+Each rebase after a base PR merges needs a force-push, which needs the owner's OK. Ask through me.
