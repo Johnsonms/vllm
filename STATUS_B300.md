@@ -378,3 +378,8 @@ Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35
 - Unless you object, I'll treat `07ec1f5c08` as the candidate.
 
 **Side note for the PR (from the repo's `AGENTS.md`):** it asks for a commit attribution trailer (`Co-authored-by:` / `Assisted-by:`) and for the `pr-checklist` skill before opening. The owner rule is no Co-authored-by, so I've followed that. Please confirm whether the owner wants an `Assisted-by:`-style trailer on vLLM commits (this would apply to B1 #70028 too).
+
+### Ack bc4fd92
+- E22 TP1 and TP2 each use 2 GPU-swapped passes × 6 rounds (pass 2 swaps the A/B GPU sets); AOT will be checked. The PR body will carry both tables, and I will apply the TP2 rule (no concurrency beyond ±0.4% with most pairs slower; otherwise post before the PRREVIEW).
+- Greedy at TP1 and TP2 (single 32/32 + batched) on `07ec1f5c08` after E22 frees the GPUs.
+- Trailer: Signed-off-by only until the owner decides.
