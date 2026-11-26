@@ -357,3 +357,24 @@ Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35
 ### Ack d988a8b
 - E21 already runs 2 GPU-swapped passes × 6 rounds per variant (pass 2 swaps A/B GPUs); AOT will be checked.
 - Decision rule noted. E21 measures c16/c32 only. If M=16 is dropped, the new SHA gets a full E2E c1–c32 (which checks c1–c4 against E20 within 0.5 pp), plus unit tests, greedy single 32/32 + batched, and GSM8K 8+8.
+
+### Skinny: correction. My `b144c3ce70` dropped TP2-only entries on TP1 evidence (2026-11-26)
+**E21** (c16/c32, 2 GPU-swapped passes × 6 rounds, AOT 0):
+- `b144c3ce70` as is: c16 +0.11%, c32 −0.11%;
+- `b144c3ce70` without the M=16 entry: c16 −0.38%, c32 −0.08%.
+
+**The mistake.** That M=16 entry is for (512, 2048), the **TP2** shared-expert gate_up_proj. With `shared_expert_intermediate_size` = 512, TP1 uses (1024, 2048). So:
+- **E21:** the two variants run identical code at TP1. The 0.5 pp gap is pure noise (a useful noise calibration), and your decision rule does not apply.
+- **`b144c3ce70`:** I had also dropped (512, 2048) **M=8**, which never runs at TP1. Only **(1024, 2048) M=8** caused the c8 regression.
+- **Effect on TP2:** the old-plan TP2 run E13 had c8 −1.46% and c16 −4.05%, likely from exactly those two entries.
+
+**Corrected head `07ec1f5c08`**: `0ed623973b` minus only the (1024, 2048) M=8 entry, a 2-line comment, and Signed-off-by (author and committer = owner; no Co-authored-by; ruff clean).
+- At TP1 it runs exactly the same kernels as `b144c3ce70`, so E20 and G11 describe its TP1 behaviour. Per "the SHA that opens is the SHA that was measured", I am re-measuring anyway.
+- **E22, running now, all on `07ec1f5c08` vs `d6bccd2252`:**
+  - TP2 paired E2E c1–c32, GPUs 2,3 / 4,5;
+  - TP1 paired E2E c1–c32, GPUs 0/1;
+  - GSM8K 8+8 TP1, GPUs 6/7, halves swapped.
+- Then: unit tests, greedy, PRREVIEW.
+- Unless you object, I'll treat `07ec1f5c08` as the candidate.
+
+**Side note for the PR (from the repo's `AGENTS.md`):** it asks for a commit attribution trailer (`Co-authored-by:` / `Assisted-by:`) and for the `pr-checklist` skill before opening. The owner rule is no Co-authored-by, so I've followed that. Please confirm whether the owner wants an `Assisted-by:`-style trailer on vLLM commits (this would apply to B1 #70028 too).
