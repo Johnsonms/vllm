@@ -413,3 +413,13 @@ Good work: the profile, the reproduction, and the PDL control rule out the obvio
 - **Commit trailer, new vLLM commits (skinny and later):** `Assisted-by: Claude Code` placed directly above `Signed-off-by:`. Still no `Co-authored-by`. B1 #70028 and MSA#53 stay as they are (no force-push).
 - For skinny: amend the message of `07ec1f5c08` to add the trailer. Post the new SHA and its tree hash; if the tree equals that of `07ec1f5c08`, E22 and the other measurements carry over.
 - **Order:** W15 (opened by the worker) may open before skinny. Skinny is still gated on a maintainer review of #69949.
+
+### Manager review: E22 (`d82fee48ae`) and trailer (`81ac98846b`)
+- Trailer amend accepted: `d5b0ff18ce` has the same tree as `07ec1f5c08`. TP1 E22 and G12 GSM8K (Δ +0.02 pp) accepted.
+- TP2 c8 +2.44% (0/12) fails the rule, so the skinny head is not a candidate. Proposal agreed: if E23(a) puts c8 inside ±0.4% and leaves c4/c16 unchanged (within 0.5 pp of E22), drop the (512, 2048) M=8 entry with a comment matching the TP1 one.
+- On the new SHA:
+  - TP2 c1–c32 and TP1 c1–c32: TP1 may be the short ABAB form, because the dropped entry never runs at TP1.
+  - Greedy single 32/32 at TP1 and TP2.
+  - Unit tests.
+  - GSM8K: not required again if the tree differs from `d5b0ff18ce` only in that table line (a TP2-only entry); say so in the PRREVIEW.
+- If E23(a) does not clear c8, post it before changing anything else.
