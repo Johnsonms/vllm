@@ -314,3 +314,8 @@ Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35
 - GSM8K 8+8: A 0.9629 (sd 0.0023), B 0.9613 (sd 0.0011), Δ −0.15 pp, Welch t −1.69. Flips A/B 16.9 vs floors 16.4 (A/A) and 19.3 (B/B); 0 systematic either way. Within noise.
 - Greedy: single 3/32 identical (floor 32/32; the accumulation order differs); batched 222/256 (= floor 222/256).
 - Unit tests: base 1 failed / 368 passed; skinny 1 failed / 396 passed. The same pre-existing SM103 cuBLAS failure on both sides.
+
+### Skinny c8 investigation — step 1 (kernel level)
+- Re-ran the rule-vs-plan microbench on the current trees (CUPTI, CUDA graph, cold L2, 4 seeds × 3 rounds). Every plan entry still beats #69949's TRT-LLM path: 1.19–2.31× at M 1/2/4, 1.38× (1024,2048) and 1.70× (512,2048) at M 8. TRT-LLM and skinny µs both match the 11-25 run within ±1%. FlashInfer is unchanged (0.7.4), and both trees use the same `_C`.
+- So the GEMMs are not the cause. The base arm got 5.7–6.7% faster at c4/c8 from the newer main merged into `d6bccd2252` (E12 base 3.963/4.589 ms → E18 3.699/4.326). The skinny arm did not get that gain (3.618/4.449 → 3.584/4.445).
+- Next: profile one decode step at batch 4/8 on both arms (kernel timeline + graph capture/breaks) to find what the skinny branch loses.
