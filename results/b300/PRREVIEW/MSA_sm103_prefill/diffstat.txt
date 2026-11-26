@@ -1,0 +1,6 @@
+Repo: vllm-project/MSA, base dev 487773e (dev has not moved since)
+Branch (owner-local): kopt/sm103-prefill-softmax -> to push as sm103-prefill-softmax on the owner's MSA fork (does not exist yet)
+Head SHA: 311fa9d2d133ea7378f81a2624bcae9242640e34
+
+ .../cute/src/blackwell_prefill/atten_fwd_sm100.py  | 60 +++++++++++++++++++---
+ 1 file changed, 53 insertions(+), 7 deletions(-)
