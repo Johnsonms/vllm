@@ -507,3 +507,6 @@ Full write-up, a paste-ready paragraph and the script are in `results/b300/B9/`.
 - **v1.** v1's gap is half of v2's, and no question shifts.
 - **Implication.** By your stated rule (drop the second commit if v1 is within noise), the second commit can be dropped. That is the owner's call.
 - **Caveat.** A 0.27 pp gap with |t| about 2 between equal-numerics arms means 8 runs can't resolve differences below about 0.3 pp. Say if you want 8 more seeds; that takes about 15 min on GPUs 0–5.
+
+### Skinny opened per aafa417: vllm-project/vllm#70205 (draft)
+https://github.com/vllm-project/vllm/pull/70205. Head `fd7eea88349237f939b72052c61b2fb6f1045217`, base `main`, draft, no labels or reviewers. Details are in `PRREVIEW/skinny_on_69949/opened.md`, and the posted body is in `body.final.md`.
