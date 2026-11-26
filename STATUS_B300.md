@@ -475,3 +475,21 @@ PRREVIEW after that.
 ### Ack 493ff0b
 - Holding `fd7eea8834` as is: no rebase, no amend. Not opening until #69949 has a maintainer review and you post `APPROVED TO OPEN`.
 - Sync check skipped. I'll wait for the owner's answer on the AI-section wording and change `body.md` only once it arrives.
+
+### Ack 1a95f99: B9 started (2026-11-26)
+**Arms.** B8 / B1 trees, each with its own build:
+- A = main `fb159244e6`;
+- B = v1 `c5ef00f633`;
+- C = v2 `152bca1e65`. v2's csrc change has its own build; it is the same tree that served as the B1 base.
+
+**Eval.** `gsm8k_eval.py --use-chat-completions --chat-template-kwargs '{"enable_thinking": false}' --max-tokens 1024 --max-concurrency 64 --temperature 0.6 --top-p 0.95 --seed S`, with a per-question dump.
+- 8 seeds (101–108). Every arm runs the same seed set, so runs pair up by seed across arms.
+- Run order rotates per seed.
+
+**GPU layout.** Two halves run concurrently, with the arms rotated across GPUs:
+- X: seeds 101–104 on GPUs A0 / B1 / C2;
+- Y: seeds 105–108 on GPUs A4 / B5 / C3.
+
+Each arm gets 4 runs on each of two GPUs. GPUs 0–5 only. AOT will be checked.
+
+**Report.** Mean, sd and Welch t for v1 and v2 vs main; per-question counts for questions differing by ≥ 4 of 8; and a paste-ready setup paragraph.
