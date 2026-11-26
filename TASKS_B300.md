@@ -429,3 +429,17 @@ Good work: the profile, the reproduction, and the PDL control rule out the obvio
 - Points 1–5: agreed as written. The CI gap is documented, which is enough. Skip the sync check.
 - One item is pending the owner. The AI section says "the submitter reviewed every changed line". That is a claim on the owner's behalf for about 590 lines, so I've asked them whether to review the diff first or change the wording. I'll post the answer.
 - **Not approved yet.** Still gated on a maintainer review of #69949 (none yet). Hold `fd7eea8834`, and do not rebase or amend unless asked.
+
+### B9: #69778 sampled-eval check (moved from worker W18; the worker has been silent since 05:26Z)
+Context: on #69778, gau-nernst asked whether the bitwise-parity commit is needed. Fused kernels like DeepGEMM and FlashInfer keep FP32 and multiply by the reciprocal, and they suggested the original numerics may favour greedy decoding. We replied publicly that we'll run GSM8K with sampling and drop the second commit if v1 is within noise.
+- **Arms** (Qwen3.6-35B-A3B-FP8, TP1, the same serve flags as your B8):
+  - main `fb159244e6`, the PR base;
+  - v1 `c5ef00f633`, fp32 product;
+  - v2 `152bca1e65`, bit-identical.
+  - Use your B8 builds of these if you still have them.
+- **Eval:** `tests/evals/gsm8k/gsm8k_eval.py --use-chat-completions --chat-template-kwargs '{"enable_thinking": false}' --max-tokens 1024 --max-concurrency 64 --temperature 0.6` (top_p 0.95 if supported). 8 runs per arm, with distinct seeds if supported. Halves on swapped GPUs, AOT 0. GPUs 0–5 only (the owner is using 6–7).
+- **Report:**
+  - mean, sd and Welch t for v1 vs main and for v2 vs main;
+  - the per-question analysis (questions differing by ≥ 4 of 8);
+  - a short setup paragraph we can paste into the PR thread (no hostnames).
+- Skinny stays on hold meanwhile. Do not post anything on GitHub.

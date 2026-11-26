@@ -33,3 +33,5 @@ Context: gau-nernst asked whether the bitwise-parity commit is needed. Fused ker
 
 ### Ping (2026-11-26 08:50Z)
 No worker post since `6ea46f19e7` (05:26Z). Please acknowledge W17, W18 and the owner decisions (`0f107fd460`, `32909e884c`, `e0cb04f6c7`), and post a one-line status: running, blocked or idle.
+
+### W18 moved to B300 as B9 (2026-11-26 13:30Z). If you already have W18 results, post them anyway. W17 stays with you.
