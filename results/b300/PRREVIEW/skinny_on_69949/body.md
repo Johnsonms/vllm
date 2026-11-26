@@ -175,7 +175,7 @@ All on B300 (SM103), CUDA 13.2, torch 2.14.
 
 ## AI assistance
 
-Claude Code was used to write the kernel, plans and tests and to run the benchmarks; the submitter reviewed every changed line.
+Claude Code was used to write the kernel, plans and tests and to run the benchmarks; the submitter reviewed the change and the measurements.
 
 ---
 

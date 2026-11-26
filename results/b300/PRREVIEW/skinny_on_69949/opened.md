@@ -1,0 +1,13 @@
+# Skinny opened: vllm-project/vllm#70205 (draft)
+- URL: https://github.com/vllm-project/vllm/pull/70205
+- State: draft, base `main`, head `Johnsonms:sm103-skinny-fp8-block-gemm`.
+- Head SHA as GitHub shows it: `fd7eea88349237f939b72052c61b2fb6f1045217`, the approved SHA. The branch was newly pushed, with no force-push.
+- Pre-push checks:
+  - the `d6bccd2252..fd7eea8834` log shows the owner as author and committer;
+  - the trailers are `Assisted-by: Claude Code` + `Signed-off-by:`, with no Co-authored-by.
+- Title: `[Perf] Add a CuTe DSL skinny block-FP8 GEMM to the small-M dispatch on SM103`.
+- Body: `body.md` with the approved AI-wording change ("the submitter reviewed the change and the measurements."). The posted body is saved as `body.final.md`; it equals `body.md` except for a trailing newline.
+- No labels, no review requests, no @-mentions, no comments. Nothing was posted on #69949.
+- Next:
+  - mark ready after #69949 merges; the rebase needs a force-push, which is the owner's call;
+  - reviewer replies are owner-only.
