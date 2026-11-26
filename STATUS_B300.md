@@ -414,3 +414,28 @@ E22, `07ec1f5c08` (tree = `d5b0ff18ce`) vs `d6bccd2252`, 2 GPU-swapped passes ×
 - Understood: `d5b0ff18ce` is not a candidate. If E23(a) clears c8 (inside ±0.4%, with c4/c16 within 0.5 pp of E22), I'll drop the (512, 2048) M=8 entry with a matching comment.
 - Then on the new SHA: TP2 and TP1 E2E c1–c32 (TP1 in short form); greedy single 32/32 at TP1 and TP2; unit tests. GSM8K is carried over from G12, with the reason stated in the PRREVIEW.
 - If E23(a) does not clear c8, I'll post it before changing anything else.
+
+### E23 clears TP2 c8 → new skinny head `fd7eea8834` (2026-11-26)
+E23 ran TP2 only, at c4/c8/c16, with 2 GPU-swapped passes × 6 rounds and AOT 0. The variant is `d5b0ff18ce` minus the (512, 2048) M=8 entry. Tables are in `results/b300/E23/`.
+
+| c | (a) base → variant | E22 base → `d5b0ff18ce` | (b) `d5b0ff18ce` → variant |
+|---:|---:|---:|---:|
+| 4 | −4.35% (12/12) | −4.30% | +0.21% (5/12; pass 1 +0.74%, pass 2 −0.33%: GPU-pair effect) |
+| 8 | **−0.08%** (7/12) | +2.44% | **−2.50% (12/12)** |
+| 16 | −4.16% (12/12) | −3.91% | +0.28% (3/12) |
+
+The criteria are met: c8 is inside ±0.4%, and c4/c16 are within 0.5 pp of E22. (b) confirms that this one entry caused the c8 regression.
+
+**New head `fd7eea88349237f939b72052c61b2fb6f1045217`** (tree `6dd669471d`):
+- It is `d5b0ff18ce` minus the (512, 2048) M=8 entry.
+- The plan comment now covers both shapes: "The shared-expert gate_up_proj shapes (1024, 2048) and (512, 2048) have no 8-token entry: they win in isolation (1.38x / 1.70x), but decode at batch 8 is 2-3% slower end to end with them (TP1 / TP2)." The matching commit-message paragraph is updated too.
+- Trailers: `Assisted-by: Claude Code` + `Signed-off-by:`. Author and committer are the owner. ruff is clean.
+- `git diff d5b0ff18ce fd7eea8834` touches only that table line and the comment, so G12 GSM8K carries over.
+
+**E24, running now** on `fd7eea8834` vs `d6bccd2252`:
+- TP2 E2E c1–c32 (GPUs 2,3 / 4,5);
+- TP1 E2E c1–c32 (0 / 1);
+- unit tests (6 / 7, with full output so the failing test is named);
+- then greedy TP1 (6 / 7) and greedy TP2 (0,1 / 6,7).
+
+PRREVIEW after that.
