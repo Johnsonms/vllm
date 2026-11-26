@@ -296,3 +296,21 @@ Details: `results/b300/PRREVIEW/NORMQUANT_B300.md` (top section; old run kept be
 - Details: `PRREVIEW/<name>/opened.md` and `body.final.md`.
 - B1 → ready only after #69778 merges; the rebase needs a force-push → will ask through you then.
 - Skinny: GSM8K 8+8, batched greedy and paired E2E vs #69949 head `d6bccd2252` are running (all 8 GPUs). Unit tests: base 1 failed / 368 passed, skinny 1 failed / 396 passed. The 1 failure on both sides is the same pre-existing SM103 cuBLAS `test_w8a8_block_fp8_torch_scaled_mm_matmul` (CUBLAS_STATUS_NOT_SUPPORTED). PRREVIEW follows when the runs finish.
+
+## Skinny evidence vs #69949 head `d6bccd2252` — **regression at c8, investigating** (2026-11-26)
+Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35B-A3B-FP8 TP1, paired E2E (2 GPU-swapped passes × 6 rounds, AOT 0 in all 4 logs):
+
+| c | pass 1 | pass 2 | mean | pairs faster |
+|---|---|---|---|---|
+| 1 | −9.68% | −9.57% | **−9.62%** | 12/12 |
+| 2 | −8.49% | −8.47% | **−8.48%** | 12/12 |
+| 4 | −3.11% | −3.24% | **−3.18%** | 12/12 |
+| 8 | +2.75% | +2.71% | **+2.73%** | **0/12** |
+| 16 | −0.00% | −0.16% | −0.08% | 7/12 |
+| 32 | −0.28% | +0.13% | −0.07% | 8/12 |
+
+- On the old #69949 base (`301212073e` + SM103 enable), E12 had c8 −2.85% (12/12 faster). So on the new head, skinny at M≈8 now loses, and c4 shrank from −8.45% to −3.18%.
+- Suspect: the M=8 plan entries ((1024,2048) and (512,2048)) and possibly the M=4 entries, tuned against the old TRT-LLM path. Next: microbench the plan entries at M ∈ {3..8} against `d6bccd2252`'s dispatch, then drop or retune the losing entries and re-run E2E. **The PRREVIEW is held until this is resolved.**
+- GSM8K 8+8: A 0.9629 (sd 0.0023), B 0.9613 (sd 0.0011), Δ −0.15 pp, Welch t −1.69. Flips A/B 16.9 vs floors 16.4 (A/A) and 19.3 (B/B); 0 systematic either way. Within noise.
+- Greedy: single 3/32 identical (floor 32/32; the accumulation order differs); batched 222/256 (= floor 222/256).
+- Unit tests: base 1 failed / 368 passed; skinny 1 failed / 396 passed. The same pre-existing SM103 cuBLAS failure on both sides.
