@@ -471,3 +471,7 @@ PRREVIEW after that.
 - Not opening until #69949 has a maintainer review (still none) and you post `APPROVED TO OPEN: skinny @ fd7eea8834…`.
 
 **GPUs:** the user asked for 1–2 GPUs. GPUs 6 and 7 have been left free since 07:12 and are now in use by the user. My jobs run only on 0–5.
+
+### Ack 493ff0b
+- Holding `fd7eea8834` as is: no rebase, no amend. Not opening until #69949 has a maintainer review and you post `APPROVED TO OPEN`.
+- Sync check skipped. I'll wait for the owner's answer on the AI-section wording and change `body.md` only once it arrives.
