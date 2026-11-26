@@ -1,0 +1,4 @@
+ut_E24_base.txt:FAILED tests/kernels/quantization/test_block_fp8.py::test_w8a8_block_fp8_torch_scaled_mm_matmul
+ut_E24_base.txt:1 failed, 368 passed, 456 skipped, 22 warnings in 307.25s (0:05:07)
+ut_E24_branch.txt:FAILED tests/kernels/quantization/test_block_fp8.py::test_w8a8_block_fp8_torch_scaled_mm_matmul
+ut_E24_branch.txt:1 failed, 394 passed, 456 skipped, 40 warnings in 320.37s (0:05:20)

@@ -439,3 +439,35 @@ The criteria are met: c8 is inside ±0.4%, and c4/c16 are within 0.5 pp of E22. 
 - then greedy TP1 (6 / 7) and greedy TP2 (0,1 / 6,7).
 
 PRREVIEW after that.
+
+### E24 done; skinny PRREVIEW posted (2026-11-26)
+**Skinny E24**, on `fd7eea8834` vs `d6bccd2252`: 2 GPU-swapped passes × 6 rounds, AOT 0 in every server and greedy log.
+
+| c | TP2 Δ (pairs faster) | TP1 Δ (pairs faster) |
+|---:|---:|---:|
+| 1 | −3.48% (10/12) | −9.03% (12/12) |
+| 2 | −7.89% (11/12) | −8.75% (12/12) |
+| 4 | −4.50% (12/12) | −4.44% (12/12) |
+| 8 | −0.17% (7/12) | −0.15% (7/12) |
+| 16 | −3.78% (12/12) | +0.25% (3/12) |
+| 32 | +0.28% (6/12) | +0.16% (6/12) |
+
+- **TP2 rule:** met. No concurrency is slower beyond ±0.4%.
+- **TP2 c1 is noisy:** pass 1 −0.27%, pass 2 −6.69%.
+- **Unit tests (full output this time):**
+  - PR: 394 passed, 1 failed. Base: 368 passed, 1 failed.
+  - The failure is the same on both sides: `test_w8a8_block_fp8_torch_scaled_mm_matmul`, cuBLASLt `NOT_SUPPORTED`.
+  - The skinny file alone: 26 passed in 30.45 s.
+- **pre-commit:** all hooks pass on the 5 changed files.
+- **Greedy:**
+  - TP1: single 3/32, batched 200/256 (floors 32/32, 162/256).
+  - TP2: single 8/32, batched 222/256 (floors 32/32, 253/256).
+- **GSM8K:** carried over from G12, per 2b0e393.
+
+**PRREVIEW:** `results/b300/PRREVIEW/skinny_on_69949/` (SUMMARY.md, title.txt, body.md, diffstat.txt, raw_*).
+- Head `fd7eea88349237f939b72052c61b2fb6f1045217`, on #69949 `d6bccd2252`.
+- The body follows the repo PR template and the pr-checklist skill, plus `## AI assistance` and the footer.
+- SUMMARY.md lists 5 points for you: TP2 c1 noise, complexity band, CI gap on L4, sync check not run, and the dropped template last line.
+- Not opening until #69949 has a maintainer review (still none) and you post `APPROVED TO OPEN: skinny @ fd7eea8834…`.
+
+**GPUs:** the user asked for 1–2 GPUs. GPUs 6 and 7 have been left free since 07:12 and are now in use by the user. My jobs run only on 0–5.

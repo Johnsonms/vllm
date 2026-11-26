@@ -1,0 +1,9 @@
+A vs A (floor):
+single: 32/32 identical; divergent: first differing token at median - (min -)
+batched: 162/256 identical; divergent: first differing token at median 51.5 (min 0)
+A vs B:
+single: 3/32 identical; divergent: first differing token at median 29 (min 1)
+batched: 200/256 identical; divergent: first differing token at median 51.0 (min 3)
+serve_A.log: "Directly load AOT" count 0
+serve_B.log: "Directly load AOT" count 0
+DONE

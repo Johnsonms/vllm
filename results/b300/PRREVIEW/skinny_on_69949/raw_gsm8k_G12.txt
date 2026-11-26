@@ -1,0 +1,7 @@
+A: n=8 acc 0.9659 0.9613 0.9629 0.9629 0.9591 0.9629 0.9598 0.9629 | mean 0.9622 sd 0.0021
+B: n=8 acc 0.9606 0.9629 0.9636 0.9629 0.9644 0.9651 0.9613 0.9583 | mean 0.9624 sd 0.0022
+delta B-A +0.0002 (Welch t +0.17)
+flips A->B: right->wrong 8.3, wrong->right 8.5, total 16.8 over 64 pairs
+flips A->A: right->wrong 9.6, wrong->right 8.1, total 17.7 over 28 pairs
+flips B->B: right->wrong 8.2, wrong->right 7.4, total 15.7 over 28 pairs
+right in all A & wrong in all B: 0; reverse: 0

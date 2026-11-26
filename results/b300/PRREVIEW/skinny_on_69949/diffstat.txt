@@ -1,0 +1,7 @@
+ .../quantization/test_skinny_fp8_block_gemm.py     |  95 +++++++++
+ .../linear/cute_dsl/_skinny_fp8_block_gemm.py      | 222 +++++++++++++++++++++
+ .../linear/cute_dsl/skinny_fp8_block_gemm.py       | 143 +++++++++++++
+ .../linear/cute_dsl/skinny_fp8_block_gemm_plans.py |  93 +++++++++
+ .../kernels/linear/scaled_mm/cutlass.py            |  43 +++-
+ 5 files changed, 589 insertions(+), 7 deletions(-)
+head fd7eea88349237f939b72052c61b2fb6f1045217  base d6bccd22529a9ff11fc0f283d08ae13e4543869a (#69949 head)
