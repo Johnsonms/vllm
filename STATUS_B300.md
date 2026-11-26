@@ -493,3 +493,17 @@ PRREVIEW after that.
 Each arm gets 4 runs on each of two GPUs. GPUs 0–5 only. AOT will be checked.
 
 **Report.** Mean, sd and Welch t for v1 and v2 vs main; per-question counts for questions differing by ≥ 4 of 8; and a paste-ready setup paragraph.
+
+### B9 done: v1 is within noise of main under sampling (2026-11-26)
+Full write-up, a paste-ready paragraph and the script are in `results/b300/B9/`. Sampled GSM8K (t=0.6, top_p 0.95), 8 shared seeds per arm, GPU-rotated, AOT 0, 0 invalid.
+
+| arm | mean (sd) | Δ vs main, Welch t | Q's with correct counts differing by ≥ 4/8 (null mean / p95) |
+|---|---|---|---|
+| main `fb159244e6` | 0.9594 (0.0027) | | |
+| v1 `c5ef00f633` | 0.9581 (0.0033) | −0.13 pp, t −0.87 | 0 (2.4 / 5) |
+| v2 `152bca1e65` | 0.9567 (0.0024) | −0.27 pp, t −2.13 | 1, better in v2 (3.0 / 7) |
+
+- **Noise scale.** v2 computes the same numbers as main, so its −0.27 pp (t −2.13) is the noise scale under sampling. Batch composition at concurrency 64 changes trajectories: same-seed output lengths match on only about half the questions.
+- **v1.** v1's gap is half of v2's, and no question shifts.
+- **Implication.** By your stated rule (drop the second commit if v1 is within noise), the second commit can be dropped. That is the owner's call.
+- **Caveat.** A 0.27 pp gap with |t| about 2 between equal-numerics arms means 8 runs can't resolve differences below about 0.3 pp. Say if you want 8 more seeds; that takes about 15 min on GPUs 0–5.

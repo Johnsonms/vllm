@@ -1,0 +1,15 @@
+questions 1319, seeds [101, 102, 103, 104, 105, 106, 107, 108]
+| arm | s101 | s102 | s103 | s104 | s105 | s106 | s107 | s108 | mean | sd | invalid (total) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| main fb159244e6 | 0.9583 | 0.9621 | 0.9583 | 0.9553 | 0.9629 | 0.9621 | 0.9568 | 0.9598 | **0.9594** | 0.0027 | 0 |
+| v1 c5ef00f633 | 0.9598 | 0.9575 | 0.9606 | 0.9538 | 0.9606 | 0.9629 | 0.9553 | 0.9545 | **0.9581** | 0.0033 | 0 |
+| v2 152bca1e65 | 0.9583 | 0.9545 | 0.9545 | 0.9560 | 0.9613 | 0.9553 | 0.9583 | 0.9553 | **0.9567** | 0.0024 | 0 |
+
+v1 vs main: Δ -0.0013 (-0.13 pp), Welch t -0.87, paired-by-seed t -1.37; questions differing by >=4/8: 0 (0 better in v1, 0 worse); label-permutation null: mean 2.4, 95th pct 5
+v2 vs main: Δ -0.0027 (-0.27 pp), Welch t -2.13, paired-by-seed t -2.25; questions differing by >=4/8: 1 (1 better in v2, 0 worse); label-permutation null: mean 3.0, 95th pct 7
+v2 vs v1: Δ -0.0014 (-0.14 pp), Welch t -0.98, paired-by-seed t -1.04; questions differing by >=4/8: 0 (0 better in v2, 0 worse); label-permutation null: mean 2.6, 95th pct 5
+
+same-seed agreement (per seed: answers equal / output token counts equal, of 1319):
+A vs B: answers equal 1279-1294, output length equal 549-593
+A vs C: answers equal 1286-1295, output length equal 656-693
+B vs C: answers equal 1280-1291, output length equal 548-612
