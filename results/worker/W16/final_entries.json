@@ -1,0 +1,15 @@
+{
+ "1,2560": {
+  "1": "SkinnyGemmConfig(num_rows=1, block_size=160, outputs_per_block=1, k_unroll=2, vector_width=8, static_k=2560)",
+  "2": "SkinnyGemmConfig(num_rows=2, block_size=160, outputs_per_block=1, k_unroll=1, vector_width=8, static_k=2560)",
+  "3": "SkinnyGemmConfig(num_rows=3, block_size=160, outputs_per_block=1, k_unroll=1, vector_width=8, static_k=2560)",
+  "4": "SkinnyGemmConfig(num_rows=4, block_size=160, outputs_per_block=1, k_unroll=1, vector_width=8, static_k=2560)",
+  "5": "SkinnyGemmConfig(num_rows=5, block_size=128, outputs_per_block=1, k_unroll=1, vector_width=4, static_k=2560)",
+  "6": "SkinnyGemmConfig(num_rows=6, block_size=128, outputs_per_block=1, k_unroll=2, vector_width=4, static_k=2560)",
+  "8": "SkinnyGemmConfig(num_rows=8, block_size=128, outputs_per_block=1, k_unroll=2, vector_width=4, static_k=2560)",
+  "10": "SkinnyGemmConfig(num_rows=10, block_size=128, outputs_per_block=1, k_unroll=4, vector_width=4, static_k=2560)",
+  "12": "SkinnyGemmConfig(num_rows=12, block_size=160, outputs_per_block=1, k_unroll=1, vector_width=8, static_k=2560)",
+  "14": "SkinnyGemmConfig(num_rows=14, block_size=160, outputs_per_block=1, k_unroll=2, vector_width=8, static_k=None)",
+  "16": "SkinnyGemmConfig(num_rows=16, block_size=160, outputs_per_block=1, k_unroll=1, vector_width=8, static_k=2560)"
+ }
+}

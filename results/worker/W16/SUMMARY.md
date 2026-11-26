@@ -34,3 +34,27 @@ One counting start of the candidate with a local logging line in the table looku
 
 ## Dup check
 No open PR adds these entries. Related: #69907 (FlashInfer cute-dsl as the default small-batch BF16 GEMM in the generic linear path; could overlap for these layers), #57848 (SM103 router lines in the same table), #66865 (GB300 specialized decode), #58662 (TGV for (5120, 6144) at TP1).
+
+## Ablation by layer group (2026-11-26 03:15Z)
+One arm per group (only that group's new entries on top of base), 2 rounds of [base, a, b, c, d, e], 4 bursts per concurrency per start. Cells: the two per-start medians (ms) and the delta of their mean vs base.
+
+| requests | base | (a) gate (1, 2560) | (b) router (512, 2560) | (c) (24, 2560) + (320, 2560) | (d) large projections M3 | (e) LM head |
+|---|---|---|---|---|---|---|
+| 1 | 4.015 3.986 | 3.985 3.971 (**-0.58 %**) | 3.998 3.995 (-0.11 %) | 3.993 3.999 (-0.12 %) | 3.988 3.994 (-0.25 %) | 3.992 3.995 (-0.18 %) |
+| 4 | 5.334 5.318 | 5.247 5.244 (**-1.50 %**) | 5.316 5.320 (-0.14 %) | 5.319 5.318 (-0.13 %) | 5.322 5.317 (-0.13 %) | 5.312 5.322 (-0.17 %) |
+| 8 | 6.063 6.094 | 5.987 5.981 (**-1.55 %**) | 6.096 6.097 (+0.29 %) | 6.100 6.098 (+0.34 %) | 6.100 6.104 (+0.38 %) | 6.094 6.101 (+0.32 %) |
+| 16 | 6.629 6.658 | 6.599 6.565 (**-0.93 %**) | 6.893 6.883 (**+3.68 %**) | 6.643 6.632 (-0.09 %) | 6.633 6.619 (-0.27 %) | 6.648 6.646 (+0.05 %) |
+
+- **The gate (1, 2560) carries the gain** at every concurrency, including 16.
+- **The router causes the 16-request loss** (its M = 16 line, the same loss #69736 part 5 saw) and gives nothing at 4 (its M = 4 line).
+- Groups c, d, e are inside the base spread (base moved 0.5-0.7 % between its two starts). At 1 request they add no entry that fires, so their -0.1...-0.25 % there is the noise level.
+- The 32-entry candidate gave -3.0 % at 4 requests, the gate alone -1.5 %. The groups do not add up to the difference one by one; I did not chase it.
+
+## Final entry set (`final_entries.json`): gate only, 11 entries
+- (1, 2560) at M = 1, 2, 3, 4, 5, 6, 8, 10, 12, 14, 16. M = 7 dropped (never fires).
+- **M = 10 and 14 swept and verified** with the W15 method (`sweep_m10_14/`): M = 10 1.84-2.06x, M = 14 1.70-1.79x over 4 seeds; error equal to cuBLAS.
+- Dropped: router (all new M), (24, 2560) / (320, 2560) odd M, large projections M3, LM head M3 / M4.
+- Final A/B (3 starts per arm, c1-c32), single-prompt greedy and GSM8K 8 + 8 are running on this set (local commit ec909d402c).
+
+## #69907 interaction
+#69907 changes the default backend inside the generic unquantized linear method (FlashInfer cute-dsl for M <= 32). The Flash-Next table replaces the layer's method with its own, which calls the table op directly, so layers whose shape is in the table are not routed by #69907. But today the gate (1, 2560) is **not** in the SM100 table, so after #69907 it would run on FlashInfer cute-dsl in the base. Adding the gate lines would then move it from that kernel to the skinny kernel at M <= 16, and to plain torch linear at M = 17-32. So if #69907 merges first, this A/B must be repeated against it; I have not measured that.
