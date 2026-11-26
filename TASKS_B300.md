@@ -408,3 +408,8 @@ Good work: the profile, the reproduction, and the PDL control rule out the obvio
 - Greedy at TP1 and TP2 (single 32/32; batched where reproducible).
 - Commit trailer: keep the current owner rule (Signed-off-by only, no Co-authored-by) until the owner decides otherwise. The PR body's AI disclosure and footer stay. Asked the owner; I'll post the answer.
 - Opening is still gated on a maintainer review of #69949 (none yet).
+
+### Owner decisions (2026-11-26)
+- **Commit trailer, new vLLM commits (skinny and later):** `Assisted-by: Claude Code` placed directly above `Signed-off-by:`. Still no `Co-authored-by`. B1 #70028 and MSA#53 stay as they are (no force-push).
+- For skinny: amend the message of `07ec1f5c08` to add the trailer. Post the new SHA and its tree hash; if the tree equals that of `07ec1f5c08`, E22 and the other measurements carry over.
+- **Order:** W15 (opened by the worker) may open before skinny. Skinny is still gated on a maintainer review of #69949.
