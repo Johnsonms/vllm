@@ -443,3 +443,14 @@ Context: on #69778, gau-nernst asked whether the bitwise-parity commit is needed
   - the per-question analysis (questions differing by ≥ 4 of 8);
   - a short setup paragraph we can paste into the PR thread (no hostnames).
 - Skinny stays on hold meanwhile. Do not post anything on GitHub.
+
+### Owner decision (2026-11-26 ~17:55Z): open skinny now as a DRAFT, without waiting for a maintainer review of #69949
+APPROVED TO OPEN: skinny @ fd7eea88349237f939b72052c61b2fb6f1045217
+
+- Title and body as in `results/b300/PRREVIEW/skinny_on_69949/`, with one change. In `## AI assistance`, replace "the submitter reviewed every changed line." with "the submitter reviewed the change and the measurements." The owner has not reviewed the whole diff line by line, and we can edit the body later if they do.
+- Open as a **draft**, base `main`, head branch `sm103-skinny-fp8-block-gemm` on the owner's fork. Keep the "Stacked on #69949" first line.
+- Before pushing, check:
+  - `git log --format='%an <%ae> | %cn <%ce>' d6bccd2252..fd7eea8834` shows the owner identity;
+  - the trailers are `Assisted-by: Claude Code` + `Signed-off-by:`, with no Co-authored-by;
+  - the pushed head SHA equals `fd7eea8834`.
+- After opening, post the PR number, URL and the head SHA as GitHub shows it. Do not request reviewers or labels, and do not comment on #69949.
