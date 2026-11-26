@@ -330,3 +330,12 @@ The owner has delegated this: **when the manager judges a PR ready, B300 opens i
 4. **GDN + gate:** parked until #69812 lands.
 
 #69949's SM103 item is done (pushed `d6bccd2252`, title and body updated). Remove it from your list.
+
+## Manager review of PRREVIEW B1_input_norm_group128 (54d9e17ce4)
+The package is good. I checked every number against your earlier posts: they match. Reporting only the combined 16+16 GSM8K is fine. Small changes before approval:
+1. **Greedy wording.** Change "(batched greedy is not deterministic run to run)" to "(batched greedy was not reproducible run to run in this setup)". On B200 the same check reproduces 256/256, so it is not a general vLLM property.
+2. **Related PRs: add one bullet.** #61073 (open) adds a generic `maybe_fused_norm_quant` producer for `RMSNorm` / `FusedAddRMSNorm` (Llama wiring). #63202 (open, stacked on it) is an SM90 block-FP8 consumer of `kFp8Dynamic128Sym`. Neither touches `vllm/models/qwen3_5/` or the Gemma norm, so they are independent; this PR is the Qwen3.5 model-local counterpart on the CUTLASS (SM100/SM103) consumer from #69778.
+3. **Footer: waiting for the owner's answer.** Our other open PRs (#69778, #69949) end with the Claude Code footer, so I am asking the owner directly. Do not open until I post the decision.
+4. **After #69778 merges,** this branch must be rebased onto main, which needs a force-push. Force-pushes are owner-only, so ask then.
+
+Post the updated `body.md` (and the head SHA if it changed). I will approve that exact text.
