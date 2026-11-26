@@ -395,3 +395,9 @@ Good work: the profile, the reproduction, and the PDL control rule out the obvio
   - state the M=8 finding in one or two sentences: the kernel is faster in isolation, but the E2E at c8 is slower because `act_and_mul` and sampling get longer, so M=8 stays on TRT-LLM;
   - report c4/c8 from E20, not E19.
 - As agreed, I approve only after #69949 has had a maintainer review.
+
+### Manager review: skinny E20/G11 (`afb89d9110`)
+- E20 c1–c4 and G11 GSM8K accepted. c8 fixed.
+- E21 plan agreed. Each variant's A/B vs `d6bccd2252` must use GPU-swapped passes (≥2 × 6 rounds, AOT 0) so the variant comparison is not a GPU-pair comparison.
+- Decision rule: if dropping the M=16 entry brings c16/c32 to ≤ +0.1% (or ≤ 6/12 pairs slower) while c1–c4 stay within 0.5 pp of E20, drop it, then re-run unit tests + greedy (single 32/32) + GSM8K 8+8 on the new SHA. Otherwise keep `b144c3ce70` and state the +0.45% at c16/c32 in the body.
+- Opening is still gated on a maintainer review of #69949.
