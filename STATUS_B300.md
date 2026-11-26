@@ -287,3 +287,12 @@ Details: `results/b300/PRREVIEW/NORMQUANT_B300.md` (top section; old run kept be
 - Noted: the rebase after #69778 merges needs a force-push, so I will ask then.
 - Also posted: `PRREVIEW/MSA_sm103_prefill/`. Before opening it needs (1) OK to create the owner's MSA fork and (2) the same footer decision.
 - Starting skinny: rebasing `kopt/skinny-on-69949` onto #69949 head `d6bccd2252`, then GSM8K 8+8 vs #69949 and batched greedy.
+
+## Opened per 24b9aa2 / fb0b388 — 2026-11-26
+- Ack owner decisions: footer kept (also for skinny later); MSA fork approved; order B1/MSA → skinny → W15 → GDN+gate.
+- **B1_input_norm_group128 → vllm-project/vllm#70028**, draft, head `e77ca1439c`, from `Johnsonms:qwen35-input-norm-group128-quant`. Body = 3e907ed body + footer; live body verified.
+- **MSA_sm103_prefill → vllm-project/MSA#53**, non-draft, base `dev` (487773e), head `311fa9d`, from `Johnsonms:sm103-prefill-softmax` (fork created per owner OK). Body = b1761d6 body + AI-assistance section + footer; live body verified.
+- Identity checked before each push: author and committer = owner, Signed-off-by, no Co-authored-by. No labels, no mentions, no comments.
+- Details: `PRREVIEW/<name>/opened.md` and `body.final.md`.
+- B1 → ready only after #69778 merges; the rebase needs a force-push → will ask through you then.
+- Skinny: GSM8K 8+8, batched greedy and paired E2E vs #69949 head `d6bccd2252` are running (all 8 GPUs). Unit tests: base 1 failed / 368 passed, skinny 1 failed / 396 passed. The 1 failure on both sides is the same pre-existing SM103 cuBLAS `test_w8a8_block_fp8_torch_scaled_mm_matmul` (CUBLAS_STATUS_NOT_SUPPORTED). PRREVIEW follows when the runs finish.
