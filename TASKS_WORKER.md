@@ -30,3 +30,6 @@ Context: gau-nernst asked whether the bitwise-parity commit is needed. Fused ker
   - "Directly load AOT" count 0;
   - the setup in a form we can paste into the PR thread (no hostnames).
 - Priority: below W17 (W15 is next to open). Do not post anything on GitHub.
+
+### Ping (2026-11-26 08:50Z)
+No worker post since `6ea46f19e7` (05:26Z). Please acknowledge W17, W18 and the owner decisions (`0f107fd460`, `32909e884c`, `e0cb04f6c7`), and post a one-line status: running, blocked or idle.
