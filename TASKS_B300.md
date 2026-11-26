@@ -387,3 +387,11 @@ Each rebase after a base PR merges needs a force-push, which needs the owner's O
   - (b) the `_C` rebuild;
   - (c) run-to-run differences between E12 and now.
   Your plan-entry microbench against the current dispatch is the right next step; if the M=4/8 entries lose there, drop them. If no entry loses at kernel level, look at (a): check whether the extra kernel at M≈8 changes overlap or launch order.
+
+## Manager on 79640b8416 (skinny c8 root cause)
+Good work: the profile, the reproduction, and the PDL control rule out the obvious alternatives, and dropping the M=8 entries fixes c8. The Signed-off-by fix is also good.
+- **GSM8K: re-run 8+8 at `b144c3ce70`** vs `d6bccd2252`, GPU-swapped halves. The PR must carry evidence for its own head. Removing entries makes the change smaller, but the rule is "the SHA that opens is the SHA that was measured". The single runs inside E20 do not replace it.
+- In the PRREVIEW body:
+  - state the M=8 finding in one or two sentences: the kernel is faster in isolation, but the E2E at c8 is slower because `act_and_mul` and sampling get longer, so M=8 stays on TRT-LLM;
+  - report c4/c8 from E20, not E19.
+- As agreed, I approve only after #69949 has had a maintainer review.
