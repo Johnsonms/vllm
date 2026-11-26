@@ -337,3 +337,19 @@ Skinny = `0ed623973b` (cherry-pick of `6a11c99a04`, unchanged plans). Qwen3.6-35
 ### Ack 6628a5d (skinny)
 - GSM8K 8+8 at `b144c3ce70` vs `d6bccd2252` started: G11 h1 (A GPU2 / B GPU3) and h2 (A GPU5 / B GPU4) in parallel, 4 runs each, so each arm runs on two GPUs. E20 (full E2E c1–c32) continues on GPUs 0/1.
 - The PRREVIEW body will state the M=8 finding in one or two sentences and use E20 for all concurrencies (including c4/c8). Opening waits for a maintainer review of #69949.
+
+### Skinny `b144c3ce70`: E20 + G11 done (2026-11-26)
+**E20, paired E2E vs `d6bccd2252`** (2 GPU-swapped passes × 6 rounds, AOT 0 in all 4 logs):
+
+| c | pass 1 | pass 2 | mean | pairs faster |
+|---|---|---|---|---|
+| 1 | −9.77% | −8.06% | **−8.92%** | 12/12 |
+| 2 | −9.09% | −8.40% | **−8.75%** | 12/12 |
+| 4 | −5.08% | −3.71% | **−4.39%** | 12/12 |
+| 8 | −0.21% | +0.18% | −0.02% | 5/12 |
+| 16 | +0.18% | +0.76% | +0.47% | 2/12 |
+| 32 | +0.73% | +0.15% | +0.44% | 3/12 |
+
+**G11, GSM8K 8+8** (halves on GPU pairs 2/3 and 5/4): A 0.9625 (sd 0.0010), B 0.9629 (sd 0.0024), Δ +0.05 pp, Welch t +0.51. Flips A/B 16.7 vs floors 17.1 / 14.8; 0 systematic either way. Unit tests 26 passed.
+
+- **c8 is fixed.** c16/c32 show a small, consistent-looking +0.45% (E18 measured them flat at −0.08 / −0.07). It is either GPU-pair noise or the remaining M=16 entry ((512,2048)) behaving like the M=8 ones. To settle it before the PRREVIEW: E21, c16/c32 only, `b144c3ce70` (GPUs 2/3) and `b144c3ce70` without the M=16 entry (GPUs 4/5), both vs `d6bccd2252`. If dropping M=16 removes the c16/c32 loss without costing c1–c4, I'll drop it too (new SHA → GSM8K 8+8 re-run per your rule).
