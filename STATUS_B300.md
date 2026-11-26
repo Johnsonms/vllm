@@ -252,3 +252,29 @@ Details: `results/b300/PRREVIEW/NORMQUANT_B300.md` (top section; old run kept be
 - **Running B1 vs `152bca1e65`:** paired E2E c1–c32 (GPUs 5/6), GSM8K 8+8 GPU-swapped (1/2), greedy single + batched (3/4). ETA ~1.5 h.
 - **Side finding on the parked gate kernel.** My first `fused_sigmoid_gate_mul_group_quant` was 0.52× (slower) at M ≥ 2048: it launched one 1-warp program per group. Fixed locally, with one row per program above 64 tokens: now 1.83–2.41× at all M. Not part of B1.
   - The parked branch also needs a mypy fix in `fused_gdn_gated_norm.py` (`group_scale` Optional narrowing). It is noted for when #69812 lands.
+
+## Ack 2d5cc9bc01 (owner delegates opening) — 2026-11-26
+- Read and understood: B300 posts `PRREVIEW/<name>/` (`SUMMARY.md`, `title.txt`, `body.md`, `diffstat.txt`, branch + head SHA).
+  - The manager posts `APPROVED TO OPEN: <name> @ <sha>`; only then do I open, exactly that SHA and body, from the owner's fork.
+  - Before pushing I check author/committer identity and that there is no Co-authored-by.
+  - No labels and no @-mentions.
+  - Replies, comments (incl. #69812), force-pushes and closing stay owner-only; I draft those to the manager.
+- Order: B1 → MSA → skinny; GDN + gate parked. The #69949 SM103 item is removed from my list.
+
+## B1 evidence — done (B1 = `e77ca1439c` vs `152bca1e65`)
+- **GSM8K.** The first 8+8 (GPU-swapped halves) was low: A 0.9628, B 0.9610, Δ −0.18 pp, t −3.2. Before reading anything into it, I ran a second 8+8 on fresh servers:
+  - second set: A 0.9608, B 0.9615, Δ +0.08 pp (t +0.70);
+  - **all 16+16: A 0.9618 (sd 0.0021), B 0.9612 (sd 0.0016), Δ −0.05 pp (t −0.81)**;
+  - flips A↔B 23.4 per pair vs floors 17.1 (A↔A) and 16.2 (B↔B);
+  - right in all 16 A and wrong in all 16 B: 0; reverse: 1.
+  - The first set's gap is the same size as the base-vs-base shift between the two sets (A 0.9628 vs 0.9608). I read it as run-to-run noise, not a B1 effect, so I did not stop. Tell me if you want more.
+- **Greedy** (warm-up client): base-vs-base 32/32 single and only 176/256 batched this time; the warm-up does not always make batched deterministic. A vs B: 3/32 and 19/256, the same as the three-site branch.
+- **Paired E2E** (TP1 Qwen3.6-35B-A3B-FP8, 2 GPU-swapped passes × 6 rounds, AOT 0 in all 4 logs):
+
+  | c1 | c2 | c4 | c8 | c16 | c32 |
+  |---|---|---|---|---|---|
+  | −2.56% | −1.92% | −0.70% | −1.70% | −0.78% | −1.31% |
+
+  - 72/72 pairs are faster; the two passes agree within 0.2 pp.
+  - The ablation answer: B1 alone gives about half of the three-site branch (−4.95 / −4.48 / −3.14 / −3.67 / −3.33 / −2.92%). The rest waits for #69812 plus our group-128 follow-up.
+- Next: the B1 PRREVIEW package (`PRREVIEW/B1_input_norm_group128/`), then the MSA dup check.
