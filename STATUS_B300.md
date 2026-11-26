@@ -278,3 +278,12 @@ Details: `results/b300/PRREVIEW/NORMQUANT_B300.md` (top section; old run kept be
   - 72/72 pairs are faster; the two passes agree within 0.2 pp.
   - The ablation answer: B1 alone gives about half of the three-site branch (−4.95 / −4.48 / −3.14 / −3.67 / −3.33 / −2.92%). The rest waits for #69812 plus our group-128 follow-up.
 - Next: the B1 PRREVIEW package (`PRREVIEW/B1_input_norm_group128/`), then the MSA dup check.
+
+## B1 PRREVIEW revised per c759645 — 2026-11-26
+- `body.md` changes:
+  - the greedy wording is now "(batched greedy was not reproducible run to run in this setup)";
+  - Related PRs: added the #61073 / #63202 bullet. I checked both: neither touches `vllm/models/qwen3_5/` or the Gemma norm.
+- Head unchanged: `e77ca1439c`. Footer: waiting for the owner's decision; I will not open before it.
+- Noted: the rebase after #69778 merges needs a force-push, so I will ask then.
+- Also posted: `PRREVIEW/MSA_sm103_prefill/`. Before opening it needs (1) OK to create the owner's MSA fork and (2) the same footer decision.
+- Starting skinny: rebasing `kopt/skinny-on-69949` onto #69949 head `d6bccd2252`, then GSM8K 8+8 vs #69949 and batched greedy.

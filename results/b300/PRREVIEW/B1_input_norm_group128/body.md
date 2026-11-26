@@ -61,7 +61,7 @@ No shape is slower.
 
 **Accuracy.** The fused codes and scales equal `per_token_group_quant_fp8` applied to the same bf16 normed activation (test below). The model output is not bit-identical to the base, though. FlashInfer's norm and this Triton norm reduce in a different order, so at prefill sizes a few bf16 normed values round differently (for example 7 of 614k at M = 300, 128 of 16.8M at M = 8192).
 
-- **Greedy, 256 tokens.** 3 / 32 single prompts and 19 / 256 batched prompts are identical to the base. The base against itself gives 32 / 32 and 176 / 256 (batched greedy is not deterministic run to run).
+- **Greedy, 256 tokens.** 3 / 32 single prompts and 19 / 256 batched prompts are identical to the base. The base against itself gives 32 / 32 and 176 / 256 (batched greedy was not reproducible run to run in this setup).
 - **GSM8K.** `tests/evals/gsm8k/gsm8k_eval.py --use-chat-completions --chat-template-kwargs '{"enable_thinking": false}' --max-tokens 1024 --temperature 0 --max-concurrency 64`, 1,319 questions.
   - 16 runs per arm, in four groups of 4, with the GPUs swapped between groups.
   - Accuracy: base 0.9618 (sd 0.0021), PR 0.9612 (sd 0.0016), Δ −0.05 points (Welch t −0.81).
@@ -89,6 +89,7 @@ Not measured: SM100 (B200) end to end of this branch, TP > 1 end to end, and oth
 
 - **#69778** (this PR's base): makes the CUTLASS block-FP8 linear accept pre-quantized group-128 input, and fuses SiLU-and-mul → `down_proj`. This PR adds the input-norm producer for the same interface.
 - **#69812**: fuses dynamic **per-token** FP8 into the GDN gated RMSNorm and the attention sigmoid gate. It does not cover group-128 and does not touch `gemma_add_rms_norm_quant`, so the two PRs are independent. A group-128 epilogue for those two producers is a natural follow-up once #69812 lands.
+- **#61073** (open) adds a generic `maybe_fused_norm_quant` producer for `RMSNorm` / `FusedAddRMSNorm`, wired in Llama. **#63202** (open, stacked on it) adds an SM90 block-FP8 consumer of `kFp8Dynamic128Sym`. Neither touches `vllm/models/qwen3_5/` or the Gemma norm, so they are independent. This PR is the Qwen3.5 model-local counterpart for the CUTLASS (SM100 / SM103) consumer from #69778.
 - **#65497, #36016, #45770**: Gemma RMSNorm + FP8 quant fusions in the torch.compile `rms_quant_fusion` pass and its C++ kernels. Qwen3.5 on NVIDIA runs with compile mode NONE (#51012), so those passes do not run there, and none of them changes `vllm/models/qwen3_5/`.
 
 ## AI assistance
