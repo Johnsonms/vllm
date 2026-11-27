@@ -2,181 +2,16 @@
 
 - **Commit:** `383e366bcb1d4bf55e6c63d24c8aeacd6abfed96`, tree `3e82101d8d898145da2e32691d41e7dc563b4b31`, one commit on main `361f362033`. Local only; nothing pushed.
 - **Identity:** author and committer = owner identity (checked with the `%an <%ae> | %cn <%ce>` log line), `Assisted-by: Claude Code` directly above `Signed-off-by`, no Co-authored-by.
-- **Diffstat:**
+- **Diffstat** (corrected; the first version was taken against `origin/main` after it had moved to 97dfd07879, so it also listed upstream's own changes):
+  - `git rev-list --count 361f362033..383e366bcb` -> `1`
+  - `git show --stat --format= 383e366bcb` ->
 
-     .buildkite/intel_jobs/basic_correctness_intel.yaml |   2 +-
-     .buildkite/intel_jobs/test-intel.yaml              |   6 +-
-     .../configs/Meta-Llama-3-8B-QQQ.yaml               |   4 +-
-     .../configs/Minitron-4B-Base-FP8.yaml              |   4 +-
-     .../scripts/hardware_ci/run-cpu-test-ppc64le.sh    |   4 +-
-     .../scripts/hardware_ci/run-intel-ci-test.sh       |   6 +-
-     .buildkite/test_areas/distributed.yaml             |   4 +-
-     docs/contributing/model/tests.md                   |   2 +-
-     docs/models/structured_decisions_models.md         |  10 +-
-     tests/AGENTS.md                                    |   2 +-
-     .../cpu_offload/test_cpu_offload.py                |   8 +-
-     tests/basic_correctness/memory/cumem/test_cumem.py |  46 ++----
-     .../memory/sleep_mode/test_sleep_mode.py           |  32 ++--
-     .../models/test_basic_correctness.py               |   4 +-
-     tests/compile/fullgraph/test_full_graph.py         |   2 +-
-     tests/config/base_model_arch_groundtruth.json      |   6 +-
-     tests/config/draft_model_arch_groundtruth.json     |   8 +-
-     tests/config/test_model_arch_config.py             |  12 +-
-     .../test_speculative_draft_limits_max_model_len.py |   6 +-
-     ...st_speculative_draft_max_position_embeddings.py |   8 +-
-     ...test_stop_string_while_stop_model_terminates.py |   4 +-
-     tests/distributed/test_eplb_spec_decode.py         |   2 +-
-     tests/distributed/test_pipeline_parallel.py        |   8 +-
-     tests/distributed/test_pp_cudagraph.py             |   2 +-
-     tests/distributed/test_sharded_rdt_plan.py         |   2 +-
-     tests/engine/test_arg_utils.py                     |   2 +-
-     tests/entrypoints/cohere/test_api_router.py        |   2 +-
-     .../entrypoints/cohere/test_cohere_chat_message.py |   2 -
-     .../entrypoints/cohere/test_serving_conversion.py  |  35 +----
-     tests/entrypoints/conftest.py                      |   6 +-
-     .../structured_decisions/test_decisions.py         |   2 +-
-     .../structured_decisions/test_slot_decision_e2e.py |  11 +-
-     .../structured_decisions/test_slot_strategy.py     |  13 --
-     .../structured_decisions/test_strategies.py        |  49 ++-----
-     .../launchers/api_server/test_multi_api_servers.py |   2 +-
-     tests/entrypoints/launchers/test_dp_supervisor.py  |  26 ++--
-     tests/entrypoints/launchers/test_run_batch.py      |  16 +-
-     tests/entrypoints/launchers/test_shutdown.py       |   2 +-
-     tests/entrypoints/llm/test_collective_rpc.py       |   4 +-
-     .../entrypoints/llm/test_struct_output_generate.py |   2 +-
-     .../openai/chat_completion/test_chat.py            |   2 +-
-     .../openai/decisions/test_decisions_e2e.py         |  36 -----
-     tests/entrypoints/pooling/basic/test_encode.py     |   2 +-
-     .../pooling/basic/test_tiling_engine.py            |   2 +-
-     tests/entrypoints/pooling/classify/test_offline.py |   2 +-
-     tests/entrypoints/pooling/classify/test_online.py  |   4 +-
-     .../pooling/classify/test_online_vision.py         |   2 +-
-     .../pooling/embed/test_cohere_online.py            |   2 +-
-     .../pooling/embed/test_correctness_mteb.py         |   2 +-
-     tests/entrypoints/pooling/embed/test_offline.py    |   2 +-
-     tests/entrypoints/pooling/embed/test_online.py     |   2 +-
-     .../pooling/embed/test_online_dimensions.py        |   2 +-
-     .../pooling/embed/test_online_long_text.py         |   4 +-
-     .../pooling/scoring/test_bi_encoder_offline.py     |   2 +-
-     .../pooling/scoring/test_cross_encoder_offline.py  |   2 +-
-     .../pooling/token_classify/test_offline.py         |   2 +-
-     .../pooling/token_classify/test_online.py          |   2 +-
-     .../pooling/token_embed/test_offline.py            |   2 +-
-     .../entrypoints/pooling/token_embed/test_online.py |   2 +-
-     .../entrypoints/rl/weight_transfer/test_offline.py |   2 +-
-     .../scale_out/derender/test_derender.py            |   2 +-
-     .../scale_out/derender/test_derender_stream.py     |   8 +-
-     .../derender/test_generate_logprobs_conversion.py  |   3 +-
-     .../derender/test_logprobs_endpoint_parity.py      |   3 +-
-     .../scale_out/render/test_launch_render.py         |   2 +-
-     tests/entrypoints/scale_out/render/test_render.py  | 162 ++++++++-------------
-     .../token_in_token_out/test_generate_stream.py     |  65 ++++-----
-     .../token_in_token_out/test_logprobs_render.py     |   2 -
-     .../scale_out/token_in_token_out/test_mm_serde.py  |   6 +-
-     .../scale_out/token_in_token_out/test_protocol.py  |  18 +--
-     .../test_serving_multimodal_tokens.py              |  17 +--
-     .../token_in_token_out/test_serving_tokens.py      |  10 +-
-     .../token_in_token_out/test_tokens_logprobs.py     |  11 --
-     .../serve/instrumentator/test_metrics.py           |   4 +-
-     .../entrypoints/serve/lora/test_serving_models.py  |   2 +-
-     .../serve/middleware/test_optional_middleware.py   |   2 +-
-     tests/entrypoints/serve/sagemaker/conftest.py      |   2 +-
-     .../translation/test_translation_validation.py     |   2 +-
-     .../tool_parsers/test_hermes_tool_parser.py        |   2 +-
-     .../configs/Kimi-K3-pruned75-DSpark-AITER-TP4.yaml |   2 +-
-     .../gsm8k/configs/Kimi-K3-pruned75-DSpark-TP4.yaml |   2 +-
-     .../humming/Qwen3-0.6B-MXFP8-humming-act-fp8.yaml  |   2 +-
-     .../configs/humming/Qwen3-0.6B-MXFP8-humming.yaml  |   2 +-
-     ...wen3-30B-A3B-MXFP8-CT-fi-cutedsl-deepep-ll.yaml |   2 +-
-     tests/jit_monitor/test_no_runtime_jit.py           |   8 +-
-     tests/kernels/moe/test_ocp_mx_moe.py               |  12 +-
-     tests/kernels/test_bf16_skinny_gemm.py             |   8 +
-     tests/lora/conftest.py                             |  80 ++++++----
-     tests/lora/test_lora_functions.py                  |   2 +-
-     tests/lora/test_quant_model.py                     |   8 +-
-     tests/lora/test_qwen3_with_multi_loras.py          |   6 +-
-     tests/lora/test_transformers_model.py              |   2 +-
-     tests/model_executor/model_loader/test_reload.py   |   4 +-
-     .../model_executor/test_model_load_with_params.py  |   4 +-
-     .../test_sleep_mode_tensor_ownership.py            |   2 +-
-     .../amd_specialized_decode/test_engine_fault.py    |   4 +-
-     tests/models/kimi_k3/test_prefix_cache.py          |   4 +-
-     tests/models/language/generation/test_common.py    |   2 +-
-     tests/models/language/generation/test_hybrid.py    |   8 +-
-     .../pooling/test_auto_prefix_cache_support.py      |   6 +-
-     .../models/language/pooling/test_classification.py |   2 +-
-     tests/models/language/pooling/test_embedding.py    |  12 +-
-     tests/models/language/pooling/test_head_dtype.py   |   2 +-
-     .../language/pooling/test_max_tokens_per_doc.py    |   2 +-
-     .../test_multilabel_classification_support.py      |   2 +-
-     .../pooling/test_pooler_config_init_behaviour.py   |   8 +-
-     .../language/pooling/test_token_classification.py  |  10 +-
-     .../pooling_mteb_test/test_cross_encoder.py        |   2 +-
-     .../models/language/pooling_mteb_test/test_gte.py  |  22 ++-
-     .../language/pooling_mteb_test/test_intfloat.py    |  16 +-
-     tests/models/multimodal/generation/test_common.py  |   2 +-
-     tests/models/multimodal/pooling/test_colqwen3_5.py |   4 +-
-     .../multimodal/pooling/test_colultravbert.py       |   2 +-
-     .../models/multimodal/pooling/test_dse_qwen2_vl.py |   2 +-
-     tests/models/multimodal/pooling/test_llava_next.py |   2 +-
-     .../processing/test_transformers_video.py          |   4 +-
-     tests/models/quantization/test_awq.py              |   2 +-
-     tests/models/quantization/test_gptq_marlin.py      |   4 +-
-     tests/models/registry.py                           |  90 +++++++-----
-     tests/models/transformers/test_backend.py          |   8 +-
-     tests/platforms/test_cpu.py                        |   2 +-
-     .../bitsandbytes/test_bitsandbytes.py              |   6 +-
-     .../lora_resolvers/test_filesystem_resolver.py     |   4 +-
-     .../lora_resolvers/test_hf_hub_resolver.py         |   6 +-
-     tests/quantization/test_auto_round.py              |   8 +-
-     tests/quantization/test_compressed_tensors.py      |   4 +-
-     tests/quantization/test_configs.py                 |  16 +-
-     tests/quantization/test_cpu_wna16.py               |   2 +-
-     tests/quantization/test_modelopt.py                |   4 +-
-     tests/quantization/test_online.py                  |   8 +-
-     tests/quantization/test_quark.py                   |   6 +-
-     tests/rocm/test_moe_padding.py                     |   8 +-
-     tests/rocm/test_moe_weight_replay.py               |  10 +-
-     tests/samplers/test_beam_search.py                 |   2 +-
-     tests/samplers/test_no_bad_words.py                |   2 +-
-     tests/standalone_tests/python_only_compile.sh      |   2 +-
-     tests/test_config.py                               |  34 ++---
-     tests/test_pooling_params.py                       |   2 +-
-     tests/tool_use/utils.py                            |   2 +-
-     .../test_indexer_deepseek_v4_slot_mapping.py       |   2 +-
-     .../test_rocm_paged_mxfp4_indexer_plan.py          |   2 +-
-     tests/v1/core/test_scheduler_e2e.py                |   2 +-
-     tests/v1/distributed/test_async_llm_dp.py          |   4 +-
-     tests/v1/distributed/test_dense_dp_world_size.py   |   2 +-
-     tests/v1/distributed/test_eagle_dp.py              |   2 +-
-     tests/v1/e2e/general/test_context_length.py        |   4 +-
-     .../acceptance_rates/dflash/test_dflash.py         |   2 +-
-     tests/v1/e2e/spec_decode/draft_model/test_async.py |   4 +-
-     tests/v1/e2e/spec_decode/draft_model/test_lora.py  |   4 +-
-     .../spec_decode/eagle/test_eagle_correctness.py    |   8 +-
-     tests/v1/e2e/spec_decode/mtp/deepseek/test_mtp.py  |   2 +-
-     tests/v1/e2e/spec_decode/test_mtp_parallel_load.py |   4 +-
-     tests/v1/engine/test_engine_core.py                |   2 +-
-     tests/v1/engine/test_preprocess_error_handling.py  |   2 +-
-     .../kv_connector/unit/test_offloading_connector.py |   4 +-
-     tests/v1/sample/test_masked_token_ids.py           |   2 +-
-     tests/v1/sample/test_sampling_params_e2e.py        |   2 +-
-     tests/v1/shutdown/test_delete.py                   |   2 +-
-     tests/v1/shutdown/test_forward_error.py            |   2 +-
-     tests/v1/shutdown/test_startup_error.py            |   6 +-
-     tests/v1/spec_decode/test_max_len.py               |   2 +-
-     tests/watermarking/golden_candidates.py            |   3 -
-     tests/watermarking/test_compatibility.py           |   5 -
-     tests/watermarking/test_engine_compatibility.py    |   4 +-
-     tests/watermarking/test_parallel_compatibility.py  |   2 +-
-     tests/watermarking/test_watermarking.py            |  58 ++------
-     tools/pre_commit/mypy.py                           |  23 ---
-     vllm/config/compilation.py                         |   4 +-
-     vllm/entrypoints/openai/decisions/adapters.py      |  14 +-
-     .../entrypoints/openai/decisions/question_types.py |  10 +-
-     vllm/entrypoints/openai/decisions/strategies.py    |  16 +-
-     vllm/models/qwen4_exp/nvidia/low_latency_gemm.py   |  15 ++
-     172 files changed, 629 insertions(+), 856 deletions(-)
+        tests/kernels/test_bf16_skinny_gemm.py           |  8 ++++++++
+        vllm/models/qwen4_exp/nvidia/low_latency_gemm.py | 15 +++++++++++++++
+        2 files changed, 23 insertions(+)
+
+  - `git log -1 --format='%an <%ae> | %cn <%ce>' 383e366bcb` -> `Johnsonms <owner> | Johnsonms <owner>`
+  - Parent of the commit is 361f362033. Upstream main is now 97dfd07879; it does not touch either of the 2 files since 361f362033, and a trial merge of the commit into it is clean.
 
 - **What the diff is, in words:** 11 lines plus a 2-line comment for key (1, 2560) at the end of the Flash-Next SM100 table (the entries in `entries.json`, written in the table's short form), and one 6-line test that asserts the key's M list and that each config's row count equals its M. The existing table-driven SM100 test picks up the 11 new cases by itself.
 
@@ -275,6 +110,6 @@ Not measured: TP8, SM103, speculative decoding, prefill.
 - #69907 would make FlashInfer cute-dsl the default small-batch BF16 GEMM for layers on the generic linear method. Layers in this table do not use that method, so with both PRs the gate uses the skinny kernel up to 16 rows. The two have not been compared on this shape.
 
 ### AI assistance
-Claude Code was used to run the sweeps and benchmarks and to draft the change and this description. The submitter reviewed every changed line.
+Claude Code was used to run the sweeps and benchmarks and to draft the change and this description. The submitter reviewed the change and the measurements.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
