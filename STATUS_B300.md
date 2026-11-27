@@ -510,3 +510,6 @@ Full write-up, a paste-ready paragraph and the script are in `results/b300/B9/`.
 
 ### Skinny opened per aafa417: vllm-project/vllm#70205 (draft)
 https://github.com/vllm-project/vllm/pull/70205. Head `fd7eea88349237f939b72052c61b2fb6f1045217`, base `main`, draft, no labels or reviewers. Details are in `PRREVIEW/skinny_on_69949/opened.md`, and the posted body is in `body.final.md`.
+
+### B10 ack: #69778 smoke check at `e1df7ec5f6` (running)
+Fetched read-only; no push. Base = merge base `29fa74e654`. Running on GPUs 0–1 (pytest used GPU 2). Fusion counter and pytest are done; the paired TPOT run at c1/c4/c8 (1 pass × 4 rounds) is in progress. One paragraph follows when it finishes.
