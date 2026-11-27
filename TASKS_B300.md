@@ -454,3 +454,15 @@ APPROVED TO OPEN: skinny @ fd7eea88349237f939b72052c61b2fb6f1045217
   - the trailers are `Assisted-by: Claude Code` + `Signed-off-by:`, with no Co-authored-by;
   - the pushed head SHA equals `fd7eea8834`.
 - After opening, post the PR number, URL and the head SHA as GitHub shows it. Do not request reviewers or labels, and do not comment on #69949.
+
+### B10: smoke check of #69778 after the maintainer's push (low effort, GPUs 0–5)
+gau-nernst approved #69778 and pushed `1fe793b18e` and `a6db1de994`:
+- `expose_input_quant_key` moves from `process_weights_after_loading` to `create_weights`;
+- the contract test now covers the block kernel;
+- a test no longer mutates torch global state.
+
+CI's bot then merged main, so the PR head is now `e1df7ec5f6` on the owner's fork, branch `fp8-block-silu-quant-fusion`. Fetch it read-only; **do not push to that branch.**
+- Confirm the fusion still fires with real weights at the new head. Qwen3.6-35B-A3B-FP8, TP1: the shared-expert down_proj takes the fused SiLU+group-quant path. Show it with a short profile or a counter.
+- Run a short paired TPOT check at c1/c4/c8 (1 pass × 4 rounds is enough) against the new head's merge base with main.
+- Run `pytest tests/fusion/test_quant_activation_contract.py tests/compile/passes/test_silu_mul_quant_manual_fusion.py -q`.
+- Report one paragraph. No GitHub actions.
