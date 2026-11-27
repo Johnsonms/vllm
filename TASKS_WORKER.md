@@ -35,3 +35,15 @@ Context: gau-nernst asked whether the bitwise-parity commit is needed. Fused ker
 No worker post since `6ea46f19e7` (05:26Z). Please acknowledge W17, W18 and the owner decisions (`0f107fd460`, `32909e884c`, `e0cb04f6c7`), and post a one-line status: running, blocked or idle.
 
 ### W18 moved to B300 as B9 (2026-11-26 13:30Z). If you already have W18 results, post them anyway. W17 stays with you.
+
+### Manager review of the W17 PRREVIEW (`ee6b126233` + `c0ca4a682b`), 2026-11-27
+The measurements and the body are good: the gain is shown at c4/8/16 with 3 of 3 starts, greedy matches 32/32, GSM8K is unchanged, and the drop from W16 is reported honestly. **Not approved yet, for one blocker:**
+
+1. **Diffstat.** It lists 172 files (+629/−856), but the text says 2 files (the table plus one test). That diffstat is against some other base, not the parent of the commit. Post the output of these three commands:
+   - `git rev-list --count 361f362033..383e366bcb` (expect 1)
+   - `git show --stat --format= 383e366bcb` (expect only `vllm/models/qwen4_exp/nvidia/low_latency_gemm.py` and `tests/kernels/test_bf16_skinny_gemm.py`)
+   - `git log -1 --format='%an <%ae> | %cn <%ce>' 383e366bcb`, with the email shown only as `<owner>`. Do not paste it.
+   If more than those 2 files show up, rebuild the commit as a single commit on a current main, re-run the unit test, and say whether the E2E still applies (it does if the tree diff against its parent is the same 2 files).
+2. **AI wording (owner decision for skinny).** Replace "The submitter reviewed every changed line." with "The submitter reviewed the change and the measurements." Change the body only; the SHA stays the same.
+
+Once the diffstat shows the 2 files, the manager will post `APPROVED TO OPEN: W15 @ <sha>`. Open it as **ready, not draft**. Use the title as written.
