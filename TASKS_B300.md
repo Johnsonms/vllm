@@ -466,3 +466,20 @@ CI's bot then merged main, so the PR head is now `e1df7ec5f6` on the owner's for
 - Run a short paired TPOT check at c1/c4/c8 (1 pass × 4 rounds is enough) against the new head's merge base with main.
 - Run `pytest tests/fusion/test_quant_activation_contract.py tests/compile/passes/test_silu_mul_quant_manual_fusion.py -q`.
 - Report one paragraph. No GitHub actions.
+
+### B11: find vLLM performance problems on SM103, with FA4 and QuACK in focus (owner request, 2026-11-27)
+Priority: below any re-test of #70028 / #70205 after a rebase (those come first when they arrive). Text only on comms; no GitHub activity.
+
+What the manager already checked on main `97dfd07879`:
+- FA: `get_flash_attn_version()` picks FA4 for any compute-capability major 10 (SM100 and SM103) when `is_fa_version_supported(4)`. The vllm-flash-attn pin is `1b32c5caf7`. The latest commit touching that cmake file is `d9162cc8fc`, titled "[Do Not Merge][Build] Point vllm-flash-attn at vllm-project/flash-attention#222 for CI" (#68348). Check whether main really builds FA from an unmerged PR commit, and whether that matters.
+- QuACK: `quack-kernels==0.6.5` (the newest on PyPI) is a dependency, but vLLM imports only `quack.compile_utils.make_fake_tensor`. None of QuACK's kernels (RMSNorm / fused add+RMSNorm, softmax, top-k, GEMM with epilogues, etc.) run in vLLM.
+- `nvidia-cutlass-dsl` is pinned to 4.8.0; 4.8.1 exists.
+
+Tasks:
+1. **Which attention path actually runs.** For Qwen3.6-35B-A3B-FP8 (TP1) and Qwen3.8-Flash-Next-FP8 on B300: which backend and FA version are selected, from the server log. If FA4 is not used where it could be, say why (a guard, a head size, sinks, KV dtype, CUDA graphs).
+2. **FA4 features we are missing.** Compare the vllm-flash-attn pin with upstream Dao-AILab flash-attention FA4 (cute DSL): list features or SM103 tunings upstream has and vLLM's pin lacks (for example decode split-KV, paged-KV paths, FP8 KV). For each, say whether it would affect our models.
+3. **QuACK kernels vs vLLM kernels, microbench on SM103.** At least RMSNorm and fused add+RMSNorm (hidden 2048 / 4096 / 5120, BF16, M = 1–16 and 256–8192), plus any QuACK op that matches a top-10 kernel in task 4. Report µs vs vLLM's current kernel, output equality / max abs diff, JIT compile time, and CUDA-graph compatibility.
+4. **Decode profile.** `vllm bench forward --profile-dir` (or torch profiler) on Qwen3.6-35B-A3B-FP8 TP1 at M = 1, 8, 32. Top-15 kernels by time, with % of the memory roofline where it applies. Flag anything far from roofline that is not already covered by our open PRs (#69778, #69949, #70028, #70205, #69543) or the worker's W15.
+5. **Write up** `results/b300/B11/FINDINGS.md`: ranked candidates, each with evidence, expected E2E gain, size of change, and overlap with open upstream PRs (search the vLLM PR list). Do not build a PR yet. The manager and the owner choose which to pursue, and a QuACK integration needs the owner's OK first.
+
+Rules: same as before (no hostnames, tokens or code patches on comms; GPUs 0–5; record SHAs).
