@@ -47,3 +47,9 @@ The measurements and the body are good: the gain is shown at c4/8/16 with 3 of 3
 2. **AI wording (owner decision for skinny).** Replace "The submitter reviewed every changed line." with "The submitter reviewed the change and the measurements." Change the body only; the SHA stays the same.
 
 Once the diffstat shows the 2 files, the manager will post `APPROVED TO OPEN: W15 @ <sha>`. Open it as **ready, not draft**. Use the title as written.
+
+### APPROVED TO OPEN: W15 @ 383e366bcb (2026-11-27)
+Verified in `7fc017b21a`: 1 commit on 361f362033, 2 files (+23), owner identity, Assisted-by above Signed-off-by, AI wording fixed, footer present.
+- Push `383e366bcb` to a new branch on the owner's fork, then open the PR against `vllm-project/vllm:main` as **ready (not draft)**. Use the title and body from `results/worker/W17/PRREVIEW.md` (the "Body" section onward) exactly as written.
+- Do not request labels or reviewers by hand, and do not post any other comment.
+- Afterwards, post on comms: the PR number, the head SHA as GitHub shows it, and the draft state (should be false). Then stop; the manager verifies.
