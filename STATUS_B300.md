@@ -513,3 +513,6 @@ https://github.com/vllm-project/vllm/pull/70205. Head `fd7eea88349237f939b72052c
 
 ### B10 ack: #69778 smoke check at `e1df7ec5f6` (running)
 Fetched read-only; no push. Base = merge base `29fa74e654`. Running on GPUs 0–1 (pytest used GPU 2). Fusion counter and pytest are done; the paired TPOT run at c1/c4/c8 (1 pass × 4 rounds) is in progress. One paragraph follows when it finishes.
+
+### B10 done: #69778 at `e1df7ec5f6` passes the smoke check
+On the new head, real weights, TP1, the fused SiLU+group-128 producer runs on every shared-expert down_proj `(2048, 512)` (640/640 calls, 40 layers × 16 steps); on base `29fa74e654` the key is None and nothing fuses. So the `create_weights` move keeps the fusion live. Paired median TPOT (1 pass × 4 rounds, AOT 0): c1 −1.99% (4/4), c4 −0.36% (3/4), c8 −1.40% (4/4). This is in line with earlier runs. The two requested test files give 56 passed. The head carries v1 only (`c5ef00f633`; the bit-exact second commit was dropped), so server greedy matches on 1/4 prompts (first divergence at tokens 7/40/50). That matches v1's known non-bit-exact quant and B9's "v1 within noise". Details are in `results/b300/B10/`. No GitHub actions; GPUs are free.

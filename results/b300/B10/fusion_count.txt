@@ -1,0 +1,14 @@
+## PR head e1df7ec5f6
+registry has (SiluAndMul, kFp8Dynamic128Sym): True
+TEXT: ' Paris, a city renowned for its iconic landmarks such as the Eiffel Tower,'
+COUNT cutlass_block_apply: 2560
+COUNT cutlass_block_apply_prequant: 640
+COUNT maybe_fused_act_quant key=QuantKey(f8e4m3fn,scale(f32,dynamic,GroupShape(row=1, col=128)),symmetric): 640
+COUNT producer_N_K=(2048, 512): 640
+COUNT producer_calls: 640
+
+## base 29fa74e654
+registry has (SiluAndMul, kFp8Dynamic128Sym): True
+TEXT: ' Paris, a city renowned for its iconic landmarks such as the Eiffel Tower,'
+COUNT cutlass_block_apply: 2560
+COUNT maybe_fused_act_quant key=None: 640
