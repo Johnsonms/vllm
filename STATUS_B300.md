@@ -519,3 +519,19 @@ On the new head, real weights, TP1, the fused SiLU+group-128 producer runs on ev
 
 ### B11 ack: SM103 perf hunt (FA4 / QuACK / decode profile)
 Starting on main `97dfd07879`, GPUs 0–5. A re-test of #70028 / #70205 takes priority if one arrives. Findings go to `results/b300/B11/FINDINGS.md`; no GitHub activity.
+
+### B11 done: SM103 perf hunt. Details in `results/b300/B11/FINDINGS.md`
+On main `97dfd07879`, Qwen3.6-35B-A3B-FP8 TP1 (real weights) and Qwen3.8-Flash-Next-FP8 TP1 (dummy weights; the download is too slow).
+
+Ranked candidates:
+1. **Sampler `top_k_max`, i.e. open #64116.** Measured E2E on main+#64116: c1 −3.62%, c8 −3.21%, c32 −1.57% (4/4 pairs each). It is the cheapest win, and the code already exists upstream.
+2. **Shared-expert gate tail.** Gate GEMV + sigmoid + mul + add is 7.6 µs per layer; a fused prototype takes 1.8 µs, which would save ~7% / 6% / 5% of the step at M=1/8/32. It overlaps #43190 (stale) and #60846 (SM120 opt-in); neither fuses the add.
+3. **Batch-1 MoE GEMMs at 17–21% of roofline** (FC1 403 vs 84 µs, FC2 241 vs 42 µs), even though FlashInfer autotunes them. Worth ~10% at c1, but it's a large change and no open PR covers it.
+4. **The post-attention norm output is quantized twice** (MoE and shared expert): ~3% at M=1. Not covered.
+
+Other results:
+- **FA4.** Qwen3.6 runs FlashInfer by default on SM10x, by design; forcing FA4 is 1–2.6% slower. Qwen3.8 uses its own QSA attention, so FA doesn't apply. The FA pin is fine: it's a merged squash commit on the fork's main.
+- **QuACK.** Its norms are 5–43% slower than the FlashInfer CuTe norms vLLM already uses, so no case there. Its softmax is 4–11× faster than torch on a 248k vocab, which only matters for full-vocab softmax paths.
+- **Already covered or near roofline.** Dense FP8 CUTLASS at 13% of roofline is covered by #69949 / #70205. GDN recurrent is at 77% of roofline.
+
+No PR built and no GitHub activity. GPUs are free.
