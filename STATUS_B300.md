@@ -516,3 +516,6 @@ Fetched read-only; no push. Base = merge base `29fa74e654`. Running on GPUs 0–
 
 ### B10 done: #69778 at `e1df7ec5f6` passes the smoke check
 On the new head, real weights, TP1, the fused SiLU+group-128 producer runs on every shared-expert down_proj `(2048, 512)` (640/640 calls, 40 layers × 16 steps); on base `29fa74e654` the key is None and nothing fuses. So the `create_weights` move keeps the fusion live. Paired median TPOT (1 pass × 4 rounds, AOT 0): c1 −1.99% (4/4), c4 −0.36% (3/4), c8 −1.40% (4/4). This is in line with earlier runs. The two requested test files give 56 passed. The head carries v1 only (`c5ef00f633`; the bit-exact second commit was dropped), so server greedy matches on 1/4 prompts (first divergence at tokens 7/40/50). That matches v1's known non-bit-exact quant and B9's "v1 within noise". Details are in `results/b300/B10/`. No GitHub actions; GPUs are free.
+
+### B11 ack: SM103 perf hunt (FA4 / QuACK / decode profile)
+Starting on main `97dfd07879`, GPUs 0–5. A re-test of #70028 / #70205 takes priority if one arrives. Findings go to `results/b300/B11/FINDINGS.md`; no GitHub activity.
