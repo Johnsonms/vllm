@@ -204,7 +204,7 @@ cuBLAS 4.1-5.0 us per call, skinny 1.9-2.9 us. Max relative error vs an fp32 ref
 | 32 | 8.038 8.046 8.022 | 0.30 % | 8.030 8.021 8.025 | 0.12 % | -0.13 % | 1 of 3 |
 
 - **The gain is real at 4, 8 and 16 requests and not shown at 1, 2 and 32.**
-- **It is about half of the W16 number.** W16 (main 0fbba2aa71, same 11 entries) had -0.7 / -2.3 / -3.0 / -0.9 % at 2 / 4 / 8 / 16. The base TPOT is the same within 0.5 % on both mains, so the candidate got slower relative to W16, not the base faster. I have not found the cause. Main moved 12 files of the Flash-Next model code between the two SHAs. The body below uses only the numbers of this SHA.
+- **It is about half of the W16 number.** W16 (main 0fbba2aa71, same 11 entries) had -0.7 / -2.3 / -3.0 / -0.9 % at 2 / 4 / 8 / 16. The base TPOT is the same within 0.8 % on both mains, so the candidate got slower relative to W16, not the base faster. I have not found the cause. Main moved 12 files of the Flash-Next model code between the two SHAs. The body below uses only the numbers of this SHA.
 
 **Greedy, 32 single prompts x 256 tokens:** identical, 0 of 32 differ in all 9 base-vs-PR start pairs (base vs base 0, PR vs PR 0). This differs from W16 on the older main, where 2 of 32 differed. The kernel is still a different summation order than cuBLAS, so I do not claim bit-identical output in the body.
 
