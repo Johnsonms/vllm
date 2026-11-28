@@ -10,7 +10,7 @@ Setup: vLLM main `14e9c30d86`, quack-kernels 0.6.5, FlashInfer 0.7.4, 1x B300. C
 | 3 | qkv_proj plain | M = 128 | 1.30x (1.01-1.07x at 8-32, 0.85x at 1) | none | c32 ~8% | no (single point) |
 | 4 | down_proj plain | M = 128 | 1.11x (**0.41-0.64x at M <= 32**, 0.89x at 8192) | none | c32 ~13% | no |
 | 5 | gate_up plain | all | 0.84-1.00x | none | ~30% | no |
-| 6 | gate_up gated GEMM with **NVFP4-quantized postact** (QuACK `gated_quant_mod` pattern + alpha) | all | **does not compile** | - | - | blocked (see below) |
+| 6 | gate_up gated GEMM with **NVFP4-quantized postact**, one kernel (B15b: `swiglu_quant_mod` + alpha, configs pinned) | M >= 512 | **1.27-1.39x** vs cute-dsl GEMM + fused silu_mul_fp4 (1.03x at 128; 0.80x at M <= 32) | interleaved gate_up rows; down_proj consumes the output as is | prefill ~41% | **GO for prefill / M >= 512** — supersedes row 1 (see B15b) |
 
 ## 1. What vLLM runs (serve profile, torch profiler, default config: torch.compile + CUDA graphs)
 - All 256 linears (qkv/o/gate_up/down x 64 layers): **`FlashInferCuteDslNvFp4LinearKernel`** (FlashInfer cute-dsl `Sm100BlockScaledPersistentDenseGemmKernel`; `Sm100BlockScaledSplitKGemmKernel` for down_proj at small M). lm_head stays BF16 (`nvjet`).
@@ -58,7 +58,29 @@ Error vs FP32 reference of the dequantized operands: 0.00165 relative for both (
 **gate_up + SwiGLU + NVFP4 output** (N = 2 x 25600, K = 5120): see the second table above. Error vs FP32 reference (FP32 SwiGLU of dequantized operands, output dequantized): vLLM 0.0903-0.0905, QuACK fallback 0.0903-0.0904 (this is the fp4 output rounding itself). QuACK vs vLLM codes: 98.8% identical. The rest differ by one code, because QuACK applies alpha + SiLU in fp32 before rounding to bf16, while vLLM rounds the GEMM output to bf16 first.
 
 ## Notes / what breaks on SM103
-- **Gated GEMM with NVFP4-quantized postact does not compile** in quack-kernels 0.6.5 (my alpha-carrying copy of `library.gated_quant_mod`: `TileStore("postact", gated=True, quant=BlockScaleFactorStore(..., output="postact"))`). All 48 SM100 configs fail in `setup_epi_tensor -> make_smem_layout_epi` (`assert major_mode_size_bits % inter_num_contiguous_bits == 0`), apparently because the 4-bit postact epilogue tile is too narrow for the smem atom. The stock `gated_quant_mod` also has no `alpha`, and NVFP4 needs alpha applied before SiLU. Fallback measured: bf16 postact + vLLM `scaled_fp4_quant`.
+- ~~Gated GEMM with NVFP4-quantized postact does not compile~~ **Wrong, corrected in B15b below: it works with pinned configs; my failure came from autotuned configs.** Original note: in quack-kernels 0.6.5 (my alpha-carrying copy of `library.gated_quant_mod`: `TileStore("postact", gated=True, quant=BlockScaleFactorStore(..., output="postact"))`). All 48 SM100 configs fail in `setup_epi_tensor -> make_smem_layout_epi` (`assert major_mode_size_bits % inter_num_contiguous_bits == 0`), apparently because the 4-bit postact epilogue tile is too narrow for the smem atom. The stock `gated_quant_mod` also has no `alpha`, and NVFP4 needs alpha applied before SiLU. Fallback measured: bf16 postact + vLLM `scaled_fp4_quant`.
 - Blockscaled QuACK rejects `concat_layout` (`"blockscaled GEMM does not support concat_layout"`) → gate/up rows must be interleaved.
 - QuACK small-M is weak for long K (down_proj K = 25600: 0.41x at M = 1). The cute-dsl kernel uses split-K there; QuACK's autotuner has no split-K for blockscaled.
 - Not measured: Qwen3-8B-NVFP4 microbench (only a forward profile, not used), MoE NVFP4, E2E.
+
+## B15b (2026-11-28): gated GEMM + SwiGLU + NVFP4 output in one QuACK kernel
+Correction to row 6 / the note above: **it works.** The B15 failure was from autotuning, not the epilogue. Every config the autotuner tried failed in the smem-layout assert. Pinned configs compile and are correct: 12 configs (tile_m 128 c1 / 256 c2 x tile_n 64/128/256 x dynamic on/off; 192 not tried because of the B200-found bug), 252 runs in all, 0 wrong and 0 failed.
+- Kernels: stock `quack.epilogue.library.swiglu_quant_mod`, and the same mod plus a pre-activation `alpha`. NVFP4 needs alpha = 1/(g_a*g_w) applied before SiLU, and the stock mod has no alpha. With unit global scales (alpha = 1) the two give the same results and timings.
+- Output global scale: `sfd_norm_const` = down_proj's input global scale (vLLM's `input_global_scale_inv` convention). The SF is written straight into vLLM's swizzled layout. Weight: gate_up rows interleaved once offline (the codes are unchanged).
+- Table (real global scales, alpha variant; CUPTI via `bench_gpu_time_with_cupti`, CUDA graph, cold L2; vLLM = cute-dsl GEMM + `silu_and_mul_nvfp4_quant`, the serve default; `b15b.jsonl`):
+
+| M | vLLM cute-dsl GEMM + fused silu_mul_fp4, µs | QuACK one kernel, µs (best pinned config) | speedup | fp4 codes = vLLM | SF bytes = vLLM | err vs FP32 (vLLM / QuACK) | down_proj err on QuACK input / vLLM input |
+|---:|---:|---:|---:|---:|---:|---|---|
+| 1 | 32.0 | 40.1 (128x128 c1 dyn1) | **0.80x** | 98.8% | 100.0% | 0.0912 / 0.0911 | 0.0903 / 0.0900 |
+| 8 | 32.0 | 40.1 (128x128 c1 dyn1) | **0.80x** | 98.9% | 99.8% | 0.0901 / 0.0900 | 0.0908 / 0.0906 |
+| 32 | 32.5 | 39.9 (128x128 c1 dyn1) | **0.81x** | 98.9% | 99.3% | 0.0904 / 0.0903 | 0.0905 / 0.0904 |
+| 128 | 35.6 | 34.7 (128x128 c1 dyn0) | **1.03x** | 98.8% | 97.1% | 0.0906 / 0.0905 | 0.0902 / 0.0903 |
+| 512 | 68.8 | 54.3 (256x256 c2 dyn1) | **1.27x** | 98.9% | 97.1% | 0.0904 / 0.0904 | 0.0904 / 0.0904 |
+| 2048 | 218.8 | 157.5 (256x256 c2 dyn1) | **1.39x** | 98.7% | 96.6% | 0.0903 / 0.0904 | 0.0903 / 0.0903 |
+| 8192 | 859.9 | 666.6 (256x256 c2 dyn0) | **1.29x** | 98.8% | 97.1% | 0.0905 / 0.0904 | 0.0904 / 0.0905 |
+
+configs tried: 252, wrong or failed: 0
+
+- **Code-level match:** 98.7-98.9% of fp4 codes and 96.6-100% of SF bytes are identical to vLLM's fused path. The rest differ by one step: QuACK applies alpha and SiLU on the fp32 accumulator, while vLLM rounds the GEMM output to bf16 first. Error vs FP32 is the same for both (it is the fp4 output rounding).
+- **down_proj consumes QuACK's output as is:** the codes plus SF (viewed as vLLM's 2-D swizzled scale) go straight into the cute-dsl down GEMM, with the same error as on vLLM's own output.
+- Verdict: **GO at M >= 512 (prefill), 1.27-1.39x** on ~41% of prefill GPU time (gate_up + silu_quant), so roughly 9-11% of prefill GPU time. Needs an M-dispatch (cute-dsl at M <= 128, where QuACK is 0.80-1.03x) and pinned configs (no autotune; avoid tile_n 192).

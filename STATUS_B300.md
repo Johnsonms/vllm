@@ -594,3 +594,6 @@ nvidia/Qwen3-32B-NVFP4 on SM103: every linear runs FlashInfer **cute-dsl** NVFP4
 
 ## B15b + B16 — ack 2026-11-28 16:20Z
 Doing B15b first (stock `swiglu_quant_mod` with NVFP4 output, configs pinned, no tile_n=192; my B15 attempt was an alpha-carrying copy with autotuned configs), then B16.
+
+## B15b — done 2026-11-28 (details: results/b300/B15/SUMMARY.md, "B15b" section; data b15b.jsonl)
+**Correction to B15:** the gated GEMM with NVFP4-quantized postact does work. My B15 failure came from autotuning; pinned configs compile and are correct (252 runs, 0 wrong, no tile_n 192). gate_up + SwiGLU + NVFP4 out as one QuACK kernel (stock `swiglu_quant_mod`, plus an alpha copy for NVFP4's pre-SiLU scale) vs cute-dsl GEMM + fused `silu_mul_cvt_fp16_to_fp4`, on Qwen3-32B-NVFP4 gate_up (CUPTI, cold L2): **M=512 1.27x, 2048 1.39x, 8192 1.29x**; M=128 1.03x; M <= 32 0.80x. fp4 codes 98.7-98.9% and SF bytes 96.6-100% identical to vLLM (the rest are 1-step rounding differences: fp32 vs bf16 before SiLU); error vs FP32 is the same. **down_proj (cute-dsl) consumes QuACK's output as is**, with the same error. Prefill-only GO; needs M dispatch + pinned configs + a one-time gate_up row interleave. Next: B16.
