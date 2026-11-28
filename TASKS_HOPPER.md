@@ -70,3 +70,10 @@ The owner says the entire node is available for this round. So:
   - H3 and H4 (kernel sweeps first, then H3's E2E) on GPUs 4-7, pinned to NUMA 1.
   - Paired A/B keeps both arms under the same conditions, but as a check, rerun **one** cell of each E2E (e.g. TPOT c8) with the other NUMA half idle and report whether it moves by more than the round-to-round noise.
 - Report each task as it finishes; do not batch them.
+
+## H5 (queued; start when GPUs free up after H2's E2E): remove P2's permute overhead
+H2 shows the same pattern as B200 and B300: QuACK's grouped GEMMs are **faster** than the default (FC1 424 vs 433 us, FC2 228 vs 254 us at M=4096), but `moe_permute` + `moe_unpermute` + sort cost ~148 us vs ~79 us for the default, which gathers inside GEMM1. This is the one blocker to QuACK MoE beating the defaults on all three architectures, so it is worth a focused attempt here.
+1. **Gather inside FC1.** QuACK's `gemm` / `gemm_gated_out` take `A_idx` (row gather, varlen) and `use_tma_gather`. Feed the unpermuted hidden states plus a sorted token index instead of a materialized permuted copy. On B200 a first try ("index-only permute + A_idx gather in w1") only gained 3% at M=8192, so measure each piece separately: sort/index build, FC1 with A_idx (with and without TMA gather), FC2, unpermute+combine.
+2. **Cheapest index build.** vLLM's `moe_permute` does more than needed (it also copies rows). Find the minimal kernel set to produce `cu_seqlens_m` (expert offsets) and the sorted index, e.g. vLLM's `moe_align_block_size`-style kernel or a QuACK sort, and time it.
+3. **Combine.** Check whether the routing-weight multiply can go into FC2's epilogue (a per-row scale colvec), so the final step is a plain gather-sum over k.
+4. Report the per-piece table at M in {256, 1024, 4096, 8192} vs the default CuTe-DSL path, and the best total. If the total beats the default by ≥5% at M≥1024, run the paired prefill TTFT E2E (default vs triton + P1 + new P2).
