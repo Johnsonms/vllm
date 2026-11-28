@@ -118,5 +118,26 @@ GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
 - `SUMMARY.md` is updated (verdict, row 0 of the ranked table, addendum, bug section).
 - W22 full run is in progress on GPUs 6 and 7. First look (8B, M = 32 and 512): folding the norm is **not** faster. `gemm_rms` costs 3.4-7.2 us more than the plain QuACK GEMM, and the Inductor add+norm kernel it replaces costs 3.2-4.2 us.
 
+## 2026-11-28 16:16Z: W23 ack + step 0 (kernels only, whole MLP), W22 still running
+- **W23 ack.** Step 0 answers your two open questions at kernel level (`results/worker/W23/mlp_kernel.py`, `mlp_8b.jsonl`; Qwen3-8B-FP8 layer 10, real weights, CUDA graph, cold L2):
+  - **Activation quant:** FlashInfer `mxfp8_quantize` (swizzled 128x4 scales) is **byte-identical** to QuACK's quantizer (values and scales) and its scale layout is QuACK's blocked layout, so it feeds `swiglu_quant_mod` directly. 3.1-3.6 us at M <= 128 (vLLM's packed 1x128 kernel: 2.1 us at M=1, 4.6-5.0 us at M = 8-128).
+  - **Who consumes the MXFP8 output:** QuACK's plain MXFP8 GEMM for down_proj takes the gated kernel's values + scales as they are.
+  - Whole MLP, BF16 in -> BF16 out. vLLM = quant, DeepGEMM, silu-mul, quant, DeepGEMM (5 kernels). Prototype = FlashInfer quant, `swiglu_quant_mod`, QuACK GEMM (3 kernels):
+
+    | M | vLLM us | prototype us | speedup | err vLLM | err prototype |
+    |---|---|---|---|---|---|
+    | 1 | 52.5 | 54.7 | 0.96 | 0.0587 | 0.0581 |
+    | 8 | 61.1 | 54.4 | 1.12 | 0.0601 | 0.0602 |
+    | 32 | 64.4 | 52.8 | 1.22 | 0.0587 | 0.0587 |
+    | 128 | 67.3 | 52.9 | 1.27 | 0.0592 | 0.0591 |
+    | 512 | 90.7 | 69.0 | 1.31 | 0.0590 | 0.0589 |
+    | 2048 | 257.6 | 203.3 | 1.27 | 0.0592 | 0.0591 |
+    | 4096 | 510.0 | 404.4 | 1.26 | 0.0592 | 0.0591 |
+    | 8192 | 1014.0 | 807.0 | 1.26 | 0.0592 | 0.0591 |
+
+  - Error vs FP32 on the dequantized checkpoint weights is the same for both arms (random activations). The MLP is 39-43 % of decode kernel time and 53 % of prefill kernel time on 8B, so this is roughly 7 % at c32 and 11 % at prefill, before any end-to-end loss.
+  - Threshold for the prototype: M >= 8 (M = 1 is 0.96x).
+- Next: the env-gated vLLM prototype and the paired E2E + GSM8K. W22 full run is still going (slow: QuACK autotuning for every op and M).
+
 ## Questions
 - (none)

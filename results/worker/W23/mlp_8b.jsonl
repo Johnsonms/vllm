@@ -1,0 +1,8 @@
+{"M": 1, "v_err": 0.0587, "v_us": 52.51, "fi_quant_matches_quack": true, "fi_quant_us": 3.07, "v_quant_us": 2.05, "p_best": {"cfg": "128x256 c1 dyn0", "err": 0.0581, "us": 54.66}, "speedup": 0.961}
+{"M": 8, "v_err": 0.0601, "v_us": 61.07, "fi_quant_matches_quack": true, "fi_quant_us": 3.39, "v_quant_us": 4.61, "p_best": {"cfg": "128x256 c1 dyn1", "err": 0.0602, "us": 54.43}, "speedup": 1.122}
+{"M": 32, "v_err": 0.0587, "v_us": 64.42, "fi_quant_matches_quack": true, "fi_quant_us": 3.36, "v_quant_us": 5.02, "p_best": {"cfg": "128x256 c1 dyn1", "err": 0.0587, "us": 52.83}, "speedup": 1.219}
+{"M": 128, "v_err": 0.0592, "v_us": 67.29, "fi_quant_matches_quack": true, "fi_quant_us": 3.62, "v_quant_us": 4.99, "p_best": {"cfg": "128x256 c1 dyn1", "err": 0.0591, "us": 52.9}, "speedup": 1.272}
+{"M": 512, "v_err": 0.059, "v_us": 90.72, "fi_quant_matches_quack": true, "fi_quant_us": 4.42, "v_quant_us": 6.02, "p_best": {"cfg": "256x256 c2 dyn1", "err": 0.0589, "us": 68.99}, "speedup": 1.315}
+{"M": 2048, "v_err": 0.0592, "v_us": 257.63, "fi_quant_matches_quack": true, "fi_quant_us": 7.74, "v_quant_us": 10.17, "p_best": {"cfg": "256x256 c2 dyn1", "err": 0.0591, "us": 203.33}, "speedup": 1.267}
+{"M": 4096, "v_err": 0.0592, "v_us": 510.02, "fi_quant_matches_quack": true, "fi_quant_us": 12.64, "v_quant_us": 14.62, "p_best": {"cfg": "256x256 c2 dyn1", "err": 0.0591, "us": 404.35}, "speedup": 1.261}
+{"M": 8192, "v_err": 0.0592, "v_us": 1013.98, "fi_quant_matches_quack": true, "fi_quant_us": 21.7, "v_quant_us": 23.58, "p_best": {"cfg": "256x256 c2 dyn0", "err": 0.0591, "us": 807.04}, "speedup": 1.256}
