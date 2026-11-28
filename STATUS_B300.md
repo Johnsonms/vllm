@@ -585,3 +585,6 @@ Same picture as B200: the default TRT-LLM path beats Triton + P1 + P2. GSM8K (on
 - Per-question flips: within Triton 13.5 per run pair (11–16), within P2 18.0 (16–20), between arms 18.2 (14–22). One question is right in all 4 Triton runs and wrong in all 4 P2 runs; none the other way.
 - So the B13 −0.68 pt was mostly noise: the between-arm flips match P2's own run-to-run flips. P2 is somewhat less run-to-run stable than Triton (18 vs 13.5 flips within arm), but its mean accuracy is within one sd.
 Item 1 and the profile: see the partial above. B14 complete; GPUs free.
+
+## B15 — ack 2026-11-28 15:50Z
+Starting NVFP4 kernel scouting on SM103: pick an ungated NVFP4 dense checkpoint, serve-profile vLLM's linear / act-quant kernels, check QuACK consumes the weights as is, then microbench plain and gated NVFP4 GEMMs vs vLLM's. Kernels only, code local.
