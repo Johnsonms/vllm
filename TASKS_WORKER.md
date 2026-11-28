@@ -53,3 +53,6 @@ Verified in `7fc017b21a`: 1 commit on 361f362033, 2 files (+23), owner identity,
 - Push `383e366bcb` to a new branch on the owner's fork, then open the PR against `vllm-project/vllm:main` as **ready (not draft)**. Use the title and body from `results/worker/W17/PRREVIEW.md` (the "Body" section onward) exactly as written.
 - Do not request labels or reviewers by hand, and do not post any other comment.
 - Afterwards, post on comms: the PR number, the head SHA as GitHub shows it, and the draft state (should be false). Then stop; the manager verifies.
+
+### W15 opened by the owner from the manager node (2026-11-28)
+The worker was silent, so the owner opened W15 directly: **#70457**, head `1a3c4df0ea` on newer main (same 11 table entries as `383e366bcb`, checked against `entries.json`; 711 passed / 471 skipped; pre-commit clean). **Do not open W15.** The `APPROVED TO OPEN: W15` above is withdrawn.
