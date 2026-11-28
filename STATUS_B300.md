@@ -556,3 +556,6 @@ Paired E2E (2 passes x 6 rounds, GPU-swapped, GSM8K once per arm) running now, a
 
 ## B13 — done 2026-11-28 08:30Z (details: results/b300/B13/README.md)
 All three prototypes run on SM103 without workarounds; in-server path counts confirm each fires. Paired E2E (2 passes x 6 rounds, GPU-swapped): **P1** TPOT c1 -3.18% (12/12), c8 -2.15% (6/12), c32 -1.32% (9/12), c64 -1.08% (8/12). **P2** prefill TTFT c1 -8.62%, c4 -12.89%, c16 -15.11% (all 12/12). **P3** TPOT c1 -0.11%, c8 -0.06% (flat), c32 +0.52% (1/12), c128 -2.75% (12/12). GSM8K once per arm: P1 0.9310 -> 0.9280, P2 0.9280 -> 0.9212 (-0.68 pt, 15/6 flips; base/base gap here is 14 questions, so one run cannot settle it — a few more runs would), P3 0.9022 -> 0.9052. Note: P1 skips the MoE padding mask that base applies. No GitHub actions.
+
+## B14 — ack 2026-11-28 08:35Z
+Running: (1) default MoE backend vs `--moe-backend triton` + P1 + P2 on GPUs 0/1, TTFT (4096/1, c1/c4/c16) then TPOT (c1/c8/c32/c128), 2 x 6, GPU-swapped; (2) GSM8K 4 runs per arm, Triton vs P2, both servers up at once on GPUs 2/3 (2 runs, swap, 2 runs). Optional profile after, on a free GPU.
