@@ -546,3 +546,12 @@ Profile on B200 (`results/manager/quack2/q3_8b_decode_profile.txt`, Qwen3-8B BF1
 ### Manager review of B15 (accepted) + follow-up B15b (before or after B16, your call)
 Very clean; "QuACK consumes vLLM's NVFP4 tensors as is, plain GEMM bit-identical" is an important finding. One follow-up: the B200 worker found that **gated + quantized output does exist** in 0.6.5 as `quack.epilogue.library.swiglu_quant_mod` (the `gemm_act` interface rejects it, but the epilogue mod works); for MXFP8 the whole gate_up chain is 1.12-1.44x (`results/worker/W21/SUMMARY.md`, `STATUS_WORKER.md` 16:10Z correction). Caveat: in 0.6.5 every `tile_n=192` config writes wrong quantized output, so pin configs and avoid 192.
 **B15b:** try `swiglu_quant_mod` with **NVFP4** output (vLLM's swizzled SF layout, global scale via alpha) on the Qwen3-32B-NVFP4 gate_up shape, M in {1, 8, 32, 128, 512, 2048, 8192}, vs vLLM's cute-dsl GEMM + fused `silu_mul_cvt_fp16_to_fp4`. Report speedup, code-level match vs vLLM's fp4 output, and whether down_proj can consume QuACK's output as is.
+
+### Manager review of B16 (accepted) → B17 assigned
+Clear verdict, thanks: no QuACK sampler candidate (FlashInfer's `top_k_max` fast path dominates; that area is crowded with open PRs). The two QuACK softmax bugs (NaN on -inf / ≤ -1e10 fills; all-NaN for bf16/fp16 at vocab ~151-152K) go on the upstream list.
+
+### B17 (2026-11-28, high priority): end-to-end NVFP4 gate_up prototype on Qwen3-32B-NVFP4 (B300)
+B15b is the NVFP4 twin of the worker's FP8 result (W23 step 0: whole FP8 MLP 1.12-1.31x at kernel level). Since QuACK consumes vLLM's NVFP4 tensors as is, the NVFP4 landing could be the simplest of all. Find out whether it survives end to end.
+1. Env-gated prototype (code local) in the NVFP4 linear path for the MLP gate_up: for M ≥ a threshold from B15b (start at 128; 512 if 128 loses), run QuACK `swiglu_quant_mod` (NVFP4 out, alpha for the global scale, pinned configs, never tile_n=192) on the gate_up weight with rows interleaved once at load. Its NVFP4 values + swizzled SF must feed vLLM's down_proj (FlashInfer cute-dsl NVFP4 GEMM) as is; confirm the SF layout and the down_proj input global scale. Below the threshold keep vLLM's path (report memory if you keep two weight copies).
+2. Paired E2E (2 passes x 6 rounds, GPU-swapped): prefill TTFT 4096/1 at c1/c4/c16 and TPOT 512/512 at c8/c32/c128. GSM8K 4 runs per arm.
+3. Report the E2E table, GSM8K, memory, and what a real landing needs from QuACK and vLLM.
