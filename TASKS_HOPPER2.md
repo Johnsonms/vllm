@@ -13,3 +13,16 @@ If the first node already pushed partial H4 results in `results/hopper/`, start 
 ## Later (the manager will move these over as the first node finishes)
 - H3's Qwen3-32B SwiGLU E2E on SM90, if the first node has not run it.
 - Any new SM90 follow-ups from the round.
+
+## Update (manager): H4 kernel phase is already done by the first node → your H2-4 is now the E2E phase
+Read `results/hopper/H4/SUMMARY.md` and `sweep_w4.txt` first. Result: QuACK `gemm_w4a16(wformat="int4awq")` with a **per-shape tuned config** beats vLLM's Machete on H100: per-layer sum 8B 1.50x (M=1) / 1.36x (32) / 1.11x (512) / 1.13x (2048); 32B 1.19x / 1.13x / 1.11x / 1.05x. Machete is 72-89% of kernel time, so the projected step-time saving is large (8B ~24% at c1). Caveats: BF16 activations only (AWQ checkpoints are FP16), group 128 only, needs a load-time repack (3-6 ms per layer).
+
+**H2-4 (E2E):**
+1. Env-gated prototype (code local) in vLLM's AWQ linear path (`AutoAWQMarlinLinearMethod` → `MacheteLinearKernel`): at load, repack each layer's AWQ weights for QuACK (`prepare_w4_weight(..., "int4awq")`); at runtime call `gemm_w4a16` with a fixed per-(N, K, M-bucket) config table from `sweep_w4.txt` (no runtime autotuning; check graph capture works and that a new M does not recompile). Fall back to Machete for anything the table does not cover.
+2. Paired E2E, Qwen3-8B-AWQ and Qwen3-32B-AWQ, TP1, 2 passes x 6 rounds, GPU-swapped. **Two baselines**, because QuACK needs BF16:
+   - (a) the real default: Machete with the checkpoint's FP16 (no `--dtype`) vs QuACK with `--dtype bfloat16`;
+   - (b) like for like: Machete `--dtype bfloat16` vs QuACK `--dtype bfloat16`.
+   TPOT 512/512 at c1/c8/c32/c128, prefill TTFT 4096/1 at c1/c4/c16.
+3. GSM8K, 4 runs per arm, for (a): FP16 Machete vs BF16 QuACK. BF16 vs FP16 activations is the main accuracy risk.
+4. Report: E2E tables, GSM8K, load-time cost, memory, and what landing needs (vLLM kernel class, QuACK changes such as FP16 activation support or other group sizes).
+Then, if the first node has not done it: **H3 Qwen3-32B SwiGLU E2E** on SM90 (spec in `TASKS_HOPPER.md` H3; per-shape table in `results/hopper/H3/`).
