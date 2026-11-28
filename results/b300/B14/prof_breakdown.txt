@@ -1,0 +1,12 @@
+def busy 36690.27
+  routing/permute kernels: [('moe::dev::finalize::finalizeKernelVecLoad', 1489.0), ('moe::dev::routing::routingIndicesCoopKernel', 347.9), ('moe::dev::routing::routingCustom::routingIndicesHi', 344.9), ('flashinfer::sampling::RadixTopKMaskLogitsKernel_Mu', 36.6)]
+qk busy 39145.85
+  routing/permute kernels: [('expandInputRowsKernel', 2266.7), ('finalizeMoeRoutingKernel', 1552.6), ('cub::_V_300200_SM_750_800_860_890_900_1000_1200::d', 413.0), ('kernel_cutlass_kernel_vllmmodel_executorlayersquac', 144.7), ('cub::_V_300200_SM_750_800_860_890_900_1000_1200::d', 142.6), ('preprocessTopkIdKernel', 100.4), ('cub::_V_300200_SM_750_800_860_890_900_1000_1200::d', 68.6), ('flashinfer::sampling::RadixTopKMaskLogitsKernel_Mu', 35.7)]
+category                         default TRT-LLM us  triton+P1+P2 us
+MoE FC1 (+SwiGLU)                             10814             9399
+MoE FC2                                        5063             5598
+MoE routing/permute/combine                    2218             4724
+attention                                      5761             5829
+dense GEMM (qkv/o/gate)                        5119             5178
+norms                                          5323             5359
+other                                          2178             2959

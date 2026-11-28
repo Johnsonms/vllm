@@ -559,3 +559,22 @@ All three prototypes run on SM103 without workarounds; in-server path counts con
 
 ## B14 — ack 2026-11-28 08:35Z
 Running: (1) default MoE backend vs `--moe-backend triton` + P1 + P2 on GPUs 0/1, TTFT (4096/1, c1/c4/c16) then TPOT (c1/c8/c32/c128), 2 x 6, GPU-swapped; (2) GSM8K 4 runs per arm, Triton vs P2, both servers up at once on GPUs 2/3 (2 runs, swap, 2 runs). Optional profile after, on a free GPU.
+
+## B14 — partial 2026-11-28 15:30Z (sorry for the silence: item 1 finished at 09:45Z, but my GSM8K-repeat script hung and I did not report)
+**Hang, cause:** the GSM8K repeat loop used a bare `wait`, which also waited on the two background vLLM servers, so it blocked forever after run 1 (08:24Z). Killed at 15:20Z, fixed (`wait` on the GSM PIDs only), and relaunched: 4 runs per arm, ~1 min per run, results within ~15 min.
+
+**1. Default MoE (SM103 picks `TrtLlmBf16ExpertsMonolithic`, confirmed in the log) vs `--moe-backend triton` (`TritonExperts`) + P1 + P2.** Qwen3-30B-A3B BF16, 2 passes x 6 rounds, GPU-swapped; + means the QuACK arm is slower.
+| | c | pass 1 | pass 2 | mean | QuACK arm faster |
+|---|---:|---|---|---:|---:|
+| TTFT 4096/1 | 1 | 51.68 -> 48.90 ms (-5.38%) | 50.19 -> 53.93 (+7.45%) | +1.03% | 6/12 |
+| | 4 | 132.6 -> 142.2 (+7.21%) | 130.2 -> 140.3 (+7.80%) | **+7.50%** | 0/12 |
+| | 16 | 481.9 -> 505.5 (+4.89%) | 476.4 -> 513.6 (+7.81%) | **+6.35%** | 0/12 |
+| TPOT 512/512 | 1 | 2.862 -> 3.234 (+12.98%) | 2.837 -> 3.259 (+14.88%) | **+13.93%** | 0/12 |
+| | 8 | 4.950 -> 5.669 (+14.52%) | 4.797 -> 5.601 (+16.75%) | **+15.64%** | 0/12 |
+| | 32 | 7.219 -> 8.501 (+17.76%) | 7.440 -> 8.454 (+13.63%) | **+15.70%** | 0/12 |
+| | 128 | 11.34 -> 13.07 (+15.24%) | 11.38 -> 13.08 (+14.94%) | **+15.09%** | 0/12 |
+Same picture as B200: the default TRT-LLM path beats Triton + P1 + P2. GSM8K (once per arm, from the TPOT run): default 0.9249, QuACK arm 0.9265.
+
+**Optional profile** (`vllm bench forward`, one 4096-token prefill, real weights/routing; `results/b300/B14/prof_breakdown.txt`): forward 37.8 ms (default) vs 41.0 ms (QuACK arm). Per category, default vs QuACK, µs: MoE FC1+SwiGLU 10814 vs **9399** (QuACK 1.15x faster); MoE FC2 **5063** vs 5598 (TRT-LLM 1.11x faster); routing + permute + combine **2218** vs 4724 (QuACK arm pays `expandInputRows` 2267 + `finalizeMoeRouting` 1553 + cub sort ~620; TRT-LLM gathers inside FC1 and only runs finalize 1489 + 2 small routing kernels); attention / dense / norms equal. So QuACK's grouped GEMM wins FC1, but the separate permute/unpermute costs more than the GEMM gains.
+
+**2. GSM8K x4 per arm (Triton vs P2):** running now on GPUs 2/3.
