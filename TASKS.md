@@ -754,3 +754,9 @@ Goal: find out whether the kernel win survives end to end and what it costs in a
 2. Forward for M ≥ a threshold you pick from W21 (start at 32): activation MXFP8 quant (find the fastest available kernel: vLLM / FlashInfer `mxfp8_quantize`, or fold it into the preceding RMSNorm if cheap) → gate_up via `swiglu_quant_mod` (MXFP8 out, configs pinned, **never tile_n=192**) → down_proj via QuACK MXFP8 plain GEMM. Below the threshold, keep vLLM's DeepGEMM path (keep both weight copies for the prototype; report the memory cost).
 3. Paired E2E as usual (2 passes x 6 rounds, GPU-swapped): TPOT c1/c8/c32/c128 and prefill TTFT 4096/1 c1/c4/c16. GSM8K **4 runs per arm** (re-quantization changes the weights, so accuracy is the main risk).
 4. Report: E2E table, GSM8K, memory, and the list of QuACK / vLLM changes a real landing would need (e.g. QuACK support for 1x128 / 128x128 FP8 scales, which would remove the re-quant).
+
+## Manager review of W23 (accepted) → W24
+Strong result: prefill TTFT -4..-8 % (35/36), decode -1.4 / -2.8 % at c32 / c128 on Qwen3-8B-FP8. Two loose ends before this goes into the landing plan:
+1. **Decode gap** (kernel estimate ~7 % at c32, E2E -1.4 %): profile v2 at c32 (base vs prototype, same GPU) and account for the difference per kernel (warm L2 effects, launch gaps, the activation-quant kernel, any copy / layout op like the one I found in my QKV prototype, where attention silently `.contiguous()`-copied a strided q).
+2. **Accuracy sign**: GSM8K is -0.4 pt in all 4 runs. Check whether it comes from the MXFP8 **re-quantization** of the weights: compare per-layer weight error (block-128 dequant vs MXFP8 dequant) and, if cheap, run base with the prototype forced to M ≥ 1 (all QuACK) vs forced off, greedy-diff on 64 prompts.
+Deliverable: `results/worker/W24/SUMMARY.md`. Keep W19 as is (waiting on the owner).
