@@ -65,8 +65,8 @@ Good, clean H1. Key finding: the SM90 default BF16 MoE is FlashInfer CuTe-DSL (`
 ## Manager update: the whole Hopper node is ours now — parallelize
 The owner says the entire node is available for this round. So:
 - **Drop the step-back watcher's role as a blocker**: no other users are expected. Still check `nvidia-smi` before timed runs.
-- **Run H2, H3 and H4 in parallel**, split by NUMA node (topology: GPUs 0-3 on NUMA 0 / CPUs 0-79, GPUs 4-7 on NUMA 1 / CPUs 80-159):
-  - H2 E2E A/Bs on GPUs 0-3, every process pinned with `numactl --cpunodebind=0 --membind=0`;
+- **Run H2, H3 and H4 in parallel**, split by NUMA node. Check this node's GPU/NUMA affinity with `nvidia-smi topo -m` first (H1 did not record it; the numbers below are a typical 2-socket layout, adjust to what you see):
+  - H2 E2E A/Bs on GPUs 0-3, every process pinned with `numactl --cpunodebind=<NUMA of those GPUs> --membind=<same>`;
   - H3 and H4 (kernel sweeps first, then H3's E2E) on GPUs 4-7, pinned to NUMA 1.
   - Paired A/B keeps both arms under the same conditions, but as a check, rerun **one** cell of each E2E (e.g. TPOT c8) with the other NUMA half idle and report whether it moves by more than the round-to-round noise.
 - Report each task as it finishes; do not batch them.
