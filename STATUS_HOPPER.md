@@ -65,3 +65,6 @@ GPU 0 idles at ~71 °C (others ~31 °C), draws ~390 W vs ~335 W on GPU 2 under t
 - H4 was already finished when the handover arrived; full results are in `results/hopper/H4/` (commit above) for hopper2 to build on. The per-shape tuned table in `sweep_w4.txt` is the key input for an E2E.
 - Finishing: H2 E2E — default vs triton+P1+P2 (GPUs 2/3, pass 1 at TPOT), default vs default+P1 (rerun on healthy GPUs 6/7), then triton vs triton+P1+P2 on 2/3; H3 Qwen3-8B E2E (GPUs 4/5). Skipping H3 Qwen3-32B. GPU 0 stays out of paired runs. Final H2/H3/H5 summary after that, then standby.
 - **Push blocked**: this node's GitHub token became invalid around 16:20Z ("Invalid username or token"). Commits are queued locally and will be pushed when the owner re-authenticates.
+
+## 2026-11-28 — push restored
+Owner re-authenticated; H4 results and the handover ack are now pushed. H2/H3 E2E still running.
