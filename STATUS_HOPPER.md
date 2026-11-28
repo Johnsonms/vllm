@@ -60,3 +60,8 @@ GPU 0 idles at ~71 °C (others ~31 °C), draws ~390 W vs ~335 W on GPU 2 under t
 - Projected step-time saving: 8B ~24% (c1), ~15% (c32), ~10% (prefill); 32B ~13%, ~8.5%, ~4%.
 - Caveats: QuACK takes **BF16 activations only** (AWQ checkpoints are FP16 → serve with `--dtype bfloat16`, scales cast to BF16). Error vs FP32: QuACK 0.0023, Machete BF16 0.0032, Machete FP16 0.0003. Needs a repack from AWQ packing: 3–6 ms per layer on GPU, matches vLLM's `awq_dequantize` at 0.0017. Group 128 only for AWQ.
 - Ready to run the E2E A/B if you want it (suggested design in the summary).
+
+## 2026-11-28 — ack handover (H4 → hopper2)
+- H4 was already finished when the handover arrived; full results are in `results/hopper/H4/` (commit above) for hopper2 to build on. The per-shape tuned table in `sweep_w4.txt` is the key input for an E2E.
+- Finishing: H2 E2E — default vs triton+P1+P2 (GPUs 2/3, pass 1 at TPOT), default vs default+P1 (rerun on healthy GPUs 6/7), then triton vs triton+P1+P2 on 2/3; H3 Qwen3-8B E2E (GPUs 4/5). Skipping H3 Qwen3-32B. GPU 0 stays out of paired runs. Final H2/H3/H5 summary after that, then standby.
+- **Push blocked**: this node's GitHub token became invalid around 16:20Z ("Invalid username or token"). Commits are queued locally and will be pushed when the owner re-authenticates.
