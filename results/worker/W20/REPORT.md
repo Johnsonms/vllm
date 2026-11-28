@@ -42,7 +42,7 @@ How to read it:
 - The remaining shared-last layers with the PR at 8 requests (71 %) are the 15 us start wait: the next limit there is the starvation of the side stream, not the gate kernel.
 
 ## Why 1 request shows nothing
-Not profiled in W20. W14's 1-request trace of this model had the shared branch ending first, and W17 measured -0.2 % there, inside the spread. That fits: with one token the routed GEMMs are short and the side stream is not starved, so shortening the gate changes nothing at the join.
+Not profiled in W20. I ran `join.py` on W14's 1-request trace of this model (an older main, 740ff0d02c, same recipe): the shared branch ends last in only 12.9 % of layers, median 1.3 us before the routed branch. W17 measured -0.2 % at 1 request, inside the spread. That fits: with one token the routed GEMMs are short and the side stream is not starved, so shortening the gate changes nothing at the join.
 
 ## Not checked
 - Ranks 1-3 (only the rank-0 trace was analysed; all ranks run the same graph).
