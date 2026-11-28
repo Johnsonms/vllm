@@ -1,0 +1,11 @@
+== PR b8b5ff3926
+TEXT: ' Paris, a city renowned for its iconic landmarks such as the Eiffel Tower,'
+COUNT cutlass_block_apply: 2560
+COUNT cutlass_block_apply_prequant N_K=(12288, 2048): 480
+COUNT cutlass_block_apply_prequant N_K=(2048, 512): 640
+COUNT cutlass_block_apply_prequant N_K=(9216, 2048): 160
+COUNT norm_quant key=QuantKey(f8e4m3fn,scale(f32,dynamic,GroupShape(row=1, col=128)),symmetric): 640
+== base 269fca48a1
+TEXT: ' Paris, a city renowned for its iconic landmarks such as the Eiffel Tower,'
+COUNT cutlass_block_apply: 2560
+COUNT cutlass_block_apply_prequant N_K=(2048, 512): 640
