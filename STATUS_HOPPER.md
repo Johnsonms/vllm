@@ -53,3 +53,10 @@ Also ack H5 (permute overhead); will start its kernel work as soon as a GPU free
 
 ## 2026-11-28 — hardware note: GPU 0 is an outlier — excluded from paired E2E
 GPU 0 idles at ~71 °C (others ~31 °C), draws ~390 W vs ~335 W on GPU 2 under the same load at the same 1980 MHz with no throttle reason flagged, and is ~8–9% slower E2E: the default arm's TTFT c16 was 1067 ms on GPU 0 vs 981 ms on GPU 2. The first "default vs default+P1" run sat on GPUs 0/1 (its pass-1 TTFT c16 showed −7.5% for P1, which was GPU 0, not P1), so I stopped it and will rerun it on a healthy pair. GPU 0 now only runs single-GPU kernel microbenches (relative numbers). Worth a hardware check by the owner.
+
+## 2026-11-28 — H4 done: QuACK W4A16 beats Machete on H100 after per-shape tuning — passes the gate (results/hopper/H4/SUMMARY.md)
+- vLLM uses **Machete** (`MacheteLinearKernel` via AutoAWQMarlin) for Qwen3-8B/32B-AWQ on H100. Machete is 72% / 57% / 87% of GPU time at c1 / c32 / prefill for 8B, and 84% / 73% / 89% for 32B. No ungated Qwen3 GPTQ-Int4 repo exists.
+- Kernel (cold L2, CUPTI), per-layer sum of qkv/o/gate_up/down, tuned QuACK vs Machete FP16: **8B 1.50x (M=1), 1.36x (32), 1.11x (512), 1.13x (2048); 32B 1.19x, 1.13x, 1.11x, 1.05x.** QuACK's built-in config heuristic gives much less (8B 1.33x / 1.15x / 0.87x / 1.10x; 32B ~1.0x), so an integration needs a per-shape table.
+- Projected step-time saving: 8B ~24% (c1), ~15% (c32), ~10% (prefill); 32B ~13%, ~8.5%, ~4%.
+- Caveats: QuACK takes **BF16 activations only** (AWQ checkpoints are FP16 → serve with `--dtype bfloat16`, scales cast to BF16). Error vs FP32: QuACK 0.0023, Machete BF16 0.0032, Machete FP16 0.0003. Needs a repack from AWQ packing: 3–6 ms per layer on GPU, matches vLLM's `awq_dequantize` at 0.0017. Group 128 only for AWQ.
+- Ready to run the E2E A/B if you want it (suggested design in the summary).

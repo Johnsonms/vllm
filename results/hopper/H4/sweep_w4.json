@@ -1,0 +1,178 @@
+{
+ "8b.qkv": {
+  "1": {
+   "auto_us": 15.775999999999998,
+   "best_us": 11.744,
+   "best_cfg": "tm64 tn16 sk1"
+  },
+  "32": {
+   "auto_us": 19.008,
+   "best_us": 11.745000000000001,
+   "best_cfg": "tm64 tn32 sk1"
+  },
+  "512": {
+   "auto_us": 41.408,
+   "best_us": 40.096,
+   "best_cfg": "tm64 tn128 sk1"
+  },
+  "2048": {
+   "auto_us": 130.945,
+   "best_us": 130.656,
+   "best_cfg": "tm128 tn256 sk1"
+  }
+ },
+ "8b.o": {
+  "1": {
+   "auto_us": 10.176,
+   "best_us": 10.144,
+   "best_cfg": "tm64 tn16 sk2"
+  },
+  "32": {
+   "auto_us": 11.84,
+   "best_us": 10.463999999999999,
+   "best_cfg": "tm64 tn32 sk2"
+  },
+  "512": {
+   "auto_us": 40.832,
+   "best_us": 23.713,
+   "best_cfg": "tm64 tn256 sk1"
+  },
+  "2048": {
+   "auto_us": 88.96,
+   "best_us": 87.745,
+   "best_cfg": "tm128 tn256 sk1"
+  }
+ },
+ "8b.gate_up": {
+  "1": {
+   "auto_us": 34.08,
+   "best_us": 29.919999999999998,
+   "best_cfg": "tm64 tn16 sk1"
+  },
+  "32": {
+   "auto_us": 35.073,
+   "best_us": 30.976,
+   "best_cfg": "tm64 tn32 sk1"
+  },
+  "512": {
+   "auto_us": 130.976,
+   "best_us": 129.664,
+   "best_cfg": "tm128 tn256 sk1"
+  },
+  "2048": {
+   "auto_us": 512.9639999999999,
+   "best_us": 512.564,
+   "best_cfg": "tm128 tn256 sk1"
+  }
+ },
+ "8b.down": {
+  "1": {
+   "auto_us": 20.352,
+   "best_us": 18.784,
+   "best_cfg": "tm64 tn16 sk2"
+  },
+  "32": {
+   "auto_us": 21.055999999999997,
+   "best_us": 20.0,
+   "best_cfg": "tm64 tn32 sk2"
+  },
+  "512": {
+   "auto_us": 115.137,
+   "best_us": 65.281,
+   "best_cfg": "tm64 tn256 sk1"
+  },
+  "2048": {
+   "auto_us": 254.52700000000002,
+   "best_us": 254.52700000000002,
+   "best_cfg": "auto"
+  }
+ },
+ "32b.qkv": {
+  "1": {
+   "auto_us": 25.857000000000003,
+   "best_us": 19.2,
+   "best_cfg": "tm128 tn16 sk1"
+  },
+  "32": {
+   "auto_us": 26.208,
+   "best_us": 20.32,
+   "best_cfg": "tm128 tn32 sk1"
+  },
+  "512": {
+   "auto_us": 104.608,
+   "best_us": 80.096,
+   "best_cfg": "tm128 tn192 sk1"
+  },
+  "2048": {
+   "auto_us": 268.032,
+   "best_us": 266.27,
+   "best_cfg": "tm128 tn256 sk1"
+  }
+ },
+ "32b.o": {
+  "1": {
+   "auto_us": 24.576,
+   "best_us": 17.665,
+   "best_cfg": "tm128 tn16 sk2"
+  },
+  "32": {
+   "auto_us": 24.608999999999998,
+   "best_us": 18.976,
+   "best_cfg": "tm128 tn32 sk2"
+  },
+  "512": {
+   "auto_us": 77.21600000000001,
+   "best_us": 62.528,
+   "best_cfg": "tm128 tn192 sk1"
+  },
+  "2048": {
+   "auto_us": 246.591,
+   "best_us": 238.15900000000002,
+   "best_cfg": "tm128 tn128 sk1"
+  }
+ },
+ "32b.gate_up": {
+  "1": {
+   "auto_us": 76.096,
+   "best_us": 75.424,
+   "best_cfg": "tm128 tn16 sk1"
+  },
+  "32": {
+   "auto_us": 78.75200000000001,
+   "best_us": 78.591,
+   "best_cfg": "tm128 tn32 sk1"
+  },
+  "512": {
+   "auto_us": 366.862,
+   "best_us": 352.668,
+   "best_cfg": "tm64 tn256 sk1"
+  },
+  "2048": {
+   "auto_us": 1524.057,
+   "best_us": 1349.817,
+   "best_cfg": "tm128 tn256 sk1"
+  }
+ },
+ "32b.down": {
+  "1": {
+   "auto_us": 57.6315,
+   "best_us": 43.551,
+   "best_cfg": "tm128 tn16 sk2"
+  },
+  "32": {
+   "auto_us": 57.728,
+   "best_us": 47.168,
+   "best_cfg": "tm128 tn32 sk2"
+  },
+  "512": {
+   "auto_us": 237.00650000000002,
+   "best_us": 187.35999999999999,
+   "best_cfg": "tm128 tn192 sk1"
+  },
+  "2048": {
+   "auto_us": 747.965,
+   "best_us": 708.4010000000001,
+   "best_cfg": "tm128 tn256 sk2"
+  }
+ }
+}

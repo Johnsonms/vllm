@@ -1,0 +1,12 @@
+== awq8b_fp16 c1
+== awq8b_fp16 c32
+== awq8b_fp16 prefill
+== awq8b_bf16 c1
+== awq8b_bf16 c32
+== awq8b_bf16 prefill
+== awq32b_fp16 c1
+== awq32b_fp16 c32
+== awq32b_fp16 prefill
+== awq32b_bf16 c1
+== awq32b_bf16 c32
+== awq32b_bf16 prefill
