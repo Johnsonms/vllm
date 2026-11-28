@@ -67,3 +67,39 @@ Also tested, no hang: a second 4-rank rendezvous on the same GPUs while another 
 2. An environment switch that turns off both rendezvous. Today this needs `--disable-custom-all-reduce` plus `VLLM_ALLREDUCE_USE_SYMM_MEM=0` plus the FlashInfer backend variable; one documented switch would do.
 3. A watchdog around the rendezvous that aborts the worker with a clear message after N seconds. It cannot recover (the driver call is not interruptible), but it turns a silent hang into an error that names the cause.
 - Upstream torch: the multicast bind has no timeout and no pre-check that the devices can form a group; worth an issue once reproduced with `repro.py` alone.
+
+## 7. FINAL (2026-11-28 06:55Z): root cause, guard proposal, unit-test plan
+
+### Root cause
+- **Environment, exposed by a missing check in vLLM and a missing timeout in torch.** On the manager node physical GPU 4 has no active NVLink (manager: `nvidia-smi nvlink -s -i 4` shows 0 links up; `topo -m` shows `SYS` / `PHB` to every other GPU, where healthy pairs show `NV18`).
+- A TP4 group on GPUs 2-5 therefore contains one GPU that cannot join an NVLink multicast group. torch's symm-mem rendezvous still tries: every rank imports the multicast object, adds its device and calls `cuMulticastBindMem`, which waits for all devices. No rank raises, so vLLM's `try / except RuntimeError` never fires. All ranks stay in the rendezvous.
+- It is not FABRIC: my node has no IMEX channel either and runs the POSIX-fd path with working multicast (section 1).
+- Status of the evidence: the NVLink state and the NCCL split are measured on the manager node; the contrast and the source reading are mine. **The native stack that should show `cuMulticastBindMem`, and `repro.py` with and without `TORCH_SYMM_MEM_DISABLE_MULTICAST=1`, are still to come from the manager.** Until then "bind" is the most likely blocking call, not a proven one.
+
+### Answers to the brief
+1. *Where does torch spin, is it a torch bug?* There is no busy-wait loop in torch's rendezvous; the waits are blocking calls (store get, `recvmsg`, driver calls). Most likely call here: `cuMulticastBindMem`. Two things are worth an upstream torch issue once `repro.py` reproduces it alone: (a) no pre-check that the group's devices can form a multicast group, and no timeout on the bind; (b) the fd-exchange socket at `$TMPDIR/symm_mem-<pid>` is bound without removing a stale file and is not cleaned up when the process is killed (section 3).
+2. *Why non-deterministic?* Not answered from my node. A link that is inactive only some of the time would explain a run that passed both init rendezvous (hang1) and later hung in FlashInfer's own MNNVL multicast setup, which does the same add-device and bind sequence. The manager's `TORCH_CPP_LOG_LEVEL=INFO` start plus the link state at that moment would settle it.
+3. *Right guard?* Below. A FABRIC probe is the wrong signal. The device-level multicast attribute is also not enough: a GPU with no link up still reports it.
+4. *`TORCH_SYMMMEM=NCCL` / is the buffer used on one node?* On a healthy single node the rendezvous returns a nonzero multicast pointer (measured here), so `_init_mnnvl_buffer` does not return early and the buffer is registered. `TORCH_SYMM_MEM_DISABLE_MULTICAST=1` is the torch switch that skips the multicast phase; then `multicast_ptr == 0` and the function returns early. I did not test `TORCH_SYMMMEM=NCCL`.
+5. *Standalone repro:* `repro.py` in this folder (torch only). It needs a GPU without NVLink to show the bind hang, so only the manager node can run that case; here it shows the normal case and the stale-socket case.
+
+### An existing check that should have caught it, and did not
+`CustomAllreduce.__init__` already calls `current_platform.is_fully_connected(physical_device_ids)` and returns early ("not supported on more than two PCIe-only GPUs") when it is false. hang2 reached `_init_mnnvl_buffer`, which is after that return. **So on the manager node `is_fully_connected` answered true for GPUs 2-5 although GPU 4 has no link up.** It asks NVML for the pairwise P2P status with the NVLink capability index; that evidently does not reflect the live link state. Manager: please confirm by calling it for `[2, 3, 4, 5]` on your node.
+
+### Proposed guard (prose only; nothing written into the tree)
+1. **One helper, "every rank of this single-node group has live NVLink".** Each rank asks NVML for its own GPU's links (the links with the P2P capability) and counts the active ones; the result "at least one active" is all-reduced with MIN over the group, like the existing `_all_ranks_true`. FlashInfer's `support_nvlink` does the same per-device count, so the method is already trusted in this code base. If NVML is unavailable, return "unknown" and keep today's behaviour.
+2. **Use it in three places, on all ranks alike (the vote is collective, so no rank enters alone):**
+   - `SymmMemCommunicator.__init__`: next to the existing multi-node topology check. If false: warn with the rank and GPU that has no link, communicator not available.
+   - `CustomAllreduce.__init__`: combine it with `fully_connected`. If false: take the existing "disabled" return, which also skips `_init_mnnvl_buffer`.
+   - FlashInfer backend selection (`_resolve_fi_ar_backend`): if false on a single node, do not pick `mnnvl`. I have not checked whether `trtllm` works across a GPU without NVLink; if it does not, the answer is no FlashInfer all-reduce for that group.
+3. **Message.** The warning should say which physical GPU has no active NVLink and that the fast all-reduce paths are off because of it. The real fix is to repair the link or not to put that GPU in the group.
+4. **Not proposed:** a FABRIC probe (wrong signal, section 1); a thread timeout around the rendezvous (the driver call cannot be interrupted, and peers would be left in an undefined collective state). A watchdog that aborts the worker with a clear error is acceptable as a second line of defence.
+
+### Unit-test plan (style of `tests/distributed/test_custom_all_reduce.py`, all mocked, no GPU)
+1. *Helper, local part:* fake NVML with 18 links active -> true; all links inactive -> false; link indices beyond the device's count raising InvalidArgument are skipped; NVML import failure -> "unknown".
+2. *Helper, group part:* local true but the mocked all-reduce returns 0 -> false (pattern of `test_cross_node_mnnvl_gate_requires_support_on_every_rank`).
+3. *`CustomAllreduce`:* same-node group, 4 ranks, `is_fully_connected` mocked true, helper false -> `disabled` stays true, `_init_mnnvl_buffer` and `torch_symm_mem.rendezvous` are never called (mock raises if called), one warning. Helper true -> `_init_mnnvl_buffer` called once.
+4. *`SymmMemCommunicator`:* helper false -> `disabled`, `torch_symm_mem.empty` / `rendezvous` never called. Helper true -> rendezvous called once.
+5. *FlashInfer backend:* single node, auto, helper false -> not `mnnvl`.
+6. *Regression for healthy hosts:* helper true and FABRIC unavailable -> everything is attempted as today (this is my node's case and must keep working).
+7. On real hardware: `repro.py` on a group with and without the bad GPU, before and after the patch (manager node only).
