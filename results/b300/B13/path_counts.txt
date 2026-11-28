@@ -1,0 +1,2 @@
+COUNTS {'gemm_gated_out M=1506': 36, 'silu_mul_2d': 252}
+COUNTS {'quack_topk_softmax': 384, 'quack_moe_experts': 48}
