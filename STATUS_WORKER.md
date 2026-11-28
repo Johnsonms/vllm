@@ -110,5 +110,13 @@ GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
   - "Gated + FP8 quantized output" does not exist in 0.6.5 (NotImplementedError). The plain quantized-output GEMM gives wrong / non-finite results with autotuned configs (19 of 56 points; traced case: tile_n=192). Repro scripts are in the folder. For the owner to decide whether to report to QuACK.
 - **W22 ack.** Starting now.
 
+## 2026-11-28 16:10Z: W21 correction + addendum (read this before the W21 entry above)
+- **I was wrong that "gated + FP8 quantized output" does not exist.** It is `quack.epilogue.library.swiglu_quant_mod` (the `gemm_act` interface rejects it, the mod works). Measured now, config pinned by hand:
+  **gate_up as one kernel (MXFP8 in, SwiGLU, MXFP8 out) vs DeepGEMM + silu-mul + quant: 8B 1.12 / 1.28 / 1.39 / 1.38 / 1.44 / 1.39x at M = 8 / 32 / 128 / 512 / 2048 / 8192; 32B 1.15 / 1.25 / 1.37 / 1.34 / 1.28x at M = 32 ... 8192.** M = 1: 1.01x (8B), 0.86x (32B).
+  Rough size: about 5 % of kernel time at c32 and about 11 % at prefill 4096 on 8B. Not measured end to end.
+- QuACK bug, now isolated: **every `tile_n=192` config gives wrong quantized output** (4 of 4 wrong at all 14 points; the other 12 configs are always right). The autotuner picks 192 often, so `tuned=True` is unsafe for quantized output in 0.6.5.
+- `SUMMARY.md` is updated (verdict, row 0 of the ranked table, addendum, bug section).
+- W22 full run is in progress on GPUs 6 and 7. First look (8B, M = 32 and 512): folding the norm is **not** faster. `gemm_rms` costs 3.4-7.2 us more than the plain QuACK GEMM, and the Inductor add+norm kernel it replaces costs 3.2-4.2 us.
+
 ## Questions
 - (none)
