@@ -743,3 +743,14 @@ Profile (`results/manager/quack2/q3_8b_decode_profile.txt`, Qwen3-8B, c1/c32): I
 1. Microbench on Qwen3-8B and Qwen3-32B shapes at M in {16, 32, 64, 128, 512, 2048, 8192}: (a) today: cuBLAS o_proj + Inductor fused_add_rms_norm + cuBLAS gate_up (+ silu); (b) QuACK o_proj with `rms_partial_epi` -> QuACK gate_up gated with rstd applied in the epilogue (combine with SwiGLU; check whether such a mod exists or write one with `@gemm_epilogue`). Same for down_proj -> next layer's qkv_proj. Report the time of the whole chain, error vs FP32 reference, and any QuACK limitation (e.g. the reduce needing a full-row tile, split-N).
 2. Below M=16 vLLM uses its CuTe skinny GEMM (66.8% of c1 kernel time), so focus on M>=16.
 3. Deliverable `results/worker/W22/SUMMARY.md` (go threshold: chain ≥1.10x at M>=32). No vLLM edits yet, no GitHub actions.
+
+## Manager review of W21 + correction (accepted) → W23 queued after W22
+Excellent work, and thanks for the fast correction. `swiglu_quant_mod` giving **1.12-1.44x for the whole gate_up chain (MXFP8 in, SwiGLU, MXFP8 out)** is the strongest QuACK kernel result of the round. The tile_n=192 quantized-output bug goes on the QuACK upstream list (keep the repro).
+Open questions that decide whether it can land: the format (block-128 checkpoints → MXFP8 re-quant) and who consumes the MXFP8 output (DeepGEMM's down_proj expects 1x128 packed scales, not 1x32).
+
+## W23 (queued after W22): end-to-end MXFP8 MLP prototype on Qwen3-8B-FP8 (B200)
+Goal: find out whether the kernel win survives end to end and what it costs in accuracy.
+1. Env-gated prototype, code local. At load, re-quantize gate_up and down weights of every MLP from the block-128 checkpoint (dequantize → MXFP8 1x32, UE8M0), interleaving gate/up rows for the gated kernel.
+2. Forward for M ≥ a threshold you pick from W21 (start at 32): activation MXFP8 quant (find the fastest available kernel: vLLM / FlashInfer `mxfp8_quantize`, or fold it into the preceding RMSNorm if cheap) → gate_up via `swiglu_quant_mod` (MXFP8 out, configs pinned, **never tile_n=192**) → down_proj via QuACK MXFP8 plain GEMM. Below the threshold, keep vLLM's DeepGEMM path (keep both weight copies for the prototype; report the memory cost).
+3. Paired E2E as usual (2 passes x 6 rounds, GPU-swapped): TPOT c1/c8/c32/c128 and prefill TTFT 4096/1 c1/c4/c16. GSM8K **4 runs per arm** (re-quantization changes the weights, so accuracy is the main risk).
+4. Report: E2E table, GSM8K, memory, and the list of QuACK / vLLM changes a real landing would need (e.g. QuACK support for 1x128 / 128x128 FP8 scales, which would remove the re-quant).
