@@ -190,5 +190,10 @@ GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
 ## 2026-11-28 18:45Z: W21 headline table re-run with the corrected baseline
 - Appended to `results/worker/W21/SUMMARY.md`. gate_up chain (`swiglu_quant_mod` vs DeepGEMM + silu-mul + packed quant), warm, corrected vLLM arm: **8B 0.81 / 0.69 / 0.95 / 1.35 / 1.26 / 1.36 / 1.48x at M = 1 / 8 / 32 / 128 / 512 / 2048 / 8192; 32B 0.75 / 0.80 / 1.08 / 1.25 / 1.29 / 1.27 / 1.38x.** So: 1.25-1.48x from M = 128, nothing at M <= 32. The plain-GEMM tables do not involve the quant path and were not re-run.
 
+## 2026-11-28 18:56Z: W25 ack, prototype rebuilt, E2E running
+- Rebuilt B17 on B200 from the description (local code, main 361f362033, `nvidia/Qwen3-32B-NVFP4`, all 256 linears on `FlashInferCuteDslNvFp4LinearKernel`). Same design: `prepare_input` -> one op -> `QuantizedActivation` -> down_proj; M >= 128 = QuACK gated GEMM with alpha + SwiGLU + NVFP4 out, configs 128x128 (M < 512) and 256x256 2-CTA dynamic; below 128 vLLM's cute-dsl GEMM + `silu_and_mul_nvfp4_quant`.
+- Worked on the first start. In-server check against vLLM's branch on the same inputs: codes 99.4 % equal, scales 97.3 % equal (warm-up inputs, every graph size 128 ... 16384). Extra memory 147.5 MB per layer = 9.44 GB (8.79 GiB) for 64 layers.
+- Paired E2E (2 x 6, TTFT 4096/1 c1/c4/c16, TPOT 512/512 c8/c32/c128, GSM8K once per arm per pass) is running on GPUs 2,3 and 5,4.
+
 ## Questions
 - (none)
