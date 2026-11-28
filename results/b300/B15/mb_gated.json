@@ -1,0 +1,135 @@
+[
+ {
+  "op": "gate_up+swiglu+nvfp4",
+  "N": 51200,
+  "K": 5120,
+  "M": 1,
+  "rel_quack_bf16_then_quant": 0.09031368792057037,
+  "rel_vllm_unfused": 0.09034239500761032,
+  "rel_quack_bf16_vs_vllm": 0.02679968625307083,
+  "codes_equal_frac_q2": 0.9885156154632568,
+  "err_check": "RuntimeError('config GemmConfig(tile_m=128, tile_n=64, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=False, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "err_quack_gated_quant": "RuntimeError('config GemmConfig(tile_m=128, tile_n=64, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=False, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "us": {
+   "vllm_gemm_silu_quant": 33.79200100898743,
+   "vllm_gemm_fused_silu_quant": 28.465598821640015,
+   "quack_gated_bf16_then_quant": 34.29760038852692
+  },
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_silu_quant": 0.9852584619969909,
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_fused_silu_quant": 0.8299589038060576
+ },
+ {
+  "op": "gate_up+swiglu+nvfp4",
+  "N": 51200,
+  "K": 5120,
+  "M": 8,
+  "rel_quack_bf16_then_quant": 0.09034645557403564,
+  "rel_vllm_unfused": 0.09037094563245773,
+  "rel_quack_bf16_vs_vllm": 0.028529753908514977,
+  "codes_equal_frac_q2": 0.9893456697463989,
+  "err_check": "RuntimeError('config GemmConfig(tile_m=128, tile_n=64, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=True, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "err_quack_gated_quant": "RuntimeError('config GemmConfig(tile_m=128, tile_n=64, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=True, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "us": {
+   "vllm_gemm_silu_quant": 34.09759998321533,
+   "vllm_gemm_fused_silu_quant": 28.596800565719604,
+   "quack_gated_bf16_then_quant": 31.539198756217957
+  },
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_silu_quant": 1.0811181427522152,
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_fused_silu_quant": 0.9067066283693
+ },
+ {
+  "op": "gate_up+swiglu+nvfp4",
+  "N": 51200,
+  "K": 5120,
+  "M": 32,
+  "rel_quack_bf16_then_quant": 0.09043522924184799,
+  "rel_vllm_unfused": 0.09048321098089218,
+  "rel_quack_bf16_vs_vllm": 0.027841947972774506,
+  "codes_equal_frac_q2": 0.9883813261985779,
+  "err_check": "RuntimeError('config GemmConfig(tile_m=128, tile_n=256, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=True, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "err_quack_gated_quant": "RuntimeError('config GemmConfig(tile_m=128, tile_n=256, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=True, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "us": {
+   "vllm_gemm_silu_quant": 34.20160114765167,
+   "vllm_gemm_fused_silu_quant": 28.8783997297287,
+   "quack_gated_bf16_then_quant": 32.152000069618225
+  },
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_silu_quant": 1.0637472341874683,
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_fused_silu_quant": 0.8981836174172291
+ },
+ {
+  "op": "gate_up+swiglu+nvfp4",
+  "N": 51200,
+  "K": 5120,
+  "M": 128,
+  "rel_quack_bf16_then_quant": 0.09040027111768723,
+  "rel_vllm_unfused": 0.0904332622885704,
+  "rel_quack_bf16_vs_vllm": 0.028596192598342896,
+  "codes_equal_frac_q2": 0.9881488084793091,
+  "err_check": "RuntimeError('config GemmConfig(tile_m=128, tile_n=128, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=False, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "err_quack_gated_quant": "RuntimeError('config GemmConfig(tile_m=128, tile_n=128, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=False, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "us": {
+   "vllm_gemm_silu_quant": 36.35039925575256,
+   "vllm_gemm_fused_silu_quant": 31.543999910354614,
+   "quack_gated_bf16_then_quant": 30.51680028438568
+  },
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_silu_quant": 1.1911602434397985,
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_fused_silu_quant": 1.033660135282745
+ },
+ {
+  "op": "gate_up+swiglu+nvfp4",
+  "N": 51200,
+  "K": 5120,
+  "M": 512,
+  "rel_quack_bf16_then_quant": 0.09042902290821075,
+  "rel_vllm_unfused": 0.09048153460025787,
+  "rel_quack_bf16_vs_vllm": 0.028606921434402466,
+  "codes_equal_frac_q2": 0.988246738910675,
+  "err_check": "RuntimeError('config GemmConfig(tile_m=128, tile_n=64, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=True, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "err_quack_gated_quant": "RuntimeError('config GemmConfig(tile_m=128, tile_n=64, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=True, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "us": {
+   "vllm_gemm_silu_quant": 87.44639754295349,
+   "vllm_gemm_fused_silu_quant": 73.84799718856812,
+   "quack_gated_bf16_then_quant": 62.667202949523926
+  },
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_silu_quant": 1.3954092958862114,
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_fused_silu_quant": 1.1784154025200375
+ },
+ {
+  "op": "gate_up+swiglu+nvfp4",
+  "N": 51200,
+  "K": 5120,
+  "M": 2048,
+  "rel_quack_bf16_then_quant": 0.09027357399463654,
+  "rel_vllm_unfused": 0.09032173454761505,
+  "rel_quack_bf16_vs_vllm": 0.028398782014846802,
+  "codes_equal_frac_q2": 0.9882797002792358,
+  "err_check": "RuntimeError('config GemmConfig(tile_m=128, tile_n=64, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=True, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "err_quack_gated_quant": "RuntimeError('config GemmConfig(tile_m=128, tile_n=64, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=True, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "us": {
+   "vllm_gemm_silu_quant": 291.6287899017334,
+   "vllm_gemm_fused_silu_quant": 251.4944076538086,
+   "quack_gated_bf16_then_quant": 202.34239101409912
+  },
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_silu_quant": 1.4412639311028643,
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_fused_silu_quant": 1.2429150727801994
+ },
+ {
+  "op": "gate_up+swiglu+nvfp4",
+  "N": 51200,
+  "K": 5120,
+  "M": 8192,
+  "rel_quack_bf16_then_quant": 0.09039464592933655,
+  "rel_vllm_unfused": 0.09043823927640915,
+  "rel_quack_bf16_vs_vllm": 0.028315648436546326,
+  "codes_equal_frac_q2": 0.9882184863090515,
+  "err_check": "RuntimeError('config GemmConfig(tile_m=128, tile_n=128, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=False, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "err_quack_gated_quant": "RuntimeError('config GemmConfig(tile_m=128, tile_n=128, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=False, cluster_m=1, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=10, use_tma_gather=False) rejected: ')",
+  "us": {
+   "vllm_gemm_silu_quant": 1221.6192245483398,
+   "vllm_gemm_fused_silu_quant": 982.1887969970703,
+   "quack_gated_bf16_then_quant": 816.1855697631836
+  },
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_silu_quant": 1.4967420030505967,
+  "speedup_quack_gated_bf16_then_quant_vs_vllm_gemm_fused_silu_quant": 1.2033890739847957
+ }
+]

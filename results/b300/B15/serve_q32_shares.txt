@@ -1,0 +1,42 @@
+== c1: GPU kernel time 209.2 ms
+  NVFP4 GEMM (cute-dsl)               118.30 ms  56.54%
+  fp4 act quant (standalone)           35.01 ms  16.73%
+  attention                            24.42 ms  11.67%
+  norms                                10.66 ms   5.09%
+  fused silu_and_mul+fp4 quant          9.04 ms   4.32%
+  other GEMM (lm_head etc.)             7.38 ms   3.53%
+  other                                 4.44 ms   2.12%
+     [fp4 act quant (standalone)] triton_red_fused_fused_add_rms_norm_scaled_fp4_quant_0: 13.11 ms
+     [fp4 act quant (standalone)] void vllm::cvt_fp16_to_fp4<__nv_bfloat16, false, false>(int, int, int,: 11.15 ms
+     [fp4 act quant (standalone)] triton_red_fused_fused_add_rms_norm_scaled_fp4_quant_1: 10.55 ms
+     [fused silu_and_mul+fp4 quant] void vllm::silu_mul_cvt_fp16_to_fp4<__nv_bfloat16, false>(int, int, in: 9.04 ms
+     [other] void at::native::(anonymous namespace)::cunn_SoftMaxForward<4, float, : 2.05 ms
+     [other] void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde: 0.69 ms
+== c32: GPU kernel time 523.0 ms
+  NVFP4 GEMM (cute-dsl)               310.68 ms  59.41%
+  fp4 act quant (standalone)           62.75 ms  12.00%
+  attention                            61.88 ms  11.83%
+  fused silu_and_mul+fp4 quant         41.35 ms   7.91%
+  norms                                31.99 ms   6.12%
+  other GEMM (lm_head etc.)             8.93 ms   1.71%
+  other                                 5.37 ms   1.03%
+     [fused silu_and_mul+fp4 quant] void vllm::silu_mul_cvt_fp16_to_fp4<__nv_bfloat16, false>(int, int, in: 41.35 ms
+     [fp4 act quant (standalone)] void vllm::cvt_fp16_to_fp4<__nv_bfloat16, false, false>(int, int, int,: 22.14 ms
+     [fp4 act quant (standalone)] triton_red_fused_fused_add_rms_norm_scaled_fp4_quant_1: 20.96 ms
+     [fp4 act quant (standalone)] triton_red_fused_fused_add_rms_norm_scaled_fp4_quant_0: 19.37 ms
+     [other] void at::native::(anonymous namespace)::cunn_SoftMaxForward<4, float, : 2.52 ms
+     [other] void at::native::unrolled_elementwise_kernel<at::native::direct_copy_k: 0.55 ms
+== pf4k: GPU kernel time 299.6 ms
+  NVFP4 GEMM (cute-dsl)               171.69 ms  57.30%
+  attention                            52.76 ms  17.61%
+  fused silu_and_mul+fp4 quant         28.09 ms   9.38%
+  fp4 act quant (standalone)           26.34 ms   8.79%
+  norms                                19.02 ms   6.35%
+  other GEMM (lm_head etc.)             0.94 ms   0.31%
+  other                                 0.79 ms   0.26%
+     [fused silu_and_mul+fp4 quant] void vllm::silu_mul_cvt_fp16_to_fp4<__nv_bfloat16, false>(int, int, in: 28.09 ms
+     [fp4 act quant (standalone)] triton_red_fused_fused_add_rms_norm_scaled_fp4_quant_1: 10.17 ms
+     [fp4 act quant (standalone)] void vllm::cvt_fp16_to_fp4<__nv_bfloat16, false, false>(int, int, int,: 8.64 ms
+     [fp4 act quant (standalone)] triton_red_fused_fused_add_rms_norm_scaled_fp4_quant_0: 7.44 ms
+     [other] void at::native::(anonymous namespace)::cunn_SoftMaxForward<4, float, : 0.31 ms
+     [other] void at::native::index_elementwise_kernel<128, 4, at::native::gpu_inde: 0.10 ms
