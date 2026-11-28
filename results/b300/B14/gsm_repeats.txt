@@ -1,0 +1,11 @@
+15:31:18 pass1 done
+15:34:06 pass2 done
+DONE
+A ['p1r1:0.9249', 'p1r2:0.9242', 'p2r1:0.9227', 'p2r2:0.9257'] mean 0.9244 sd 0.0013
+B ['p1r1:0.9227', 'p1r2:0.9227', 'p2r1:0.9242', 'p2r2:0.9242'] mean 0.9234 sd 0.0009
+within A [13, 11, 13, 14, 14, 16] mean 13.5
+within B [18, 18, 18, 16, 20, 18] mean 18.0
+between [17, 17, 17, 15, 20, 20, 18, 16, 20, 22, 14, 18, 18, 18, 20, 22] mean 18.2
+all-A-right & all-B-wrong: 1 reverse: 0
+
+[exited with code 0]

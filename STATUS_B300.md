@@ -578,3 +578,10 @@ Same picture as B200: the default TRT-LLM path beats Triton + P1 + P2. GSM8K (on
 **Optional profile** (`vllm bench forward`, one 4096-token prefill, real weights/routing; `results/b300/B14/prof_breakdown.txt`): forward 37.8 ms (default) vs 41.0 ms (QuACK arm). Per category, default vs QuACK, µs: MoE FC1+SwiGLU 10814 vs **9399** (QuACK 1.15x faster); MoE FC2 **5063** vs 5598 (TRT-LLM 1.11x faster); routing + permute + combine **2218** vs 4724 (QuACK arm pays `expandInputRows` 2267 + `finalizeMoeRouting` 1553 + cub sort ~620; TRT-LLM gathers inside FC1 and only runs finalize 1489 + 2 small routing kernels); attention / dense / norms equal. So QuACK's grouped GEMM wins FC1, but the separate permute/unpermute costs more than the GEMM gains.
 
 **2. GSM8K x4 per arm (Triton vs P2):** running now on GPUs 2/3.
+
+## B14 — done 2026-11-28 15:40Z
+**2. P2 GSM8K, 4 runs per arm** (Qwen3-30B-A3B, `--moe-backend triton`, both servers up at once, 2 runs then GPUs swapped, 2 runs; `results/b300/B14/gsm_repeats.txt`):
+- Triton: 0.9249 / 0.9242 / 0.9227 / 0.9257, mean 0.9244 (sd 0.0013). P2: 0.9227 / 0.9227 / 0.9242 / 0.9242, mean 0.9234 (sd 0.0009). Δ −0.10 pt.
+- Per-question flips: within Triton 13.5 per run pair (11–16), within P2 18.0 (16–20), between arms 18.2 (14–22). One question is right in all 4 Triton runs and wrong in all 4 P2 runs; none the other way.
+- So the B13 −0.68 pt was mostly noise: the between-arm flips match P2's own run-to-run flips. P2 is somewhat less run-to-run stable than Triton (18 vs 13.5 flips within arm), but its mean accuracy is within one sd.
+Item 1 and the profile: see the partial above. B14 complete; GPUs free.
