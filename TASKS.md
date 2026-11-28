@@ -760,3 +760,10 @@ Strong result: prefill TTFT -4..-8 % (35/36), decode -1.4 / -2.8 % at c32 / c128
 1. **Decode gap** (kernel estimate ~7 % at c32, E2E -1.4 %): profile v2 at c32 (base vs prototype, same GPU) and account for the difference per kernel (warm L2 effects, launch gaps, the activation-quant kernel, any copy / layout op like the one I found in my QKV prototype, where attention silently `.contiguous()`-copied a strided q).
 2. **Accuracy sign**: GSM8K is -0.4 pt in all 4 runs. Check whether it comes from the MXFP8 **re-quantization** of the weights: compare per-layer weight error (block-128 dequant vs MXFP8 dequant) and, if cheap, run base with the prototype forced to M ≥ 1 (all QuACK) vs forced off, greedy-diff on 64 prompts.
 Deliverable: `results/worker/W24/SUMMARY.md`. Keep W19 as is (waiting on the owner).
+
+## Manager review of W24 + W21 re-run (accepted) → W25
+Thanks for tracking the bias down; that is exactly the kind of thing that would have burned us in review. Conclusions recorded: the MXFP8 MLP is a **prefill / high-concurrency** win (threshold 128-256), not a small-M decode win; the -0.4 pt GSM8K is two equivalent roundings.
+
+## W25 (2026-11-28): cross-check B300's NVFP4 gate_up result on B200 (SM100)
+B300's B17 (`results/b300/B17/SUMMARY.md`, `STATUS_B300.md` 17:35Z): on Qwen3-32B-NVFP4, gate_up as one QuACK kernel (`swiglu_quant_mod` with NVFP4 output, alpha for the global scale, pinned configs, never tile_n=192) for M ≥ 128 gave **prefill TTFT -9.6..-11.4 %, TPOT c128 -5.6 %**, GSM8K unchanged. Its NVFP4 output feeds vLLM's cute-dsl down_proj as is.
+Rebuild that prototype on B200 from B17's description (code local) and run the same paired E2E (TTFT 4096/1 c1/c4/c16, TPOT 512/512 c8/c32/c128, 2 x 6, GPU-swapped; GSM8K once per arm). Use the corrected (in-server) quant path for any kernel baseline, and warm numbers for the threshold. Deliverable `results/worker/W25/SUMMARY.md`.

@@ -559,3 +559,10 @@ B15b is the NVFP4 twin of the worker's FP8 result (W23 step 0: whole FP8 MLP 1.1
 
 ### Manager note to all nodes (2026-11-28 16:56Z): cold-L2 microbenches flatter QuACK at small M
 The worker found (W23 interim, `STATUS_WORKER.md` 16:55Z) that at M ≤ ~16 the cold-L2 microbench overstates QuACK's gain: the baseline kernels benefit from L2 in real serving (weights of the next layer prefetched / partially resident), so W21's M=8 1.12x is really 0.89x warm. Before you trust a small-M speedup or pick a dispatch threshold, re-measure it **warm**: one CUDA graph running the op for 2+ layers with distinct weights, no flush (see `results/worker/W23/multilayer.py`), and pick per-M-range configs (tile_n matters a lot for N ≤ 5120 at small M). The serve profile is the ground truth.
+
+### Manager review of B17 (accepted) → B18
+Excellent: the largest end-to-end gain of the round. Landing blockers noted (8.85 GiB second weight copy; batch-composition-dependent numerics).
+
+### B18 (2026-11-28): cross-check the B200 worker's FP8 MLP result on B300 (SM103)
+Worker W23 (`results/worker/W23/SUMMARY.md`, read the W24 correction too): Qwen3-8B-FP8, whole MLP as FlashInfer `mxfp8_quantize` → QuACK `swiglu_quant_mod` (MXFP8 out) → QuACK MXFP8 GEMM for down_proj, for M ≥ threshold; weights re-quantized from block-128 to MXFP8 at load (vLLM already rounds those scales to powers of two on SM100; check SM103 does the same). B200 result: prefill TTFT -4..-8 %, TPOT c32/c128 -1.4/-2.8 %; warm kernel crossover at M ≈ 128.
+Rebuild on SM103 from that description (code local), threshold 128, and run the same paired E2E (TTFT 4096/1 c1/c4/c16, TPOT 512/512 c8/c32/c128, 2 x 6, GPU-swapped; GSM8K once per arm). Note the worker's bias finding: a baseline `QuantFP8` built outside the server launches a slower quant path than serving; use the serve profile or the in-server path. Deliverable `results/b300/B18/SUMMARY.md`.
