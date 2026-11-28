@@ -1,0 +1,5 @@
+{"B": 1, "bitexact": false, "maxabs": 6.51925802230835e-09, "seeded_topp_agree": "200/200", "chain_current": 139.39, "chain_quack_fixed": 92.38, "chain_topk_max": 106.88}
+{"B": 4, "bitexact": false, "maxabs": 1.1920928955078125e-07, "seeded_topp_agree": "800/800", "chain_current": 162.4, "chain_quack_fixed": 114.02, "chain_topk_max": 109.18}
+{"B": 16, "bitexact": false, "maxabs": 2.682209014892578e-07, "seeded_topp_agree": "3200/3200", "chain_current": 170.94, "chain_quack_fixed": 125.6, "chain_topk_max": 109.25}
+{"B": 64, "bitexact": false, "maxabs": 2.384185791015625e-07, "seeded_topp_agree": "12800/12800", "chain_current": 226.85, "chain_quack_fixed": 210.98, "chain_topk_max": 119.81}
+{"B": 256, "bitexact": false, "maxabs": 2.384185791015625e-07, "seeded_topp_agree": "51200/51200", "chain_current": 514.72, "chain_quack_fixed": 603.91, "chain_topk_max": 175.3}
