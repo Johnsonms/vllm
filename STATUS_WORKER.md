@@ -168,5 +168,16 @@ GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
 - **Prototype v2:** threshold 16, config table per M range for both kernels. E2E v2 (same protocol) starts when v1's GSM8K runs finish. v1's GSM8K stays valid for accuracy (same arithmetic above M = 16).
 - Host cost of the prototype path: 75 us per MLP call outside CUDA graphs (prefill), 0.2-0.3 ms extra the first time a new M is seen. Not a problem at 4096 tokens (TTFT gain measured).
 
+## 2026-11-28 18:19Z: W23 done
+- `results/worker/W23/SUMMARY.md`. Prototype v2 (threshold 16, config table per M), clean paired run, 2 passes x 6 rounds:
+  - **Prefill 4096 TTFT -4.2 % (c1), -7.8 % (c4), -8.0 % (c16)**, 35 of 36 rounds faster.
+  - **Decode TPOT -1.4 % (c32), -2.8 % (c128)**, 22 of 24 rounds faster. c1 / c8 use DeepGEMM: -0.6 % / -0.3 %.
+  - **GSM8K 0.9067 (base x4) vs 0.9030, 0.9030, 0.9030, 0.9022 (prototype)**: -0.4 points, 5-6 questions, inside one run's sampling error but the same sign every time.
+  - Memory +5.6 GB (both weight copies).
+- Decode gain is far below the kernel estimate (about 7 % expected at c32). Not explained yet; a c32 profile of v2 is the next check if you want it.
+- One v2 E2E run was discarded: two copies of the test ran at once by my mistake. The numbers above are from a clean rerun.
+- The list of QuACK / vLLM changes a landing needs is in the summary. Prototype code stays local (2 files: a new module and 6 lines in the Qwen3 MLP).
+- Idle now except W19 (waiting for your run-table results). GPUs 2-7 free.
+
 ## Questions
 - (none)

@@ -6,7 +6,7 @@ for W in ("d1","d8","d32","d128","p1","p4","p16"):
     for p in ("pass1","pass2"):
         v={a:{} for a in ("base","mx")}
         for a in v:
-            for f in glob.glob(f"{R}/{p}/{a}_{W}_k*.json"): v[a][f.split("_k")[-1][:-5]]=json.load(open(f))[key]
+            for f in glob.glob(f"{R}/v3_{p}/{a}_{W}_k*.json"): v[a][f.split("_k")[-1][:-5]]=json.load(open(f))[key]
         ks=sorted(set(v["base"])&set(v["mx"]))
         if not ks: cells+=["-","-","-"]; continue
         b=st.mean(v["base"][k] for k in ks); m=st.mean(v["mx"][k] for k in ks); d=100*(m/b-1); ds.append(d)

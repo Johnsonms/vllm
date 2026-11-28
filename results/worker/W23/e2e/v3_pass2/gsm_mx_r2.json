@@ -1,0 +1,25 @@
+{
+  "accuracy": 0.9021986353297953,
+  "invalid_rate": 0.0,
+  "latency": 21.071356128901243,
+  "questions_per_second": 62.596825374275454,
+  "total_output_tokens": 186363,
+  "tokens_per_second": 8844.37616923889,
+  "num_questions": 1319,
+  "num_shots": 5,
+  "max_tokens": 1024,
+  "timestamp": 1795889801.3031552,
+  "request_params": {
+    "endpoint": "chat",
+    "model": null,
+    "temperature": 0.0,
+    "top_p": null,
+    "top_k": null,
+    "seed": 42,
+    "stop": null,
+    "reasoning_effort": null,
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  }
+}
