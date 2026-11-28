@@ -41,3 +41,29 @@ Also tested, no hang: a second 4-rank rendezvous on the same GPUs while another 
 - Make the decision collective before entering the rendezvous: each rank checks its local preconditions (symm-mem importable, device multicast support, its socket path free), the group all-gathers the result, and all ranks enter or all skip. That removes the "one rank raises, the others wait forever" class for both `SymmMemCommunicator` and `_init_mnnvl_buffer`.
 - For the stale file itself: a rank may delete `$TMPDIR/symm_mem-<own pid>` before the rendezvous, because a file with its own pid that it did not create is stale by definition. This is really a torch issue (bind without unlink, no cleanup on kill, no timeout); worth reporting upstream once confirmed.
 - Unit-test plan and the remaining brief questions (timeouts, `TORCH_SYMMMEM=NCCL`) follow in the final report.
+
+## 6. Reply to the manager's facts (d62dfe1), 2026-11-28 06:43Z
+
+**Your fact 5 is the strongest lead: NCCL splitting one rank off points at that GPU, not at FABRIC.**
+- On my node, the same 4-rank group on GPUs 2-5 with `NCCL_DEBUG=INFO` reports **`nRanks 4 nNodes 1 localRanks 4`** on all 4 ranks, with the same fabric line as yours (`fabric UUID 0.0 cliqueId 0x0 state 3 healthMask 0x80`). I have never seen `nNodes 2` for TP4 here.
+- NCCL does not get `nNodes` from the hostname. In `init.cc` each rank computes its local ring from its own topology graph and reports the ring's first rank; `nNodes` is the number of distinct first ranks. The host hash is hostname + boot id (+ communicator hash), which is the same for all processes of one container. So `nNodes 2` with `localRanks 1` on rank 2 means: **in the topology that NCCL built, physical GPU 4 is not connected to the other three as a local peer** (and the other three agree, with `localRanks 3`).
+- That fits the hang. torch's multicast setup has every rank add its device to one multicast object and then call `cuMulticastBindMem`. The torch source says this call waits until all devices have joined. If one GPU cannot join the same NVLink multicast group, every rank stays inside the rendezvous, busy in the driver, with the GPU idle: 4 of 4 ranks in the rendezvous, at whichever rendezvous comes first (`symm_mem.py:110` in hang3, `custom_all_reduce.py:377` in hang2). **This is a hypothesis until the checks below.**
+- Your fact 1 rules out my stale-socket case for these runs: the 8 files were created by the hung workers themselves, and no rank raised. (They will hurt later: remove `/tmp/symm_mem-*` once no job is running, or a later job with a recycled pid fails to bind.)
+
+**Checks, cheapest first (all with `repro.py`, torch only):**
+1. `CUDA_VISIBLE_DEVICES=2,3,4,5 python repro.py 4`. Expect a hang if the above is right.
+2. Same GPUs with `TORCH_SYMM_MEM_DISABLE_MULTICAST=1`. torch then skips the multicast phase and keeps the fd exchange. **If this finishes and check 1 hangs, the hang is in the multicast bind.**
+3. Leave GPU 4 out: `CUDA_VISIBLE_DEVICES=2,3,5,6 python repro.py 4`. If this finishes, it is GPU 4. Then pairs: `4,5` and `2,3` with `python repro.py 2`.
+4. `nvidia-smi nvlink -s -i 4` and `nvidia-smi topo -m`. Here every GPU has all links up at the same speed and every GPU pair shows `NV18`. A down link or a different `NV` count on GPU 4 would confirm it.
+5. The `NCCL_DEBUG=INFO` lines of rank 2 from hang2 about topology or P2P (anything that says why it found no local peers).
+6. Native stack of one hung rank, if ptrace works: the top frames should be inside `libcuda` under `cuMulticastBindMem`.
+
+**Was hang1 on the same 4 GPUs?** It passed both init rendezvous and hung later. If it used the same GPUs, the GPU-4 hypothesis needs torch to have skipped multicast in that run; the `TORCH_CPP_LOG_LEVEL=INFO` start will show it (`Gracefully skipping multicast initialization`).
+
+**Timeout test (my node):** 2 ranks, one with a stale socket, left alone for 400 s: see the next status line.
+
+**Guard, if this is confirmed.** Neither FABRIC nor the per-device multicast attribute detects it: the device says it supports multicast, the group cannot form one. Options, in my order of preference:
+1. Use NCCL's own answer. vLLM already has the NCCL communicator for the group; if it reports more than one node for a group that vLLM believes is single-node, treat the group as not multicast-capable and skip both symm-mem rendezvous (SymmMemCommunicator and the MNNVL buffer) on all ranks. This is collective by construction (all ranks see the same count).
+2. An environment switch that turns off both rendezvous. Today this needs `--disable-custom-all-reduce` plus `VLLM_ALLREDUCE_USE_SYMM_MEM=0` plus the FlashInfer backend variable; one documented switch would do.
+3. A watchdog around the rendezvous that aborts the worker with a clear message after N seconds. It cannot recover (the driver call is not interruptible), but it turns a silent hang into an error that names the cause.
+- Upstream torch: the multicast bind has no timeout and no pre-check that the devices can form a group; worth an issue once reproduced with `repro.py` alone.
