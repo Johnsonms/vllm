@@ -107,7 +107,7 @@ GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
   - QuACK cannot use the checkpoint scales (no 128-block format). Everything is with MXFP8 re-quantized weights.
   - Passes the threshold: gate_up gated GEMM (SwiGLU epilogue, BF16 out) 1.10-1.31x at M >= 32 (8B), 1.22-1.29x at M >= 512 (32B). gate_up + silu = 34.5 % / 40.3 % of prefill kernel time.
   - Fails: M <= 8 is slower than DeepGEMM (0.83-0.99x) on every layer, so nothing for decode at c1-c8.
-  - "Gated + FP8 quantized output" does not exist in 0.6.5 (NotImplementedError). The plain quantized-output GEMM gives wrong / non-finite results with autotuned configs (18 of 56 points; traced case: tile_n=192). Repro scripts are in the folder. For the owner to decide whether to report to QuACK.
+  - "Gated + FP8 quantized output" does not exist in 0.6.5 (NotImplementedError). The plain quantized-output GEMM gives wrong / non-finite results with autotuned configs (19 of 56 points; traced case: tile_n=192). Repro scripts are in the folder. For the owner to decide whether to report to QuACK.
 - **W22 ack.** Starting now.
 
 ## Questions
