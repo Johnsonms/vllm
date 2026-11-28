@@ -83,3 +83,10 @@ GPUs 4/5 (NUMA1, taskset 64-127), 2x6 paired, `KOPT_SWIGLU_SMALL_M=128` with the
 - c32 +0.9% (2/12) is the only cell leaning slower. The 128-row cutoff (`SMALL_M=128`) for the QuACK path is the knob for it.
 - GSM8K: base 0.9052, PR 0.9083. Greedy: 4/4 identical over 64 tokens in both passes.
 - Verdict: **a clean prefill win (about 3% TTFT), decode neutral, accuracy unchanged.** Qwen3-32B is not run, per the handover.
+
+## 2026-11-28 18:20Z — H2 E2E default vs default + P1 (QuACK topk only): DONE
+GPUs 6/7 (NUMA1; this is the healthy-pair rerun, and the GPU 0 run was discarded), 2x6 paired. Table: `results/hopper/H2/e2e_def_vs_defp1/TABLE.md`.
+- TPOT c1 **−1.3%** (12/12). All other cells are noise: TPOT c8 +0.7% (5/12), c32 −0.1% (7/12), c128 −0.2% (5/12); TTFT c1/4/16 +0.4/+0.7/+0.5% (4, 3, 6 of 12; the pass-2 GPU ordering leans PR-slower by about 1%).
+- So P1 accounts for most of the −1.7% TPOT c1 gain in def_vs_pr. Its kernel-level win (1.6–2.7x on a ~10 µs op) is too small to show E2E beyond c1.
+- GSM8K: base 0.9287, P1 0.9227 (−0.6 pt; the SE at n=1319 is about 0.7 pt). Greedy: 2/4 identical, and divergence starts at tokens 41 and 60 in both passes. Router weights differ from topk_softmax by up to 1.5e-7 (FP32 rounding), which flips later BF16 sums. Ids are identical in the microbench.
+- Verdict: **P1 is a small, safe decode win at c1 only. It is not worth an upstream change on its own.**
