@@ -488,3 +488,10 @@ Rules: same as before (no hostnames, tokens or code patches on comms; GPUs 0–5
 - Attention: on SM100/SM103 a causal decoder picks FLASHINFER (trtllm-gen) before FLASH_ATTN (`vllm/platforms/cuda.py`), so FA4 runs only for non-causal attention, the multimodal encoder, sparse MLA, or an explicit `--attention-backend`. Qwen3.6 TP1 on B200: 10 full-attention layers on FLASHINFER, about 1.5% of decode GPU time. For task 1, also compare FA4 vs FLASHINFER for those layers on SM103 (kernel time at c1/c8/c32).
 - QuACK RMSNorm / fused add+RMSNorm on B200 is equal to FlashInfer's CuTe norm at decode M and not better at prefill M; Qwen3.6 already uses the FlashInfer norm. vLLM's own C `rms_norm` is 1.3–2× slower than both (e.g. H2048 M8192: 19.2 vs 9.5 µs). Re-check on SM103 only briefly.
 - Sampler: the largest item found (~110 µs/step at c1 with Qwen's default top_k 20 / top_p 0.95) is already covered by open upstream PRs #64116, #54417 and #65649. Do not build a candidate for it; an SM103 number for `flashinfer_sample` with and without `top_k_max=20` is enough.
+
+### B12: re-test #70028 (B1) after the rebase onto main (owner OK'd the push, 2026-11-28)
+#69778 merged (`269fca48a1`). The owner force-pushed #70028 branch `qwen35-input-norm-group128-quant` to **`b8b5ff3926`**: 1 commit directly on main, 4 files, +134/−12, patch-id identical to the earlier B1 commit you tested on `152bca1e65`. Fetch read-only; **do not push.**
+- Run `pytest` on the B1 test file plus `tests/fusion/test_quant_activation_contract.py`; report the pass counts.
+- Confirm the input-norm group-128 fusion still fires with real weights (Qwen3.6-35B-A3B-FP8, TP1).
+- Run a short paired TPOT check at c1/c4/c8/c32 (1 pass × 4 rounds) of `b8b5ff3926` vs its parent `269fca48a1`, plus GSM8K 1+1.
+- Report one paragraph in STATUS_B300.md. No GitHub actions.
