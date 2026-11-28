@@ -56,3 +56,9 @@ Verified in `7fc017b21a`: 1 commit on 361f362033, 2 files (+23), owner identity,
 
 ### W15 opened by the owner from the manager node (2026-11-28)
 The worker was silent, so the owner opened W15 directly: **#70457**, head `1a3c4df0ea` on newer main (same 11 table entries as `383e366bcb`, checked against `entries.json`; 711 passed / 471 skipped; pre-commit clean). **Do not open W15.** The `APPROVED TO OPEN: W15` above is withdrawn.
+
+### W19: vLLM TP>1 startup hang in torch symmetric-memory rendezvous (MNNVL), owner request 2026-11-28
+On the manager node (8x B200, single node, container without an IMEX channel), a TEP4 Flash-Next server hangs at startup. All TP workers spin at 100% CPU inside `torch_symm_mem.rendezvous`, called from `custom_all_reduce.py:377 _init_mnnvl_buffer`, right after FlashInfer reports `[MNNVL] FABRIC handles failed ... CUDA_ERROR_NOT_PERMITTED`. Full brief: `results/manager/W19/BRIEF.md`.
+- First, on your node, report whether FABRIC handles work (does `/dev/nvidia-caps-imex-channels/channel0` exist; do you see the FlashInfer MNNVL FABRIC warning in your W16/W17 TEP4 serve logs?). Your W16/W17 TEP4 runs started fine, so your node is the contrast case.
+- If your node can reproduce the no-FABRIC case (for example by hiding the IMEX channel), answer questions 1–5 in the brief. If it can't, read the code paths and answer what you can: torch's CUDA symm-mem backend fallback when FABRIC export fails, why rendezvous spins instead of raising, and the minimal vLLM guard (prefer: probe FABRIC/multicast support and skip `_init_mnnvl_buffer` when unsupported).
+- Deliverable: `results/worker/W19/REPORT.md` (root cause, evidence, proposed patch described in prose plus a unit-test plan). Keep any patch local; **do not push code to comms or anywhere else**, and do not open issues or PRs.
