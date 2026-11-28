@@ -68,3 +68,10 @@ GPU 0 idles at ~71 °C (others ~31 °C), draws ~390 W vs ~335 W on GPU 2 under t
 
 ## 2026-11-28 — push restored
 Owner re-authenticated; H4 results and the handover ack are now pushed. H2/H3 E2E still running.
+
+## 2026-11-28 17:45Z — H2 E2E default vs PR (triton + P1 + P2): DONE
+Qwen3-30B-A3B, GPUs 2/3 (NUMA0, taskset 0-63), 2 passes x 6 rounds, GPU-swapped. Full table: `results/hopper/H2/e2e_def_vs_pr/TABLE.md`.
+- **TTFT (4096/1) is slower in every pair:** c1 **+6.4%**, c4 **+7.1%**, c16 **+7.2%** (PR faster in 0/12 for each). This matches the kernel result: P2 loses to CuTe-DSL in prefill because permute/unpermute costs ~148 µs vs ~79 µs at M=4096.
+- **TPOT (512/512) is slightly faster:** c1 **−1.7%** (12/12), c8 −1.0% (7/12, noise), c32 **−3.3%** (10/12), c128 −0.4% (7/12, noise). Decode M is below `KOPT_QUACK_MOE_MIN_M`, so this gain comes from Triton decode + P1, not P2.
+- GSM8K: base 0.9295, PR 0.9257 (−0.4 pt, within run-to-run noise for 1319 Qs). Greedy: 3/4 prompts identical over 64 tokens, and 1 diverges at token 60 in both passes (BF16 accumulation order, expected).
+- Verdict: **the PR as a whole does not beat default.** P2 should not ship on SM90. The decode gain is checked separately by def_vs_defp1 (running on 6/7) and tri_vs_pr (starting now on 2/3).

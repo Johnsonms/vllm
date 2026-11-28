@@ -1,0 +1,21 @@
+15:52:31Z pass1 servers up (base GPU 2, pr GPU 3)
+15:54:59Z pass1 ttft c1 done
+15:57:43Z pass1 ttft c4 done
+16:01:41Z pass1 ttft c16 done
+16:06:45Z pass1 tpot c1 done
+16:14:41Z pass1 tpot c8 done
+16:26:19Z pass1 tpot c32 done
+16:44:28Z pass1 tpot c128 done
+16:45:57Z gsm8k base Accuracy: 0.929
+16:47:13Z gsm8k pr Accuracy: 0.926
+16:47:18Z pass1 done
+16:48:52Z pass2 servers up (base GPU 3, pr GPU 2)
+16:51:17Z pass2 ttft c1 done
+16:53:59Z pass2 ttft c4 done
+16:57:56Z pass2 ttft c16 done
+17:02:58Z pass2 tpot c1 done
+17:10:55Z pass2 tpot c8 done
+17:22:31Z pass2 tpot c32 done
+17:40:42Z pass2 tpot c128 done
+17:40:47Z pass2 done
+17:40:47Z DONE
