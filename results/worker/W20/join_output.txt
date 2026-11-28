@@ -1,0 +1,48 @@
+== base c8: 1472 MoE layers in the window (file dp0_pp0_tp0_dcp0_ep0_rank0.1795849085546)
+shared branch ends last: 1465/1472 = 99.5 %
+shared_end - routed_end (us): p10 +3.3  p25 +5.5  median +6.6  p75 +7.4  p90 +7.9
+gate kernel time             median    8.3  p25    7.8  p75    8.7
+wait before gate starts      median   15.1  p25   12.9  p75   16.0
+down-proj end -> gate end    median   30.6  p25   27.1  p75   32.9
+shared branch length         median   48.2  p25   45.1  p75   50.4
+routed branch length         median   48.0  p25   45.1  p75   49.5
+routed end -> join start     median    6.9  p25    5.9  p75    7.7
+shared end -> join start     median    0.3  p25    0.2  p75    0.5
+decoder layer period (act_and_mul to next, < 400 us): median 115.2 us, mean 116.4 us, n 1472
+gate kernels: {'nvjet_sm100_tst_8x64_64x16_1x1_h_bz_splitK_TNN': 1472, 'void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_': 1472}
+== base c4: 1472 MoE layers in the window (file dp0_pp0_tp0_dcp0_ep0_rank0.1795849180304)
+shared branch ends last: 977/1472 = 66.4 %
+shared_end - routed_end (us): p10 -0.8  p25 -0.5  median +2.8  p75 +4.3  p90 +4.9
+gate kernel time             median    4.2  p25    3.8  p75    5.3
+wait before gate starts      median    6.7  p25    0.5  p75    8.3
+down-proj end -> gate end    median   13.1  p25   10.7  p75   22.6
+shared branch length         median   36.6  p25   34.3  p75   39.0
+routed branch length         median   39.8  p25   38.6  p75   41.4
+routed end -> join start     median    3.2  p25    0.4  p75    4.7
+shared end -> join start     median    0.5  p25    0.3  p75    0.9
+decoder layer period (act_and_mul to next, < 400 us): median 100.2 us, mean 101.7 us, n 1472
+gate kernels: {'void dot_kernel<float, 128, 0, cublasDotParams<cublasGemvTen': 1472, 'void reduce_1Block_kernel<float, 128, 7, cublasGemvTensorStr': 1472}
+== pr c8: 1472 MoE layers in the window (file dp0_pp0_tp0_dcp0_ep0_rank0.1795849483592)
+shared branch ends last: 1051/1472 = 71.4 %
+shared_end - routed_end (us): p10 -0.8  p25 -0.2  median +3.9  p75 +4.9  p90 +5.6
+gate kernel time             median    2.4  p25    2.2  p75    2.5
+wait before gate starts      median   15.1  p25   12.9  p75   16.1
+down-proj end -> gate end    median   17.4  p25   15.3  p75   18.5
+shared branch length         median   43.9  p25   41.1  p75   47.4
+routed branch length         median   48.1  p25   44.8  p75   49.4
+routed end -> join start     median    4.3  p25    0.5  p75    5.3
+shared end -> join start     median    0.5  p25    0.4  p75    0.6
+decoder layer period (act_and_mul to next, < 400 us): median 112.5 us, mean 113.2 us, n 1472
+gate kernels: {'kernel_cutlass_kernel_vllmmodel_executorkernelslinearcute_ds': 1472}
+== pr c4: 1472 MoE layers in the window (file dp0_pp0_tp0_dcp0_ep0_rank0.1795849579413)
+shared branch ends last: 366/1472 = 24.9 %
+shared_end - routed_end (us): p10 -11.9  p25 -11.4  median -10.9  p75 -0.2  p90 +2.9
+gate kernel time             median    2.2  p25    2.0  p75    2.7
+wait before gate starts      median    0.3  p25    0.2  p75    6.6
+down-proj end -> gate end    median    2.4  p25    2.3  p75   10.0
+shared branch length         median   24.1  p25   21.8  p75   34.6
+routed branch length         median   39.3  p25   38.4  p75   40.9
+routed end -> join start     median    0.4  p25    0.3  p75    0.6
+shared end -> join start     median   11.2  p25    0.7  p75   11.8
+decoder layer period (act_and_mul to next, < 400 us): median 97.1 us, mean 98.7 us, n 1472
+gate kernels: {'kernel_cutlass_kernel_vllmmodel_executorkernelslinearcute_ds': 1472}
