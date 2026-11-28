@@ -1,0 +1,45 @@
+table for ['qwen3_8b', 'qwen3_32b'] (mean 4.47% / worst 18.4% over per-M autotune):
+  M<=256 (sweep Ms [16, 32, 64, 128, 256]): tile 128x224 cluster 1x2 pingpong=False
+  M<=384 (sweep Ms [384]): tile 192x128 cluster 2x1 pingpong=True
+  M<=1024 (sweep Ms [512, 1024]): tile 256x128 cluster 2x1 pingpong=False
+  M<=inf (sweep Ms [2048, 4096, 8192]): tile 256x192 cluster 1x2 pingpong=False
+table for ['qwen3_8b'] (mean 0.83% / worst 4.4% over per-M autotune):
+  M<=128 (sweep Ms [16, 32, 64, 128]): tile 128x192 cluster 1x2 pingpong=True
+  M<=256 (sweep Ms [256]): tile 128x192 cluster 2x1 pingpong=True
+  M<=384 (sweep Ms [384]): tile 192x128 cluster 2x1 pingpong=True
+  M<=inf (sweep Ms [512, 1024, 2048, 4096, 8192]): tile 256x192 cluster 1x2 pingpong=False
+table for ['qwen3_32b'] (mean 0.62% / worst 4.2% over per-M autotune):
+  M<=128 (sweep Ms [16, 32, 64, 128]): tile 128x224 cluster 1x2 pingpong=False
+  M<=256 (sweep Ms [256]): tile 128x160 cluster 2x1 pingpong=True
+  M<=384 (sweep Ms [384]): tile 128x256 cluster 1x2 pingpong=False
+  M<=inf (sweep Ms [512, 1024, 2048, 4096, 8192]): tile 256x160 cluster 1x2 pingpong=False
+qwen3_8b M=1: cuBLAS+silu_and_mul 86.0us  cuBLAS+inductor 85.6us  kopt 84.2us (1.02x)  relerr fused 0.0030 unfused 0.0035
+qwen3_8b M=2: cuBLAS+silu_and_mul 86.0us  cuBLAS+inductor 85.4us  kopt 84.1us (1.02x)  relerr fused 0.0030 unfused 0.0035
+qwen3_8b M=4: cuBLAS+silu_and_mul 86.1us  cuBLAS+inductor 85.5us  kopt 84.2us (1.02x)  relerr fused 0.0031 unfused 0.0036
+qwen3_8b M=8: cuBLAS+silu_and_mul 86.2us  cuBLAS+inductor 85.7us  kopt 84.4us (1.02x)  relerr fused 0.0031 unfused 0.0035
+qwen3_8b M=16: cuBLAS+silu_and_mul 86.5us  cuBLAS+inductor 86.3us  kopt 87.3us (0.99x)  per-M autotuned 87.3us (0.99x)  relerr fused 0.0017 unfused 0.0035
+qwen3_8b M=32: cuBLAS+silu_and_mul 86.7us  cuBLAS+inductor 87.4us  kopt 88.8us (0.98x)  per-M autotuned 88.7us (0.98x)  relerr fused 0.0017 unfused 0.0036
+qwen3_8b M=64: cuBLAS+silu_and_mul 87.6us  cuBLAS+inductor 90.1us  kopt 88.8us (0.99x)  per-M autotuned 88.8us (0.99x)  relerr fused 0.0017 unfused 0.0035
+qwen3_8b M=128: cuBLAS+silu_and_mul 89.8us  cuBLAS+inductor 96.0us  kopt 85.7us (1.05x)  per-M autotuned 85.7us (1.05x)  relerr fused 0.0017 unfused 0.0036
+qwen3_8b M=256: cuBLAS+silu_and_mul 97.3us  cuBLAS+inductor 108.7us  kopt 89.3us (1.09x)  per-M autotuned 89.3us (1.09x)  relerr fused 0.0017 unfused 0.0036
+qwen3_8b M=384: cuBLAS+silu_and_mul 118.8us  cuBLAS+inductor 137.2us  kopt 112.5us (1.06x)  per-M autotuned 112.8us (1.05x)  relerr fused 0.0017 unfused 0.0036
+qwen3_8b M=512: cuBLAS+silu_and_mul 158.2us  cuBLAS+inductor 183.1us  kopt 142.8us (1.11x)  per-M autotuned 144.6us (1.09x)  relerr fused 0.0017 unfused 0.0036
+qwen3_8b M=1024: cuBLAS+silu_and_mul 310.4us  cuBLAS+inductor 366.4us  kopt 270.6us (1.15x)  per-M autotuned 279.0us (1.11x)  relerr fused 0.0017 unfused 0.0036
+qwen3_8b M=2048: cuBLAS+silu_and_mul 613.4us  cuBLAS+inductor 696.7us  kopt 555.4us (1.10x)  per-M autotuned 563.5us (1.09x)  relerr fused 0.0017 unfused 0.0035
+qwen3_8b M=4096: cuBLAS+silu_and_mul 1256.7us  cuBLAS+inductor 1418.1us  kopt 1144.2us (1.10x)  per-M autotuned 1082.3us (1.16x)  relerr fused 0.0017 unfused 0.0036
+qwen3_8b M=8192: cuBLAS+silu_and_mul 2479.7us  cuBLAS+inductor 2784.1us  kopt 2305.6us (1.08x)  per-M autotuned 2317.3us (1.07x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=1: cuBLAS+silu_and_mul 202.3us  cuBLAS+inductor 199.1us  kopt 197.6us (1.02x)  relerr fused 0.0030 unfused 0.0035
+qwen3_32b M=2: cuBLAS+silu_and_mul 202.2us  cuBLAS+inductor 198.8us  kopt 197.7us (1.02x)  relerr fused 0.0031 unfused 0.0036
+qwen3_32b M=4: cuBLAS+silu_and_mul 202.7us  cuBLAS+inductor 199.0us  kopt 198.2us (1.02x)  relerr fused 0.0030 unfused 0.0035
+qwen3_32b M=8: cuBLAS+silu_and_mul 203.2us  cuBLAS+inductor 199.5us  kopt 198.8us (1.02x)  relerr fused 0.0031 unfused 0.0036
+qwen3_32b M=16: cuBLAS+silu_and_mul 203.8us  cuBLAS+inductor 200.9us  kopt 208.8us (0.98x)  per-M autotuned 208.9us (0.98x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=32: cuBLAS+silu_and_mul 203.2us  cuBLAS+inductor 201.0us  kopt 205.1us (0.99x)  per-M autotuned 205.2us (0.99x)  relerr fused 0.0017 unfused 0.0035
+qwen3_32b M=64: cuBLAS+silu_and_mul 204.2us  cuBLAS+inductor 209.3us  kopt 212.5us (0.96x)  per-M autotuned 212.4us (0.96x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=128: cuBLAS+silu_and_mul 217.2us  cuBLAS+inductor 226.2us  kopt 201.0us (1.08x)  per-M autotuned 201.0us (1.08x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=256: cuBLAS+silu_and_mul 238.4us  cuBLAS+inductor 262.2us  kopt 210.0us (1.14x)  per-M autotuned 217.8us (1.09x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=384: cuBLAS+silu_and_mul 331.5us  cuBLAS+inductor 363.6us  kopt 316.8us (1.05x)  per-M autotuned 315.4us (1.05x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=512: cuBLAS+silu_and_mul 415.1us  cuBLAS+inductor 460.3us  kopt 379.9us (1.09x)  per-M autotuned 395.3us (1.05x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=1024: cuBLAS+silu_and_mul 802.5us  cuBLAS+inductor 890.9us  kopt 747.2us (1.07x)  per-M autotuned 703.7us (1.14x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=2048: cuBLAS+silu_and_mul 1617.7us  cuBLAS+inductor 1803.0us  kopt 1502.2us (1.08x)  per-M autotuned 1484.0us (1.09x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=4096: cuBLAS+silu_and_mul 3139.6us  cuBLAS+inductor 3596.7us  kopt 2865.6us (1.10x)  per-M autotuned 2923.4us (1.07x)  relerr fused 0.0017 unfused 0.0036
+qwen3_32b M=8192: cuBLAS+silu_and_mul 6489.9us  cuBLAS+inductor 7258.8us  kopt 5939.8us (1.09x)  per-M autotuned 5791.7us (1.12x)  relerr fused 0.0017 unfused 0.0036

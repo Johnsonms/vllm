@@ -1,0 +1,492 @@
+{
+ "table": {
+  "default": [
+   [
+    256,
+    128,
+    224,
+    1,
+    2,
+    false
+   ],
+   [
+    384,
+    192,
+    128,
+    2,
+    1,
+    true
+   ],
+   [
+    1024,
+    256,
+    128,
+    2,
+    1,
+    false
+   ],
+   [
+    1073741824,
+    256,
+    192,
+    1,
+    2,
+    false
+   ]
+  ],
+  "24576x4096": [
+   [
+    128,
+    128,
+    192,
+    1,
+    2,
+    true
+   ],
+   [
+    256,
+    128,
+    192,
+    2,
+    1,
+    true
+   ],
+   [
+    384,
+    192,
+    128,
+    2,
+    1,
+    true
+   ],
+   [
+    1073741824,
+    256,
+    192,
+    1,
+    2,
+    false
+   ]
+  ],
+  "51200x5120": [
+   [
+    128,
+    128,
+    224,
+    1,
+    2,
+    false
+   ],
+   [
+    256,
+    128,
+    160,
+    2,
+    1,
+    true
+   ],
+   [
+    384,
+    128,
+    256,
+    1,
+    2,
+    false
+   ],
+   [
+    1073741824,
+    256,
+    160,
+    1,
+    2,
+    false
+   ]
+  ]
+ },
+ "worst_vs_autotune": {
+  "default": 1.1835606082056545,
+  "24576x4096": 1.0441329969590138,
+  "51200x5120": 1.041525073290858
+ },
+ "mean_vs_autotune": {
+  "default": 1.044737105674756,
+  "24576x4096": 1.0082957627520897,
+  "51200x5120": 1.0062212608547754
+ },
+ "rows": [
+  {
+   "model": "qwen3_8b",
+   "M": 1,
+   "cublas_silu_us": 85.952,
+   "cublas_inductor_silu_us": 85.601,
+   "kopt_us": 84.16,
+   "speedup": 1.0212927756653993,
+   "speedup_vs_inductor": 1.0171221482889734,
+   "relerr_fused": 0.003014079062268138,
+   "relerr_unfused": 0.0034903581254184246
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 2,
+   "cublas_silu_us": 85.98400000000001,
+   "cublas_inductor_silu_us": 85.44,
+   "kopt_us": 84.096,
+   "speedup": 1.0224505327245055,
+   "speedup_vs_inductor": 1.0159817351598173,
+   "relerr_fused": 0.003026784397661686,
+   "relerr_unfused": 0.003468726994469762
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 4,
+   "cublas_silu_us": 86.144,
+   "cublas_inductor_silu_us": 85.536,
+   "kopt_us": 84.19200000000001,
+   "speedup": 1.0231851007221588,
+   "speedup_vs_inductor": 1.015963511972634,
+   "relerr_fused": 0.0030794506892561913,
+   "relerr_unfused": 0.0036207304801791906
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 8,
+   "cublas_silu_us": 86.176,
+   "cublas_inductor_silu_us": 85.696,
+   "kopt_us": 84.385,
+   "speedup": 1.0212241512117082,
+   "speedup_vs_inductor": 1.0155359364816021,
+   "relerr_fused": 0.003107637632638216,
+   "relerr_unfused": 0.0035218247212469578
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 16,
+   "cublas_silu_us": 86.5435,
+   "cublas_inductor_silu_us": 86.305,
+   "kopt_us": 87.264,
+   "speedup": 0.9917434451778511,
+   "speedup_vs_inductor": 0.9890103593692704,
+   "autotuned_us": 87.328,
+   "speedup_autotuned": 0.9910166269695858,
+   "relerr_fused": 0.001650762278586626,
+   "relerr_unfused": 0.003516976721584797
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 32,
+   "cublas_silu_us": 86.72,
+   "cublas_inductor_silu_us": 87.425,
+   "kopt_us": 88.768,
+   "speedup": 0.976928622927181,
+   "speedup_vs_inductor": 0.9848706741167988,
+   "autotuned_us": 88.73599999999999,
+   "speedup_autotuned": 0.9772809231878833,
+   "relerr_fused": 0.0016595106571912766,
+   "relerr_unfused": 0.003574264468625188
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 64,
+   "cublas_silu_us": 87.616,
+   "cublas_inductor_silu_us": 90.112,
+   "kopt_us": 88.83099999999999,
+   "speedup": 0.9863223424255048,
+   "speedup_vs_inductor": 1.0144206414427397,
+   "autotuned_us": 88.8,
+   "speedup_autotuned": 0.9866666666666667,
+   "relerr_fused": 0.0016554112080484629,
+   "relerr_unfused": 0.003542696824297309
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 128,
+   "cublas_silu_us": 89.792,
+   "cublas_inductor_silu_us": 95.969,
+   "kopt_us": 85.664,
+   "speedup": 1.0481882704519985,
+   "speedup_vs_inductor": 1.120295573403063,
+   "autotuned_us": 85.665,
+   "speedup_autotuned": 1.0481760345532014,
+   "relerr_fused": 0.001661485293880105,
+   "relerr_unfused": 0.003559673437848687
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 256,
+   "cublas_silu_us": 97.28,
+   "cublas_inductor_silu_us": 108.67200000000001,
+   "kopt_us": 89.34400000000001,
+   "speedup": 1.0888252148997133,
+   "speedup_vs_inductor": 1.2163323782234958,
+   "autotuned_us": 89.28,
+   "speedup_autotuned": 1.0896057347670252,
+   "relerr_fused": 0.0016606318531557918,
+   "relerr_unfused": 0.0035527562722563744
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 384,
+   "cublas_silu_us": 118.752,
+   "cublas_inductor_silu_us": 137.24800000000002,
+   "kopt_us": 112.54400000000001,
+   "speedup": 1.0551606482797837,
+   "speedup_vs_inductor": 1.2195052601649132,
+   "autotuned_us": 112.83200000000001,
+   "speedup_autotuned": 1.0524673851389676,
+   "relerr_fused": 0.001660092151723802,
+   "relerr_unfused": 0.0035596510861068964
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 512,
+   "cublas_silu_us": 158.23999999999998,
+   "cublas_inductor_silu_us": 183.136,
+   "kopt_us": 142.83200000000002,
+   "speedup": 1.1078749859975352,
+   "speedup_vs_inductor": 1.2821776632687352,
+   "autotuned_us": 144.607,
+   "speedup_autotuned": 1.0942762106951944,
+   "relerr_fused": 0.0016580454539507627,
+   "relerr_unfused": 0.0035595351364463568
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 1024,
+   "cublas_silu_us": 310.44899999999996,
+   "cublas_inductor_silu_us": 366.40099999999995,
+   "kopt_us": 270.62399999999997,
+   "speedup": 1.1471598971266406,
+   "speedup_vs_inductor": 1.3539117003665602,
+   "autotuned_us": 278.9615,
+   "speedup_autotuned": 1.1128739987417617,
+   "relerr_fused": 0.0016604206757619977,
+   "relerr_unfused": 0.003553512506186962
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 2048,
+   "cublas_silu_us": 613.376,
+   "cublas_inductor_silu_us": 696.659,
+   "kopt_us": 555.427,
+   "speedup": 1.1043323425040554,
+   "speedup_vs_inductor": 1.254276439568116,
+   "autotuned_us": 563.458,
+   "speedup_autotuned": 1.0885922287020506,
+   "relerr_fused": 0.001659089932218194,
+   "relerr_unfused": 0.0035496677737683058
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 4096,
+   "cublas_silu_us": 1256.711,
+   "cublas_inductor_silu_us": 1418.085,
+   "kopt_us": 1144.222,
+   "speedup": 1.0983104677239208,
+   "speedup_vs_inductor": 1.2393442880839558,
+   "autotuned_us": 1082.2865,
+   "speedup_autotuned": 1.1611629637808474,
+   "relerr_fused": 0.0016589475562795997,
+   "relerr_unfused": 0.003554554423317313
+  },
+  {
+   "model": "qwen3_8b",
+   "M": 8192,
+   "cublas_silu_us": 2479.678,
+   "cublas_inductor_silu_us": 2784.0945,
+   "kopt_us": 2305.5815,
+   "speedup": 1.075510885214858,
+   "speedup_vs_inductor": 1.207545471717222,
+   "autotuned_us": 2317.3405000000002,
+   "speedup_autotuned": 1.0700533650536033,
+   "relerr_fused": 0.0016589791048318148,
+   "relerr_unfused": 0.0035515143536031246
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 1,
+   "cublas_silu_us": 202.273,
+   "cublas_inductor_silu_us": 199.137,
+   "kopt_us": 197.633,
+   "speedup": 1.0234778604787662,
+   "speedup_vs_inductor": 1.0076100651207034,
+   "relerr_fused": 0.0030186905059963465,
+   "relerr_unfused": 0.003519462887197733
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 2,
+   "cublas_silu_us": 202.241,
+   "cublas_inductor_silu_us": 198.752,
+   "kopt_us": 197.697,
+   "speedup": 1.0229846684572856,
+   "speedup_vs_inductor": 1.0053364492126842,
+   "relerr_fused": 0.003062864299863577,
+   "relerr_unfused": 0.0035819211043417454
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 4,
+   "cublas_silu_us": 202.68900000000002,
+   "cublas_inductor_silu_us": 198.96,
+   "kopt_us": 198.208,
+   "speedup": 1.0226075637713918,
+   "speedup_vs_inductor": 1.003793994187924,
+   "relerr_fused": 0.003044356359168887,
+   "relerr_unfused": 0.003548908280208707
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 8,
+   "cublas_silu_us": 203.232,
+   "cublas_inductor_silu_us": 199.488,
+   "kopt_us": 198.784,
+   "speedup": 1.0223760463618803,
+   "speedup_vs_inductor": 1.0035415325177077,
+   "relerr_fused": 0.0031137692276388407,
+   "relerr_unfused": 0.0035596853122115135
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 16,
+   "cublas_silu_us": 203.7795,
+   "cublas_inductor_silu_us": 200.86599999999999,
+   "kopt_us": 208.8485,
+   "speedup": 0.9757288177793951,
+   "speedup_vs_inductor": 0.9617785140903573,
+   "autotuned_us": 208.929,
+   "speedup_autotuned": 0.9753528710710337,
+   "relerr_fused": 0.0016698847757652402,
+   "relerr_unfused": 0.003551524132490158
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 32,
+   "cublas_silu_us": 203.16849999999997,
+   "cublas_inductor_silu_us": 200.993,
+   "kopt_us": 205.05599999999998,
+   "speedup": 0.9907951974094881,
+   "speedup_vs_inductor": 0.9801859004369539,
+   "autotuned_us": 205.249,
+   "speedup_autotuned": 0.9898635316128214,
+   "relerr_fused": 0.0016612688777968287,
+   "relerr_unfused": 0.003541436744853854
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 64,
+   "cublas_silu_us": 204.225,
+   "cublas_inductor_silu_us": 209.279,
+   "kopt_us": 212.48,
+   "speedup": 0.9611492846385542,
+   "speedup_vs_inductor": 0.9849350527108434,
+   "autotuned_us": 212.39999999999998,
+   "speedup_autotuned": 0.9615112994350283,
+   "relerr_fused": 0.001658185850828886,
+   "relerr_unfused": 0.003566996194422245
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 128,
+   "cublas_silu_us": 217.21599999999998,
+   "cublas_inductor_silu_us": 226.176,
+   "kopt_us": 200.992,
+   "speedup": 1.080719630632065,
+   "speedup_vs_inductor": 1.1252985193440534,
+   "autotuned_us": 200.993,
+   "speedup_autotuned": 1.0807142537302294,
+   "relerr_fused": 0.0016546800034120679,
+   "relerr_unfused": 0.0035628534387797117
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 256,
+   "cublas_silu_us": 238.433,
+   "cublas_inductor_silu_us": 262.23999999999995,
+   "kopt_us": 209.952,
+   "speedup": 1.1356548163389726,
+   "speedup_vs_inductor": 1.2490474013107755,
+   "autotuned_us": 217.82399999999998,
+   "speedup_autotuned": 1.0946130821213458,
+   "relerr_fused": 0.0016602451214566827,
+   "relerr_unfused": 0.003560349578037858
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 384,
+   "cublas_silu_us": 331.52,
+   "cublas_inductor_silu_us": 363.648,
+   "kopt_us": 316.768,
+   "speedup": 1.0465703606424892,
+   "speedup_vs_inductor": 1.147994746944136,
+   "autotuned_us": 315.44,
+   "speedup_autotuned": 1.050976413898047,
+   "relerr_fused": 0.0016578062204644084,
+   "relerr_unfused": 0.003554044757038355
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 512,
+   "cublas_silu_us": 415.074,
+   "cublas_inductor_silu_us": 460.33599999999996,
+   "kopt_us": 379.936,
+   "speedup": 1.0924839973048093,
+   "speedup_vs_inductor": 1.211614587720037,
+   "autotuned_us": 395.32800000000003,
+   "speedup_autotuned": 1.049948397280233,
+   "relerr_fused": 0.0016585432458668947,
+   "relerr_unfused": 0.0035500433295965195
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 1024,
+   "cublas_silu_us": 802.5314999999999,
+   "cublas_inductor_silu_us": 890.922,
+   "kopt_us": 747.156,
+   "speedup": 1.0741150442477876,
+   "speedup_vs_inductor": 1.192417647720155,
+   "autotuned_us": 703.6709999999999,
+   "speedup_autotuned": 1.1404925028884236,
+   "relerr_fused": 0.00165931333322078,
+   "relerr_unfused": 0.003555519273504615
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 2048,
+   "cublas_silu_us": 1617.697,
+   "cublas_inductor_silu_us": 1802.977,
+   "kopt_us": 1502.155,
+   "speedup": 1.0769174951985647,
+   "speedup_vs_inductor": 1.2002602927128028,
+   "autotuned_us": 1484.0175,
+   "speedup_autotuned": 1.0900794633486466,
+   "relerr_fused": 0.0016588522121310234,
+   "relerr_unfused": 0.0035506971180438995
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 4096,
+   "cublas_silu_us": 3139.6150000000002,
+   "cublas_inductor_silu_us": 3596.676,
+   "kopt_us": 2865.633,
+   "speedup": 1.0956095913189163,
+   "speedup_vs_inductor": 1.2551069868332756,
+   "autotuned_us": 2923.36,
+   "speedup_autotuned": 1.0739748098078923,
+   "relerr_fused": 0.0016590621089562774,
+   "relerr_unfused": 0.0035535944625735283
+  },
+  {
+   "model": "qwen3_32b",
+   "M": 8192,
+   "cublas_silu_us": 6489.900000000001,
+   "cublas_inductor_silu_us": 7258.8485,
+   "kopt_us": 5939.841,
+   "speedup": 1.0926050040733415,
+   "speedup_vs_inductor": 1.222061078739313,
+   "autotuned_us": 5791.651,
+   "speedup_autotuned": 1.1205613045399319,
+   "relerr_fused": 0.0016589323058724403,
+   "relerr_unfused": 0.0035547977313399315
+  }
+ ]
+}

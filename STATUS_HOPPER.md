@@ -28,3 +28,20 @@ E2E now running, three paired experiments at once (2 passes x 6 rounds, GPU-swap
 - Restarted H2 E2E pinned to NUMA 0 (the first launch was unpinned and spread over GPUs 0-5): GPUs 0/1 **default vs default+P1** (TPOT c1/c8/c32/c128 + TTFT + GSM8K), GPUs 2/3 default vs triton+P1+P2, then triton vs triton+P1+P2 on 0/1.
 - H3 kernel sweep running on GPU 6 (NUMA 1); H4 next on GPUs 4-7.
 - Step-back watcher: the owner told this session directly to step back if anyone else uses a GPU, so it stays on. It only triggers on GPU usage from other users and never on my own jobs.
+
+## 2026-11-28 — H3 progress: SM90 SwiGLU kernel table (E2E running)
+Sweep: QuACK autotune at M=16..8192 for Qwen3-8B (24576x4096) and Qwen3-32B (51200x5120); comparison by CUPTI, cold L2, CUDA graph (`results/hopper/H3/mb_h3.txt`, `mb_h3.json`).
+- **One shared 4-bucket table does not fit both models on SM90** (best shared table: mean 4.5%, worst 18% off per-M autotune); 8B wants tile_n 192 and 32B wants 224/160. **Per-weight-shape 4-bucket tables** come within mean 0.8% / 0.6% (worst 4.4% / 4.2%):
+  - 8B: M≤128 128x192 c1x2 pingpong; ≤256 128x192 c2x1 pp; ≤384 192x128 c2x1 pp; else 256x192 c1x2 cooperative.
+  - 32B: M≤128 128x224 c1x2 coop; ≤256 128x160 c2x1 pp; ≤384 128x256 c1x2 coop; else 256x160 c1x2 coop.
+  (All non-persistent; the SM90 search space has no dynamic persistent.)
+- vs `F.linear` + C++ `silu_and_mul`:
+  | M | 1–8 (F.linear + 2-D Triton) | 16 | 32 | 64 | 128 | 256 | 384 | 512 | 1024 | 2048 | 4096 | 8192 |
+  |---|---|---|---|---|---|---|---|---|---|---|---|---|
+  | 8B | 1.02x | 0.99 | 0.98 | 0.99 | 1.05 | 1.09 | 1.06 | 1.11 | 1.15 | 1.10 | 1.10 | 1.08 |
+  | 32B | 1.02x | 0.98 | 0.99 | 0.96 | 1.08 | 1.14 | 1.05 | 1.09 | 1.07 | 1.08 | 1.10 | 1.09 |
+- **Crossover on SM90 is M≈128** (SM100: 16): QuACK is 1–4% slower at M=16–64, so the E2E PR arm uses F.linear + 2-D Triton SiLU-mul for M<128 and QuACK for M≥128.
+- Rel. error vs FP32: fused 0.0017 vs unfused 0.0035–0.0036 (same as SM100). Small-M path (F.linear + Triton) 0.0030.
+- Note: vLLM's default here runs `SiluAndMul` as an Inductor-fused Triton kernel (custom_ops none), not the C++ op; the E2E captures that.
+E2E running: Qwen3-8B paired on GPUs 4/5 (NUMA 1, taskset); Qwen3-32B after H4's profiling frees GPUs 6/7.
+Also ack H5 (permute overhead); will start its kernel work as soon as a GPU frees up.
