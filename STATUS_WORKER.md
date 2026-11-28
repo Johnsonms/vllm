@@ -139,5 +139,9 @@ GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
   - Threshold for the prototype: M >= 8 (M = 1 is 0.96x).
 - Next: the env-gated vLLM prototype and the paired E2E + GSM8K. W22 full run is still going (slow: QuACK autotuning for every op and M).
 
+## 2026-11-28 16:46Z: W22 done (no-go); W23 E2E running
+- **W22 done:** `results/worker/W22/SUMMARY.md`. **No-go.** Folding residual-add + RMSNorm into the GEMM epilogues is not faster than keeping the Inductor add+norm kernel: fold vs "QuACK gated + Inductor norm" is 0.96-1.01x on chain 1; chain 2 (down -> norm -> qkv) is slower than today (0.83-0.99x). Reason: `gemm_rms` needs a second finalize kernel and costs 3-11 us more than the plain GEMM, the Inductor kernel it removes costs 2-12 us. Only M = 8192 gains. The fold is slightly more accurate (0.0029 vs 0.0042).
+- **W23:** env-gated prototype is written (local only) and passes a smoke test: MXFP8 path taken for every CUDA-graph size >= 8 and all prefill sizes, DeepGEMM below 8. Extra memory 155.7 MB per layer = 5.6 GB for 36 layers (prototype keeps both weight copies). Paired E2E (2 passes on GPUs 2,3 and 5,4, 6 rounds, TPOT c1/c8/c32/c128, TTFT 4096 c1/c4/c16, GSM8K 2 runs per arm per pass) is running.
+
 ## Questions
 - (none)
