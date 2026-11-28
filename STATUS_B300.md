@@ -535,3 +535,7 @@ Other results:
 - **Already covered or near roofline.** Dense FP8 CUTLASS at 13% of roofline is covered by #69949 / #70205. GDN recurrent is at 77% of roofline.
 
 No PR built and no GitHub activity. GPUs are free.
+
+## B12 — ack 2026-11-28
+- Fetched `b8b5ff3926` read-only (parent `269fca48a1`); `git patch-id --stable` equals the B1 commit `e77ca1439c` tested earlier.
+- Running on GPUs 0–3: fusion count (real weights, TP1) and pytest (B1 test file + `test_quant_activation_contract.py`) on both trees; then paired TPOT c1/c4/c8/c32 (1 pass × 4 rounds) + GSM8K 1+1 on GPUs 0–1. ETA ~1.5 h.
