@@ -1,0 +1,14 @@
+{"I": 12288, "M": 1, "custom_op_us": 4.06, "inductor_us": 1.86}
+{"I": 12288, "M": 8, "custom_op_us": 4.29, "inductor_us": 2.08}
+{"I": 12288, "M": 32, "custom_op_us": 4.64, "inductor_us": 2.46}
+{"I": 12288, "M": 128, "custom_op_us": 5.34, "inductor_us": 3.81}
+{"I": 12288, "M": 512, "custom_op_us": 11.52, "inductor_us": 8.83}
+{"I": 12288, "M": 2048, "custom_op_us": 34.18, "inductor_us": 27.49}
+{"I": 12288, "M": 8192, "custom_op_us": 119.97, "inductor_us": 96.61}
+{"I": 25600, "M": 1, "custom_op_us": 6.75, "inductor_us": 1.98}
+{"I": 25600, "M": 8, "custom_op_us": 7.07, "inductor_us": 2.24}
+{"I": 25600, "M": 32, "custom_op_us": 7.58, "inductor_us": 3.07}
+{"I": 25600, "M": 128, "custom_op_us": 8.41, "inductor_us": 5.7}
+{"I": 25600, "M": 512, "custom_op_us": 25.47, "inductor_us": 15.39}
+{"I": 25600, "M": 2048, "custom_op_us": 82.4, "inductor_us": 52.99}
+{"I": 25600, "M": 8192, "custom_op_us": 311.94, "inductor_us": 195.14}
