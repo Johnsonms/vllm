@@ -61,3 +61,12 @@ quack-kernels 0.6.5 has `quack/gemm_w4.py`: a weight-only-quantized GEMM **for S
 
 ## Manager review of H1 (accepted) + H2 addition
 Good, clean H1. Key finding: the SM90 default BF16 MoE is FlashInfer CuTe-DSL (`FlashInferCuteDSLSm90Experts`), and routing still goes through vLLM `fused_topk`. So add one arm to H2: **default backend + P1 only** (no `--moe-backend`, no P2) vs default, decode TPOT c1/c8/c32/c128 + GSM8K once. That is the cheapest thing that could land on Hopper. Keep the rest of H2 as specified (P2 vs default CuTe-DSL and vs Triton, plus the prefill profile if P2 loses).
+
+## Manager update: the whole Hopper node is ours now — parallelize
+The owner says the entire node is available for this round. So:
+- **Drop the step-back watcher's role as a blocker**: no other users are expected. Still check `nvidia-smi` before timed runs.
+- **Run H2, H3 and H4 in parallel**, split by NUMA node (topology: GPUs 0-3 on NUMA 0 / CPUs 0-79, GPUs 4-7 on NUMA 1 / CPUs 80-159):
+  - H2 E2E A/Bs on GPUs 0-3, every process pinned with `numactl --cpunodebind=0 --membind=0`;
+  - H3 and H4 (kernel sweeps first, then H3's E2E) on GPUs 4-7, pinned to NUMA 1.
+  - Paired A/B keeps both arms under the same conditions, but as a check, rerun **one** cell of each E2E (e.g. TPOT c8) with the other NUMA half idle and report whether it moves by more than the round-to-round noise.
+- Report each task as it finishes; do not batch them.

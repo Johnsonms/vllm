@@ -1,0 +1,7 @@
+M=   32 base    18.24us quack    23.36us speedup  0.78x | 1-GEMM(V wrong)   17.82us 1.02x | cuBLAS qkv only   13.66us  cfg 128x128 c2x1 pp0 dyn0  err q base 0.0023 quack 0.0020  k base 0.0023 quack 0.0021 v_eq False
+M=  128 base    20.32us quack    25.06us speedup  0.81x | 1-GEMM(V wrong)   17.66us 1.15x | cuBLAS qkv only   14.24us  cfg 128x128 c2x2 pp0 dyn0  err q base 0.0023 quack 0.0021  k base 0.0023 quack 0.0020 v_eq False
+M=  512 base    35.62us quack    37.09us speedup  0.96x | 1-GEMM(V wrong)   31.55us 1.13x | cuBLAS qkv only   24.99us  cfg 128x128 c2x1 pp0 dyn1  err q base 0.0023 quack 0.0020  k base 0.0023 quack 0.0021 v_eq True
+M= 2048 base    93.73us quack    77.31us speedup  1.21x | 1-GEMM(V wrong)   73.22us 1.28x | cuBLAS qkv only   66.66us  cfg 256x128 c2x2 pp0 dyn0  err q base 0.0023 quack 0.0020  k base 0.0023 quack 0.0021 v_eq True
+M= 8192 base   356.51us quack   267.01us speedup  1.34x | 1-GEMM(V wrong)  262.50us 1.36x | cuBLAS qkv only  252.29us  cfg 256x256 c2x1 pp0 dyn1  err q base 0.0023 quack 0.0020  k base 0.0023 quack 0.0021 v_eq True
+
+[exited with code 0]
