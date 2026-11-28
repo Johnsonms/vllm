@@ -75,3 +75,11 @@ Qwen3-30B-A3B, GPUs 2/3 (NUMA0, taskset 0-63), 2 passes x 6 rounds, GPU-swapped.
 - **TPOT (512/512) is slightly faster:** c1 **−1.7%** (12/12), c8 −1.0% (7/12, noise), c32 **−3.3%** (10/12), c128 −0.4% (7/12, noise). Decode M is below `KOPT_QUACK_MOE_MIN_M`, so this gain comes from Triton decode + P1, not P2.
 - GSM8K: base 0.9295, PR 0.9257 (−0.4 pt, within run-to-run noise for 1319 Qs). Greedy: 3/4 prompts identical over 64 tokens, and 1 diverges at token 60 in both passes (BF16 accumulation order, expected).
 - Verdict: **the PR as a whole does not beat default.** P2 should not ship on SM90. The decode gain is checked separately by def_vs_defp1 (running on 6/7) and tri_vs_pr (starting now on 2/3).
+
+## 2026-11-28 17:55Z — H3 E2E Qwen3-8B (QuACK fused gate_up + SwiGLU): DONE
+GPUs 4/5 (NUMA1, taskset 64-127), 2x6 paired, `KOPT_SWIGLU_SMALL_M=128` with the per-shape SM90 table. Table: `results/hopper/H3/e2e_swiglu_8b/TABLE.md`.
+- **TTFT (4096/1) is faster:** c1 **−2.9%** (11/12), c4 **−3.2%** (12/12), c16 **−2.6%** (12/12). This is consistent with the 1.05–1.15x kernel win at large M.
+- **TPOT (512/512) is neutral:** c1 +0.1%, c8 −0.1%, c32 +0.9% (2/12), c64 +0.1%, c128 **−1.0%** (12/12). In c1–c64 the sign flips with the GPU swap (GPU 4 vs 5 offset of about ±0.5%), so the paired mean is about 0. Decode M < 128 uses the cuBLAS + Triton SiLU-mul path, which matches the default.
+- c32 +0.9% (2/12) is the only cell leaning slower. The 128-row cutoff (`SMALL_M=128`) for the QuACK path is the knob for it.
+- GSM8K: base 0.9052, PR 0.9083. Greedy: 4/4 identical over 64 tokens in both passes.
+- Verdict: **a clean prefill win (about 3% TTFT), decode neutral, accuracy unchanged.** Qwen3-32B is not run, per the handover.
