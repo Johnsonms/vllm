@@ -1,0 +1,8 @@
+PASS gemm (13.9s) rel_err=1.66e-03
+PASS gemm_gated_out dense swiglu concat B (4.9s) rel_err=1.66e-03
+PASS gemm_gated_out varlen cu_seqlens_m + varlen gemm (10.1s) fc1 rel_err=1.66e-03 fc2 rel_err=1.66e-03
+FAIL topk softmax=True bf16: ValueError: Invalid mValues.strides[0] on argument #1 when calling: `__call__(mX: Tensor([n0, 64], bfloat16), mValues: Tensor([n0, 4], bfloat16), mIndices: Tensor([n0, 4], int32))`, expected to be divisible by 8
+   gemm_tuned config: GemmConfig(tile_m=256, tile_n=192, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=False, cluster_m=1, cluster_n=2, cluster_k=1, split_k=1, swap_ab=True, max_swizzle_size=8, device_capacity=9, use_tma_gather=False)
+   gemm_tuned config: GemmConfig(tile_m=128, tile_n=256, tile_k=None, num_warps=None, pingpong=False, is_dynamic_persistent=False, cluster_m=1, cluster_n=2, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=9, use_tma_gather=False)
+   mod_linear_act_epi_ee8d483c9adb3cd3 config: GemmConfig(tile_m=128, tile_n=128, tile_k=None, num_warps=None, pingpong=True, is_dynamic_persistent=False, cluster_m=2, cluster_n=1, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=9, use_tma_gather=False)
+   mod_linear_act_epi_ee8d483c9adb3cd3 config: GemmConfig(tile_m=128, tile_n=192, tile_k=None, num_warps=None, pingpong=True, is_dynamic_persistent=False, cluster_m=1, cluster_n=2, cluster_k=1, split_k=1, swap_ab=False, max_swizzle_size=8, device_capacity=9, use_tma_gather=False)

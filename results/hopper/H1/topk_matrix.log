@@ -1,0 +1,25 @@
+E128 k8 M1: PASS ids_eq=True maxerr=3.0e-04
+E128 k8 M2: PASS ids_eq=True maxerr=4.6e-04
+E128 k8 M7: PASS ids_eq=True maxerr=5.5e-04
+E128 k8 M256: PASS ids_eq=True maxerr=9.7e-04
+E128 k8 M4096: PASS ids_eq=True maxerr=1.9e-03
+E64 k8 M1: PASS ids_eq=True maxerr=4.5e-04
+E64 k8 M2: PASS ids_eq=True maxerr=4.7e-04
+E64 k8 M7: PASS ids_eq=True maxerr=5.7e-04
+E64 k8 M256: PASS ids_eq=True maxerr=1.5e-03
+E64 k8 M4096: PASS ids_eq=True maxerr=1.9e-03
+E64 k4 M1: PASS ids_eq=True maxerr=8.7e-04
+E64 k4 M2: FAIL ValueError: Invalid mValues.strides[0] on argument #1 when calling: `__call__(mX: Tensor([n0, 64], bfloat16), mValues: Ten
+E64 k4 M7: FAIL ValueError: Invalid mValues.strides[0] on argument #1 when calling: `__call__(mX: Tensor([n0, 64], bfloat16), mValues: Ten
+E64 k4 M256: FAIL ValueError: Invalid mValues.strides[0] on argument #1 when calling: `__call__(mX: Tensor([n0, 64], bfloat16), mValues: Ten
+E64 k4 M4096: FAIL ValueError: Invalid mValues.strides[0] on argument #1 when calling: `__call__(mX: Tensor([n0, 64], bfloat16), mValues: Ten
+E32 k2 M1: PASS ids_eq=True maxerr=1.5e-03
+E32 k2 M2: FAIL ValueError: Invalid mValues.strides[0] on argument #1 when calling: `__call__(mX: Tensor([n0, 32], bfloat16), mValues: Ten
+E32 k2 M7: FAIL ValueError: Invalid mValues.strides[0] on argument #1 when calling: `__call__(mX: Tensor([n0, 32], bfloat16), mValues: Ten
+E32 k2 M256: FAIL ValueError: Invalid mValues.strides[0] on argument #1 when calling: `__call__(mX: Tensor([n0, 32], bfloat16), mValues: Ten
+E32 k2 M4096: FAIL ValueError: Invalid mValues.strides[0] on argument #1 when calling: `__call__(mX: Tensor([n0, 32], bfloat16), mValues: Ten
+E256 k8 M1: PASS ids_eq=True maxerr=2.0e-04
+E256 k8 M2: PASS ids_eq=True maxerr=3.6e-04
+E256 k8 M7: PASS ids_eq=True maxerr=4.1e-04
+E256 k8 M256: PASS ids_eq=True maxerr=1.1e-03
+E256 k8 M4096: PASS ids_eq=True maxerr=1.8e-03
