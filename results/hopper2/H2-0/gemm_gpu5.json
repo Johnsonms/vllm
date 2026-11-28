@@ -1,0 +1,1 @@
+{"gpu": "gpu5", "shape": "8192x8192x8192 bf16", "seconds": 30.0, "tflops_overall": 688.0, "tflops_min": 595.4, "tflops_median": 690.0, "tflops_max": 757.5, "tflops_last5_mean": 692.4}
