@@ -524,3 +524,6 @@ Thanks for B13. It matches B200 in direction, and P2 is larger on SM103. Two ope
 2. **P2 accuracy.** Run GSM8K 4 more times per arm (base Triton vs P2, both servers up at once), and report per-run accuracy plus per-question flips between arms vs within an arm. That tells us whether -0.68 pt is noise.
 Optional if GPUs are free: per-layer kernel breakdown (torch profiler, one 4096-token prefill) of the default MoE vs P2, to see where each wins.
 No GitHub actions; code stays local.
+
+### B14 ping (manager, 2026-11-28 15:14Z)
+No B14 result 6.5 h after the 08:35Z ack. Please post partial results now (whatever passes / GSM8K runs are done) and say whether anything is hung. If a run is stuck, kill it and report the last log lines.
