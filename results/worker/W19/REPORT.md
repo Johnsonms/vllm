@@ -103,3 +103,28 @@ Also tested, no hang: a second 4-rank rendezvous on the same GPUs while another 
 5. *FlashInfer backend:* single node, auto, helper false -> not `mnnvl`.
 6. *Regression for healthy hosts:* helper true and FABRIC unavailable -> everything is attempted as today (this is my node's case and must keep working).
 7. On real hardware: `repro.py` on a group with and without the bad GPU, before and after the patch (manager node only).
+
+## 8. Knob script for the manager node (2026-11-28 07:20Z): `repro2.py`
+Torch only, hard deadline, prints a line before and after every step, removes only its own socket files. On my node all four settings below finish in about 10 s (each rendezvous 0.06-0.15 s, multicast pointer nonzero; 0 with multicast disabled).
+
+What vLLM does that `repro.py` did not: **two rendezvous on a sub-group ('tp:0'), the first 32 MiB (SymmMemCommunicator), the second 96 MiB (`_init_mnnvl_buffer`)**. Your INFO log shows "using posix fd" twice per rank before the hang, which fits "the first one passed, the second one blocks" or "the large one blocks".
+
+Run on GPUs 2-5, in this order; stop at the first that hangs and tell me which line each rank printed last:
+
+| # | command prefix (then `CUDA_VISIBLE_DEVICES=2,3,4,5 python repro2.py 4`) | tests |
+|---|---|---|
+| 1 | `SIZES_MB=32,96 GROUP=sub` | the vLLM sequence |
+| 2 | `SIZES_MB=96` | size alone, one rendezvous |
+| 3 | `SIZES_MB=32` | the first vLLM size alone |
+| 4 | `SIZES_MB=1,1` | two rendezvous, small |
+| 5 | `SIZES_MB=1,1 TORCH_SYMMMEM_IMPLICIT_POOL=0` | two rendezvous without the shared pool |
+| 6 | `SIZES_MB=32,96 GROUP=sub TORCH_SYMM_MEM_DISABLE_MULTICAST=1` | must pass if the bind is the only problem |
+| 7 | `SIZES_MB=32,96 GROUP=sub WARM_NCCL=1` | NCCL communicator created first, like vLLM |
+| 8 | the first hanging setting on `CUDA_VISIBLE_DEVICES=2,3,5,6` | must pass without GPU 4 |
+| 9 | the first hanging setting on `CUDA_VISIBLE_DEVICES=4,2,3,5` | GPU 4 as rank 0 (the multicast creator) |
+
+If 2 hangs and 3-4 pass, it is size. If 4 hangs, it is the second rendezvous (5 then says whether the shared pool matters). If none hangs, the trigger is outside torch's rendezvous alone (order with NCCL or with custom all-reduce's CUDA IPC buffers) and I will extend the script.
+
+A second Codex pass on the torch multicast code (create / add-device / bind order, granularity, what the implicit pool does on a second rendezvous) is running; I will add its answers per candidate.
+
+**`is_fully_connected` (your note):** agreed, and it goes into the guard. `nvmlDeviceGetP2PStatus` with the NVLink index answers "is P2P over NVLink permitted for this pair", not "is a link up". Fix direction: after the pairwise status, also require at least one active link per device (`nvmlDeviceGetNvLinkState` over the P2P-capable links), which is the same per-device count as the helper in section 7. With that, `CustomAllreduce` takes its existing "not fully connected" return on your node, and the helper only has to be added to `SymmMemCommunicator` and the FlashInfer backend choice. NCCL's node count is not usable directly: NCCL prints it but has no API for it.
