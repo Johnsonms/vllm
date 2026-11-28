@@ -546,3 +546,10 @@ No PR built and no GitHub activity. GPUs are free.
 ## B13 — ack 2026-11-28 ~07:10Z
 - Missed the B13 push for a few hours: this node lost its GitHub connection (fetch timeouts in my poller log from ~03:00Z); it is back now. B12 results are at b538dd8.
 - Base worktree at `14e9c30d86`, quack-kernels 0.6.5. Downloading Qwen3-8B and Qwen3-30B-A3B (BF16; not cached here). Writing P1/P2/P3 locally from the description; kernel microbenches first, then paired E2E. Code stays local.
+
+## B13 — progress 2026-11-28 (kernel microbenches done; E2E running)
+P1/P2/P3 rebuilt locally from the description on `14e9c30d86` + quack-kernels 0.6.5 (code local only). All three run on SM103 as described; the pinned config (128x256, cluster 2x1, dynamic persistent) is valid here, no workaround needed. Cold L2, CUDA graph, median of 7 rounds (`results/b300/B13/mb_p*.json`):
+- **P1** (E=128, k=8) vs `ops.topk_softmax`: ids identical at every M, weights within 1.2e-7. M=1 3.52 → 1.84 µs (1.91x); M 8–256 1.45–1.66x; M=1024 2.09x; M=8192 3.70x.
+- **P2** (Qwen3-30B-A3B shapes) vs `fused_experts` (Triton, no B300 tuned config file): M=64 1.06x, 256 1.08x, 1024 1.14x, 2048 1.30x, 4096 1.45x, 8192 1.58x. Rel. error vs FP32 reference: QuACK 0.0029, Triton 0.0043.
+- **P3** (Qwen3-8B gate_up, K=4096, N=2x12288) vs `F.linear` + `silu_and_mul`: M=1/8 (F.linear + 2-D Triton SiLU-mul) 1.05x; M=16/32 1.06x; M=128 1.20x; M=512 1.23x; M=2048 (untuned) 1.15x. Rel. error vs FP32: QuACK 0.0017, cuBLAS+C++ 0.0035.
+Paired E2E (2 passes x 6 rounds, GPU-swapped, GSM8K once per arm) running now, all three at once on GPU pairs 0/1 (P1), 2/3 (P2), 4/5 (P3, after pre-tuning M=16..512 step 8).
