@@ -1,0 +1,28 @@
+--- M=1024 quack: total 545 us (warm L2, back-to-back)
+      324.6 us  kernel_cutlass_kernel_quackepiloguefrontendGemmMod_linear_act_epi_ee8d483c9adb3cd3_g_none_
+      161.2 us  kernel_cutlass_kernel_quackgemm_default_epiGemmDefaultSm90_object_at__TiledMMA_ThrLayoutVM
+       20.1 us  void expandInputRowsKernel<__nv_bfloat16, false>(__nv_bfloat16 const*, __nv_bfloat16*, int
+       14.0 us  void finalizeMoeRoutingKernel<__nv_bfloat16, __nv_bfloat16, true>(__nv_bfloat16 const*, __
+        7.7 us  void cub::_V_300200_SM_750_800_860_890_900_1000_1200::detail::radix_sort::DeviceRadixSortO
+        3.7 us  Memset (Device)
+        3.2 us  computeExpertOffsetsAndInverseKernel(int const*, long, int, long*, int const*, int*)
+        2.8 us  void cub::_V_300200_SM_750_800_860_890_900_1000_1200::detail::radix_sort::DeviceRadixSortH
+--- M=1024 cutedsl: total 510 us (warm L2, back-to-back)
+      308.4 us  kernel_cutlass_kernel_flashinferfused_moecute_dslhoppercontiguous_gather_grouped_gemm_act_
+      166.1 us  kernel_cutlass_kernel_flashinferfused_moecute_dslhoppercontiguous_grouped_gemm_finalize_fu
+       29.1 us  void tensorrt_llm::_v1::kernels::cute_dsl::moeUnpermuteKernel<__nv_bfloat16, float, 256>(_
+        6.6 us  void moe::dev::routing::routingCustom::routingIndicesClusterKernel<moe::dev::routing::rout
+--- M=4096 quack: total 809 us (warm L2, back-to-back)
+      424.2 us  kernel_cutlass_kernel_quackepiloguefrontendGemmMod_linear_act_epi_ee8d483c9adb3cd3_g_none_
+      228.1 us  kernel_cutlass_kernel_quackgemm_default_epiGemmDefaultSm90_object_at__TiledMMA_ThrLayoutVM
+       74.5 us  void expandInputRowsKernel<__nv_bfloat16, false>(__nv_bfloat16 const*, __nv_bfloat16*, int
+       54.5 us  void finalizeMoeRoutingKernel<__nv_bfloat16, __nv_bfloat16, true>(__nv_bfloat16 const*, __
+        8.6 us  void cub::_V_300200_SM_750_800_860_890_900_1000_1200::detail::radix_sort::DeviceRadixSortO
+        3.9 us  computeExpertOffsetsAndInverseKernel(int const*, long, int, long*, int const*, int*)
+        3.3 us  Memset (Device)
+        2.8 us  void cub::_V_300200_SM_750_800_860_890_900_1000_1200::detail::radix_sort::DeviceRadixSortH
+--- M=4096 cutedsl: total 765 us (warm L2, back-to-back)
+      432.8 us  kernel_cutlass_kernel_flashinferfused_moecute_dslhoppercontiguous_gather_grouped_gemm_act_
+      253.6 us  kernel_cutlass_kernel_flashinferfused_moecute_dslhoppercontiguous_grouped_gemm_finalize_fu
+       67.1 us  void tensorrt_llm::_v1::kernels::cute_dsl::moeUnpermuteKernel<__nv_bfloat16, float, 256>(_
+       11.5 us  void moe::dev::routing::routingCustom::routingIndicesClusterKernel<moe::dev::routing::rout
