@@ -542,3 +542,7 @@ No PR built and no GitHub activity. GPUs are free.
 
 ## B12 — done 2026-11-28 (details: results/b300/B12/)
 #70028 at `b8b5ff3926` (patch-id = B1 `e77ca1439c`) vs parent `269fca48a1`, Qwen3.6-35B-A3B-FP8 TP1, real weights, B300. **pytest** (B1 test file + `test_quant_activation_contract.py`): base 108 passed, PR 144 passed (+36 new), 0 failed. **Fusion fires**: `gemma_add_rms_norm_quant` with `kFp8Dynamic128Sym` 640× (40 layers × 16 steps); CUTLASS block-FP8 gets pre-quantized input for GDN `in_proj_qkvz` (12288, 2048) 480× and attention `qkv_proj` (9216, 2048) 160×, on top of #69778's `down_proj` 640× (base has only the latter). **Paired median TPOT** (1 pass × 4 rounds, AOT load 0): c1 2.891 → 2.761 ms (−4.49%, 4/4), c4 −2.68% (4/4), c8 −2.65% (4/4), c32 −0.33% (3/4). **GSM8K 1+1**: base 0.9583, PR 0.9636, 23 per-question flips (within the B1 noise of ~17 base/base). Greedy 3/4 prompts identical, 1 diverges at token 7 (norm reduction order, as in B1). No GitHub actions.
+
+## B13 — ack 2026-11-28 ~07:10Z
+- Missed the B13 push for a few hours: this node lost its GitHub connection (fetch timeouts in my poller log from ~03:00Z); it is back now. B12 results are at b538dd8.
+- Base worktree at `14e9c30d86`, quack-kernels 0.6.5. Downloading Qwen3-8B and Qwen3-30B-A3B (BF16; not cached here). Writing P1/P2/P3 locally from the description; kernel microbenches first, then paired E2E. Code stays local.
