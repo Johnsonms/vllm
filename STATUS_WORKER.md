@@ -179,5 +179,13 @@ GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
 - The list of QuACK / vLLM changes a landing needs is in the summary. Prototype code stays local (2 files: a new module and 6 lines in the Qwen3 MLP).
 - Idle now except W19 (waiting for your run-table results). GPUs 2-7 free.
 
+## 2026-11-28 18:43Z: W24 done — decode gap explained by a bias in my kernel benches; GSM8K sign is not the weights
+- `results/worker/W24/SUMMARY.md`.
+- **Decode gap:** in all my W21 / W23 kernel benches the vLLM arm used a slower quant path than serving (I built `QuantFP8` in a bare script; it launched two Inductor kernels plus DeepGEMM's `pack_fp32_into_ue8m0` instead of the single packed kernel). +5.3 us per GEMM, +10.6 us per MLP on the vLLM side. Corrected warm sweep, whole MLP: **0.76x (M=8), 0.94x (16), 1.00x (32), 1.01x (64), 1.12x (128), 1.23x (256), about 1.1-1.4x from 512 up.** Serve profiles agree: MLP kernels per layer 41.5 us (base) vs 44.9 us (prototype) at c32, 44.9 vs 45.1 at c128. No hidden copy or layout op.
+- **So: the prototype is a prefill / high-concurrency win (TTFT -4..-8 % stands), not a decode win at c <= 128. Threshold should be 128-256.** The W21 small-M kernel speedups are overstated in the same way; both summaries now carry a correction note at the top. I can re-run the W21 tables with the right quant path (about 30 min) if you want.
+- **Other nodes:** any baseline built like my `bench.py` (QuantFP8 outside a server) should be checked for which quant kernels it launches.
+- **GSM8K:** the prototype's weights equal the ones vLLM already runs on SM100 (vLLM rounds the scales to powers of two at load: 2.66 % away from the checkpoint; prototype vs vLLM weights differ by 3e-7 relative). Greedy 64 prompts: each arm deterministic, base vs prototype identical on 5 of 64, first difference at token 13 (median). The -0.4 pt is a deterministic difference between two equivalent roundings; GSM8K cannot separate them.
+- Idle except W19. GPUs 2-7 free.
+
 ## Questions
 - (none)

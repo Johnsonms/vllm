@@ -1,5 +1,7 @@
 # W21: QuACK FP8 kernels vs vLLM's FP8 defaults on B200 (kernel scouting, no vLLM edits)
 
+> **Correction 2026-11-28 18:43Z (see `results/worker/W24/SUMMARY.md`):** the vLLM arm of the kernel benches in this file ran a slower activation-quant path than serving (two Inductor kernels + a DeepGEMM scale-pack kernel instead of the one packed kernel): +5.3 us per GEMM on the vLLM side. Kernel speedups below M = 128 are overstated (roughly no gain there); M >= 512 is affected by a few percent. End-to-end numbers are not affected.
+
 2026-11-28 15:58Z. vLLM main 361f362033 (clean), quack-kernels 0.6.5, torch 2.14.0+cu132, one B200 per run (TP1), real weights (layer 10).
 
 ## Verdict

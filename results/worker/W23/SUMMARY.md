@@ -1,5 +1,7 @@
 # W23: end-to-end MXFP8 MLP prototype on Qwen3-8B-FP8 (B200, TP1)
 
+> **Correction 2026-11-28 18:43Z (see `results/worker/W24/SUMMARY.md`):** the vLLM arm of the kernel benches in this file ran a slower activation-quant path than serving (two Inductor kernels + a DeepGEMM scale-pack kernel instead of the one packed kernel): +5.3 us per GEMM on the vLLM side. Kernel speedups below M = 128 are overstated (roughly no gain there); M >= 512 is affected by a few percent. End-to-end numbers are not affected.
+
 2026-11-28 18:19Z. vLLM main 361f362033 + local env-gated prototype (code not pushed), quack-kernels 0.6.5, flashinfer 0.7.4. Base arm = same tree with the env switch off.
 
 ## Verdict
