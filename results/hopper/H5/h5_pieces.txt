@@ -1,0 +1,72 @@
+--- M=256  (relerr vs current P2: new 0.0000, new+w-in-fc2 0.0032; default vs P2 0.0000)
+   default_cutedsl_total            457.8 us   default/this = 1.000x
+   p2_current_total                 495.8 us   default/this = 0.923x
+   moe_permute(copy+index)           22.0 us
+   index_build_triton                13.9 us
+   fc1_contig(px)                   322.2 us
+   fc1_gather(A_idx)                556.9 us
+   fc1_gather(A_idx, tuned 128x256 coop)     458.5 us
+   gather_rows_triton(copy)           4.1 us
+   new_total(idx+gather-copy+fc1+fc2+combine)     487.5 us   default/this = 0.939x
+   new_total(idx+A_idx tuned fc1+fc2+combine)     626.0 us   default/this = 0.731x
+   fc2                              155.0 us
+   fc2_w(colvec)                    155.2 us
+   moe_unpermute                      8.0 us
+   combine_triton(w)                  6.7 us
+   combine_triton(no w)               6.2 us
+   new_total(w in combine)          718.9 us   default/this = 0.637x
+   new_total(w in fc2)              719.7 us   default/this = 0.636x
+--- M=1024  (relerr vs current P2: new 0.0000, new+w-in-fc2 0.0032; default vs P2 0.0000)
+   default_cutedsl_total            497.3 us   default/this = 1.000x
+   p2_current_total                 561.2 us   default/this = 0.886x
+   moe_permute(copy+index)           55.7 us
+   index_build_triton                15.7 us
+   fc1_contig(px)                   336.4 us
+   fc1_gather(A_idx)                529.7 us
+   fc1_gather(A_idx, tuned 128x256 coop)     453.1 us
+   gather_rows_triton(copy)          14.7 us
+   new_total(idx+gather-copy+fc1+fc2+combine)     530.0 us   default/this = 0.938x
+   new_total(idx+A_idx tuned fc1+fc2+combine)     635.3 us   default/this = 0.783x
+   fc2                              165.2 us
+   fc2_w(colvec)                    165.5 us
+   moe_unpermute                     18.3 us
+   combine_triton(w)                 18.8 us
+   combine_triton(no w)              17.5 us
+   new_total(w in combine)          709.2 us   default/this = 0.701x
+   new_total(w in fc2)              710.7 us   default/this = 0.700x
+--- M=4096  (relerr vs current P2: new 0.0000, new+w-in-fc2 0.0032; default vs P2 0.0000)
+   default_cutedsl_total            797.0 us   default/this = 1.000x
+   p2_current_total                 912.2 us   default/this = 0.874x
+   moe_permute(copy+index)          109.6 us
+   index_build_triton                21.1 us
+   fc1_contig(px)                   484.5 us
+   fc1_gather(A_idx)                617.8 us
+   fc1_gather(A_idx, tuned 128x256 coop)     562.8 us
+   gather_rows_triton(copy)          68.1 us
+   new_total(idx+gather-copy+fc1+fc2+combine)     826.1 us   default/this = 0.965x
+   new_total(idx+A_idx tuned fc1+fc2+combine)     837.2 us   default/this = 0.952x
+   fc2                              235.4 us
+   fc2_w(colvec)                    242.5 us
+   moe_unpermute                     60.0 us
+   combine_triton(w)                 60.3 us
+   combine_triton(no w)              58.8 us
+   new_total(w in combine)          919.6 us   default/this = 0.867x
+   new_total(w in fc2)              927.5 us   default/this = 0.859x
+--- M=8192  (relerr vs current P2: new 0.0000, new+w-in-fc2 0.0032; default vs P2 0.0000)
+   default_cutedsl_total           1332.5 us   default/this = 1.000x
+   p2_current_total                1572.8 us   default/this = 0.847x
+   moe_permute(copy+index)          204.0 us
+   index_build_triton                27.2 us
+   fc1_contig(px)                   777.4 us
+   fc1_gather(A_idx)                953.0 us
+   fc1_gather(A_idx, tuned 128x256 coop)     902.4 us
+   gather_rows_triton(copy)         156.1 us
+   new_total(idx+gather-copy+fc1+fc2+combine)    1406.8 us   default/this = 0.947x
+   new_total(idx+A_idx tuned fc1+fc2+combine)    1437.1 us   default/this = 0.927x
+   fc2                              395.5 us
+   fc2_w(colvec)                    413.1 us
+   moe_unpermute                    110.7 us
+   combine_triton(w)                111.6 us
+   combine_triton(no w)             109.7 us
+   new_total(w in combine)         1435.1 us   default/this = 0.928x
+   new_total(w in fc2)             1495.9 us   default/this = 0.891x

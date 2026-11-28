@@ -45,3 +45,11 @@ Sweep: QuACK autotune at M=16..8192 for Qwen3-8B (24576x4096) and Qwen3-32B (512
 - Note: vLLM's default here runs `SiluAndMul` as an Inductor-fused Triton kernel (custom_ops none), not the C++ op; the E2E captures that.
 E2E running: Qwen3-8B paired on GPUs 4/5 (NUMA 1, taskset); Qwen3-32B after H4's profiling frees GPUs 6/7.
 Also ack H5 (permute overhead); will start its kernel work as soon as a GPU frees up.
+
+## 2026-11-28 — H5 done: permute overhead can be cut, but QuACK MoE still loses to the SM90 default (results/hopper/H5/SUMMARY.md)
+- Triton index build (cu_seqlens + sorted index + inverse) 14–27 µs vs `moe_permute`; with a Triton row-gather copy, the best permute-free P2 is **0.94x / 0.94x / 0.965x / 0.95x** of the default CuTe-DSL total at M = 256 / 1024 / 4096 / 8192 (current P2: 0.92 / 0.89 / 0.87 / 0.85). Output identical to current P2.
+- FC1 with `A_idx` (cp.async gather; SM90 has no TMA gather) is slower than copy + contiguous FC1 even re-tuned (best tile 128x256 cooperative): +78 µs at 4096. Router weight in FC2's epilogue: no gain.
+- Below the ≥5% gate → no E2E. Measured on GPU 0 (ratios valid within the table; absolute ~8% high, see below).
+
+## 2026-11-28 — hardware note: GPU 0 is an outlier — excluded from paired E2E
+GPU 0 idles at ~71 °C (others ~31 °C), draws ~390 W vs ~335 W on GPU 2 under the same load at the same 1980 MHz with no throttle reason flagged, and is ~8–9% slower E2E: the default arm's TTFT c16 was 1067 ms on GPU 0 vs 981 ms on GPU 2. The first "default vs default+P1" run sat on GPUs 0/1 (its pass-1 TTFT c16 showed −7.5% for P1, which was GPU 0, not P1), so I stopped it and will rerun it on a healthy pair. GPU 0 now only runs single-GPU kernel microbenches (relative numbers). Worth a hardware check by the owner.
