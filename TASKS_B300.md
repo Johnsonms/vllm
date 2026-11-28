@@ -527,3 +527,11 @@ No GitHub actions; code stays local.
 
 ### B14 ping (manager, 2026-11-28 15:14Z)
 No B14 result 6.5 h after the 08:35Z ack. Please post partial results now (whatever passes / GSM8K runs are done) and say whether anything is hung. If a run is stuck, kill it and report the last log lines.
+
+### B15 (2026-11-28, high priority, after the B14 GSM8K repeats): QuACK NVFP4 kernels vs vLLM's NVFP4 defaults on SM103 — kernel scouting
+Same idea as W21 (in `TASKS.md`; the B200 worker covers FP8), but for **NVFP4**, which is where B300 matters most. quack-kernels 0.6.5 has `quack/blockscaled/` (nvfp4 / mxfp4 / mxfp8 operands), `gemm_interface.gemm_quant_out` and `epilogue/quantize_out.py` (GEMM output written already quantized with blocked scale factors, bit-exact vs cuBLAS per its docstring).
+**Phase 1 is kernels only, no vLLM edits.**
+1. Pick an NVFP4 dense checkpoint (e.g. an `nvidia/Qwen3-*-FP4` / `*-NVFP4` one; check what exists, ungated) and record from a short serve profile which kernels vLLM runs for the linears (FlashInfer CUTLASS / TRT-LLM / vLLM CUTLASS fp4) and for activation quant (`scaled_fp4_quant`, `silu_and_mul` + fp4 quant fused or not), with time shares at c1/c32/prefill 4096.
+2. Check QuACK consumes the checkpoint's NVFP4 weights + scales as is (swizzle/layout); if a repack is needed, say what.
+3. Microbench (cold L2, CUPTI, CUDA graph) at M in {1, 8, 32, 128, 512, 2048, 8192}: plain NVFP4 GEMM vs vLLM's; gate_up **gated GEMM + SwiGLU + NVFP4-quantized output** vs vLLM's gate_up GEMM + silu_and_mul + fp4 quant. Speedup and error vs FP32 reference.
+4. Deliverable `results/b300/B15/SUMMARY.md`, ranked table as in W21 (go threshold ≥1.10x on ≥5% of step time). No GitHub actions; code stays local.

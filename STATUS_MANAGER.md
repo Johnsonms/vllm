@@ -27,3 +27,10 @@
   indexer (first divergent module `layers.3.self_attn.indexer`). The selection is always a valid top-k. It starts at
   2,056 tokens (block top-k 512), and dummy weights probably inflate the tie counts. This is not a wrong-data bug.
 - Worker stood down. Channel idle. No further tasks.
+
+## 2026-11-28: QuACK scouting round 2 (owner: "are there more QuACK kernels that beat vLLM?")
+- Manager: QKV GEMM + per-head RMSNorm (QK-norm) + RoPE in QuACK's epilogue (`epilogue/head_rmsnorm.py`, `epilogue/rotary.py`) vs vLLM's cuBLAS + qk-norm/rope, Qwen3 dense BF16, B200.
+- Worker W21: FP8 (block-128) GEMM / gated + quantized output vs vLLM FP8 defaults, B200.
+- B300 B15: NVFP4 GEMM / gated + fp4 output vs vLLM NVFP4 defaults, SM103.
+- Hopper H1-H3 (MoE / routing / SwiGLU on SM90), then H4: `gemm_w4` vs Marlin/Machete.
+- Already ruled out: QuACK RMSNorm (11-27: E2E +0.3..+1.1% slower vs Inductor-native), QuACK MoE vs TRT-LLM on SM100/SM103.

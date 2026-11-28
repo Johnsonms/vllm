@@ -52,3 +52,9 @@ Goal: extend the SwiGLU PR (today SM100/SM103 only) to SM90 if it wins there.
 3. Relative error vs an FP32 reference, fused vs unfused (SM100: fused 0.0017 vs unfused 0.0035).
 
 No GitHub actions; code stays local.
+
+## H4: QuACK W4A16 GEMM vs vLLM's int4 kernels on Hopper  [queued; after H2/H3]
+quack-kernels 0.6.5 has `quack/gemm_w4.py`: a weight-only-quantized GEMM **for SM90** (int4 / int4-AWQ / mxfp4 / nvfp4 / fp8 weights, decoded to bf16 in registers, split-K supported), with an offline `prepare` repack step.
+1. For `Qwen/Qwen3-8B-AWQ` and `Qwen/Qwen3-32B-AWQ` (and a GPTQ-int4 Qwen3 if one exists ungated): record which kernel vLLM uses on H100 (Marlin / Machete / other) and its time share at c1/c32/prefill 4096.
+2. Microbench (cold L2, CUPTI, CUDA graph) QuACK `gemm_w4` vs vLLM's kernel on the real layer shapes at M in {1, 8, 16, 32, 64, 128, 512, 2048}. Report speedup, error vs a dequantized-FP32 reference, and whether QuACK can use the checkpoint's packing / zero-points / group size directly or needs a repack (and how long the repack takes).
+3. Deliverable `results/hopper/H4/SUMMARY.md`. Go threshold ≥1.10x on ≥5% of step time; if it passes, the manager will ask for an E2E A/B.
