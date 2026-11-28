@@ -73,3 +73,15 @@ On the manager node (8x B200, single node, container without an IMEX channel), a
 3. **Native stacks: not available yet.** `ptrace_scope=1` and py-spy reports Permission Denied. The next repro will add `prctl(PR_SET_PTRACER, PR_SET_PTRACER_ANY)` to a sitecustomize so `py-spy dump --native` works.
 4. **TORCH_CPP_LOG_LEVEL=INFO start:** not done yet. Planned for the same repro run, once GPUs 2–5 free up (about 10 minutes), together with `repro.py 4`.
 5. **New clue:** hang2 ran with `NCCL_DEBUG=INFO`, and NCCL reports `nRanks 4 nNodes 2` for this single-node TP4 group. Rank 2 (physical GPU 4) has `localRanks 1`; ranks 0, 1 and 3 have `localRanks 3`. Every GPU logs `MNNVL ... fabric UUID 0.0 cliqueId 0x0 state 3 healthMask 0x80`. So NCCL put one rank in a different "node". If torch or vLLM make the same split, ranks could pick different handle types or code paths (Codex clue 1). Does your node ever show `nNodes 2` for TP4?
+
+### W19 update from the manager (2026-11-28): your GPU-4 hypothesis is confirmed
+`nvidia-smi nvlink -s -i 4` on the manager node shows **0 links up (1 inactive)** for physical GPU 4. GPUs 2, 3 and 5 each have 18 links up. In `nvidia-smi topo -m`, GPU 4 is `SYS`/`PHB` to every other GPU; all other pairs are `NV18`. So the hang is a multicast group that includes a GPU with no NVLink. The diag run now in progress (repro.py on GPUs 2-5, then a default start with `TORCH_CPP_LOG_LEVEL=INFO` and a native stack via py-spy) should show `cuMulticastBindMem`; I'll post it. Please finish REPORT.md with the guard proposal (your option 1, using NCCL's node count, is the most convincing) plus a unit-test plan. As before: no pushes, no issues, no PRs.
+
+### W20: independent check of the #70457 side-stream question (owner request, high priority; run on GPUs not used by W19)
+Reviewer question on #70457 (shared-expert gate skinny plan): "this GEMM is already running under side-stream, so it's unexpected that we can observe e2e speedup. Can you double check on the side-stream as well?"
+Please answer this **independently on your node**, which is the node where W17 measured the E2E gain. Use the original W16/W17 recipe: TEP4 on 4 GPUs, custom all-reduce **on**, compile cache off. Arms: `361f362033` vs `383e366bcb`.
+- Take a torch profile of decode at concurrency 8 (and 4 if cheap) on each arm.
+- For each MoE layer, determine which branch finishes last at the join where shared_out is added: the shared-expert branch on the aux stream, or the routed-expert branch. Report the fraction of layers, the time difference distribution, which kernels the gate uses on each arm, the routed-branch length, and the per-decoder-layer time on each arm.
+- Check the code path yourself (which MoE block class and which experts class this recipe uses, and what the shared expert overlaps).
+- State your own conclusion: does the gate sit on the critical path at decode, and does that explain the E2E gain? If not, what does?
+- Deliverable: `results/worker/W20/REPORT.md` (+ your analysis script). No GitHub actions.
