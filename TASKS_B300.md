@@ -495,3 +495,25 @@ Rules: same as before (no hostnames, tokens or code patches on comms; GPUs 0–5
 - Confirm the input-norm group-128 fusion still fires with real weights (Qwen3.6-35B-A3B-FP8, TP1).
 - Run a short paired TPOT check at c1/c4/c8/c32 (1 pass × 4 rounds) of `b8b5ff3926` vs its parent `269fca48a1`, plus GSM8K 1+1.
 - Report one paragraph in STATUS_B300.md. No GitHub actions.
+
+### B13: do QuACK kernel gains carry over to SM103? (owner request, overnight 2026-11-28, high priority)
+On B200 (SM100), the manager measured three QuACK-in-vLLM prototypes. Base is vLLM main `14e9c30d86` with quack-kernels 0.6.5 (already pinned by vLLM). Please rebuild them **locally from this description** (keep the code local; do not push it to comms or anywhere else) and measure them on B300. Each is opt-in through an env var, so one worktree serves both arms (`ENV_PR` / `ENV_BASE` in your paired script).
+
+**P1. Lean MoE routing (Qwen3-30B-A3B BF16, `--moe-backend triton`).** In `vllm/model_executor/layers/fused_moe/router/fused_topk_router.py::fused_topk`, when softmax scoring + renormalize + power-of-two E and k: call QuACK's TopK kernel with `softmax=True` so it writes **FP32 weights straight into `topk_weights`** and int32 ids into `topk_ids`. QuACK's `quack.topk.TopK` asserts that the values dtype equals the input dtype; subclass it with a `__call__` that allows Float32 values, and a compile that uses a Float32 fake tensor for values (`quack/topk.py:66-67`, `:218-233`). **Do not fill `token_expert_indices`**: `FusedTopKRouter._compute_routing` discards it. Check: ids identical to `ops.topk_softmax`; weights within 1e-6. B200 kernel: 1.4-1.8x faster than vLLM at M<=256; E2E TPOT c1 -2.3% (12/12), c8 -4.1%, c32 -1.1%, c64 flat. (A first version that cast BF16 weights to FP32 and filled the indices with 2 extra kernels was +1.3..+2.1% slower.)
+
+**P2. QuACK MoE experts for large M (same model and backend).** In `TritonExperts.apply` (`experts/triton_moe.py`, the first class), for unquantized BF16 + SiLU + no expert_map, LoRA or input-side router weights, and `num_tokens >= 1024`:
+- `moe_permute` (vLLM's CUDA kernel);
+- `quack.gemm_interface.gemm_gated_out(px, w1.transpose(1,2), None, h, activation='swiglu', cu_seqlens_m=expert_first_token_offset.int(), concat_layout='B')`;
+- `gemm(h, w2.transpose(1,2), out=y, cu_seqlens_m=...)`;
+- `moe_unpermute(output, y, topk_weights, inv_idx, offset)`.
+
+**Critical:** QuACK autotunes on every new exact shape (about 20 s each, and impossible during graph capture). Pin a fixed config: wrap `quack.autotuner.Autotuner.__init__` so every tuner, **including ones created lazily later** (the gated epilogue tuner is created on first call), gets a cache whose misses return the config tile 128x256, cluster 2x1, dynamic persistent, no swap_ab, split_k 1, no pingpong, no TMA gather. B200: per-layer 1.12-1.31x at M>=1024, ~1.0x below. E2E prefill TTFT (4096 in, 1 out) c1 -6.0%, c4 -8.1%, c16 -7.6% (11-12/12); GSM8K unchanged; graph capture 11 s.
+
+**P3. Dense SwiGLU (Qwen3-8B BF16, default backend).** In `Qwen3MLP.forward`, for an unquantized BF16 `gate_up_proj`, call a custom op (`direct_register_custom_op`) that, for M>=16, runs `gemm_gated_out(x, W.t(), None, out, activation='swiglu', concat_layout='B', tuned=M<=512)`. Pre-tune the decode graph sizes up to 512 into QuACK's disk cache before starting the servers. For M<16 it runs `F.linear` plus a **2-D Triton SiLU-and-mul** (grid over rows x 1024-column blocks). vLLM's C++ `silu_and_mul` launches one block per token and costs 3.8 us at M=1 versus 1.6 us for Inductor's kernel; that alone made the first hybrid 1.8% slower. B200: c1/c8 flat, c32 -0.95%, c64 -1.7%, c128 -2.9%; prefill TTFT -3.1..-3.8%.
+
+**What to report (`results/b300/B13/`):**
+- Kernel microbenches on SM103 (cold L2): P1 vs `ops.topk_softmax`; P2 vs `fused_experts` (Triton) at M in {64, 256, 1024, 2048, 4096, 8192}; P3 vs `F.linear` + `silu_and_mul` at M in {1, 8, 32, 128, 512, 2048}.
+- Paired E2E for P1 (TPOT c1/c8/c32/c64), P2 (prefill TTFT c1/c4/c16), P3 (TPOT c1/c8/c32/c128). 2 passes x 6 rounds, GPU-swapped, GSM8K once per arm.
+- Correctness: ids and weights for P1; relative error vs the Triton/cuBLAS reference for P2/P3.
+- Anything that breaks on SM103 (for example, QuACK configs that are not valid there) and how you worked around it.
+No GitHub actions.
