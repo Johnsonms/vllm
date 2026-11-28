@@ -128,3 +128,18 @@ If 2 hangs and 3-4 pass, it is size. If 4 hangs, it is the second rendezvous (5 
 A second Codex pass on the torch multicast code (create / add-device / bind order, granularity, what the implicit pool does on a second rendezvous) is running; I will add its answers per candidate.
 
 **`is_fully_connected` (your note):** agreed, and it goes into the guard. `nvmlDeviceGetP2PStatus` with the NVLink index answers "is P2P over NVLink permitted for this pair", not "is a link up". Fix direction: after the pairwise status, also require at least one active link per device (`nvmlDeviceGetNvLinkState` over the P2P-capable links), which is the same per-device count as the helper in section 7. With that, `CustomAllreduce` takes its existing "not fully connected" return on your node, and the helper only has to be added to `SymmMemCommunicator` and the FlashInfer backend choice. NCCL's node count is not usable directly: NCCL prints it but has no API for it.
+
+## 9. Codex pass 2 (torch v2.14.0 `CUDASymmetricMemory.cu`): expected answer per candidate
+Source reading only; nothing here was run on the manager node.
+
+| candidate | what the source says | cheapest test (run table, section 8) |
+|---|---|---|
+| (a) size: 96 MiB hangs, 1 MiB passes | The bound block is `round_up(signal pad + round_up(size, 16), VMM granularity)` and the whole block is bound in one `cuMulticastBindMem`. There is no branch on size and no call to `cuMulticastGetGranularity`. The source gives no reason for 1 / 32 / 96 MiB to differ. | 2 and 3 |
+| (b) second rendezvous rebinds the same block | Not supported. The implicit pool is `no_split`, so two live `empty()` tensors never share a block. The same block with the same group is served from a cache without a second bind. | 4 and 5 |
+| (c) sub-group ('tp:0') vs WORLD | The group only selects the store prefix and the rank list. The multicast object is created with `numDevices` = group size in both cases. | 1 vs `GROUP=world` |
+| (d) who creates the multicast object | Rank 0 creates and broadcasts the fd; every rank imports, adds its device, binds. The success exchange is **after** the bind. | 9 |
+| (e) multicast support check | Device attribute only. No link-state or topology test, so a GPU with 0 active links passes it and reaches the bind. | 6 |
+
+**One mechanism that fits the native stack** (plausible, not proven): one rank's `cuMulticastAddDevice` fails and that rank skips to the success exchange, while the other ranks sit in `cuMulticastBindMem`, which by NVIDIA's documentation can block until all `numDevices` devices have been added. The collective fallback cannot run because the exchange comes after the bind. To confirm it needs the per-rank result of add-device, or native stacks from **all four** workers (three in bind, one in the store exchange would confirm it).
+
+Extra knob for whichever setting hangs: add `STAGGER=0.2` (ranks start 0.2 s apart). If the hang goes away, it is timing.

@@ -97,5 +97,9 @@ GPU6  NV18 NV18 NV18 NV18 NV18 NV18  X   NV18  80-159        1
 GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
 ```
 
+## 2026-11-28 15:36Z: W21 ack; W19 report section 9
+- **W21 ack** (QuACK FP8 kernels vs vLLM FP8 defaults, B200, kernels only). Starting now on GPUs 2-7. Order: step 2 (format check) first because it decides what step 3 can compare, then the serve profiles, then the microbench.
+- **W19:** `results/worker/W19/REPORT.md` section 9 = Codex pass 2, expected answer per candidate. Short version: the source has no size branch, the "second rendezvous rebinds the same block" idea is not supported, and the multicast support check has no link-state test. One mechanism fits your stack: one rank fails add-device and the others block in bind. Native stacks from all four workers would confirm it. Still waiting for your run-table results (section 8).
+
 ## Questions
 - (none)
