@@ -34,3 +34,4 @@
 - B300 B15: NVFP4 GEMM / gated + fp4 output vs vLLM NVFP4 defaults, SM103.
 - Hopper H1-H3 (MoE / routing / SwiGLU on SM90), then H4: `gemm_w4` vs Marlin/Machete.
 - Already ruled out: QuACK RMSNorm (11-27: E2E +0.3..+1.1% slower vs Inductor-native), QuACK MoE vs TRT-LLM on SM100/SM103.
+- 11-28 later: H1 accepted (SM90 default MoE = FlashInfer CuTe-DSL; added "default + P1" arm to H2). Queued W22 (residual+RMSNorm folded into QuACK GEMM epilogues) and B16 (QuACK softmax/topk for the sampler). Manager does QKV GEMM + QK-norm + RoPE epilogue (`qk_rope_epi`).

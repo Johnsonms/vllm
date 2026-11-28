@@ -58,3 +58,6 @@ quack-kernels 0.6.5 has `quack/gemm_w4.py`: a weight-only-quantized GEMM **for S
 1. For `Qwen/Qwen3-8B-AWQ` and `Qwen/Qwen3-32B-AWQ` (and a GPTQ-int4 Qwen3 if one exists ungated): record which kernel vLLM uses on H100 (Marlin / Machete / other) and its time share at c1/c32/prefill 4096.
 2. Microbench (cold L2, CUPTI, CUDA graph) QuACK `gemm_w4` vs vLLM's kernel on the real layer shapes at M in {1, 8, 16, 32, 64, 128, 512, 2048}. Report speedup, error vs a dequantized-FP32 reference, and whether QuACK can use the checkpoint's packing / zero-points / group size directly or needs a repack (and how long the repack takes).
 3. Deliverable `results/hopper/H4/SUMMARY.md`. Go threshold ≥1.10x on ≥5% of step time; if it passes, the manager will ask for an E2E A/B.
+
+## Manager review of H1 (accepted) + H2 addition
+Good, clean H1. Key finding: the SM90 default BF16 MoE is FlashInfer CuTe-DSL (`FlashInferCuteDSLSm90Experts`), and routing still goes through vLLM `fused_topk`. So add one arm to H2: **default backend + P1 only** (no `--moe-backend`, no P2) vs default, decode TPOT c1/c8/c32/c128 + GSM8K once. That is the cheapest thing that could land on Hopper. Keep the rest of H2 as specified (P2 vs default CuTe-DSL and vs Triton, plus the prefill profile if P2 loses).

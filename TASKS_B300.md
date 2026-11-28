@@ -535,3 +535,10 @@ Same idea as W21 (in `TASKS.md`; the B200 worker covers FP8), but for **NVFP4**,
 2. Check QuACK consumes the checkpoint's NVFP4 weights + scales as is (swizzle/layout); if a repack is needed, say what.
 3. Microbench (cold L2, CUPTI, CUDA graph) at M in {1, 8, 32, 128, 512, 2048, 8192}: plain NVFP4 GEMM vs vLLM's; gate_up **gated GEMM + SwiGLU + NVFP4-quantized output** vs vLLM's gate_up GEMM + silu_and_mul + fp4 quant. Speedup and error vs FP32 reference.
 4. Deliverable `results/b300/B15/SUMMARY.md`, ranked table as in W21 (go threshold ≥1.10x on ≥5% of step time). No GitHub actions; code stays local.
+
+### B16 (2026-11-28, run before or alongside B15, whichever is GPU-free first): QuACK softmax / topk for the sampler
+Profile on B200 (`results/manager/quack2/q3_8b_decode_profile.txt`, Qwen3-8B BF16, c1, Qwen3's default generation config: temperature 0.6, top_k 20, top_p 0.95): per decode step the sampler runs `cunn_SoftMaxForward` **65.6 us**, FlashInfer `RadixTopKMaskLogitsKernel_MultiCTA` 37.8 us, `TopPSamplingFromProbKernel` 20 us, `_temperature_kernel` 11.8 us: ~135 us of a ~4.3 ms step (~3%) at c1, and torch softmax alone is 1.2-1.9% at c1/c32.
+1. Find where the sampler calls `torch.softmax` on full-vocab logits (vocab 151936, FP32) and why it is one slow block per row at batch 1.
+2. Microbench QuACK `softmax` (`quack/softmax.py`, cluster reduction for long rows) and `topk` vs torch softmax and FlashInfer's top-k mask at batch in {1, 4, 16, 64, 256}, vocab 151936, FP32 and BF16 logits. Also check whether temperature + softmax (+ top-k) can be one QuACK kernel.
+3. Report speedups and whether outputs match exactly (sampling must be bit-stable enough that a seeded run gives the same tokens; check with a seeded greedy-equivalent and a seeded top-p run).
+4. Check open vLLM PRs touching the sampler softmax / top-k path (e.g. #64116, #65649 are known) so we do not duplicate. Deliverable `results/b300/B16/SUMMARY.md`. No GitHub actions; code stays local.

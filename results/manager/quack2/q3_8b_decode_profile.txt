@@ -1,0 +1,50 @@
+## Qwen3-8B BF16 TP1 B200 decode c1 (512 in / 128 out), base cfbc42099a, top kernels
+total kernel us 441810, kernels 54285
+ 66.8%    295192us n= 18416 avg= 16.03  kernel_cutlass_kernel_vllmmodel_executorkernelslinearcute_dsl_skinny_gemmCuteSkinnyGemm_ob
+  7.9%     34949us n=  4572 avg=  7.64  fmhaSm100fKernel_QkvBfloat16OBfloat16H128PagedKvCausalP64MultiCtasKvVarSeqQ8Kv256StaticGro
+  4.1%     18320us n=  4608 avg=  3.98  triton_red_fused_cuda_skinny_unquantized_gemm_fused_add_rms_norm_0
+  2.9%     12683us n=  4480 avg=  2.83  triton_per_fused_rms_norm_rotary_embedding_split_with_sizes_view_4
+  2.8%     12591us n=  4608 avg=  2.73  void vllm::reshape_and_cache_flash_kernel
+  2.8%     12331us n=  4480 avg=  2.75  triton_per_fused_rms_norm_rotary_embedding_split_with_sizes_view_3
+  2.7%     11775us n=  4480 avg=  2.63  triton_red_fused_cuda_skinny_unquantized_gemm_fused_add_rms_norm_2
+  1.9%      8457us n=  4608 avg=  1.84  triton_poi_fused_cuda_skinny_unquantized_gemm_mul_silu_slice_1
+  1.9%      8399us n=   128 avg= 65.61  void at::native::(anonymous namespace)::cunn_SoftMaxForward
+  1.1%      4841us n=   128 avg= 37.82  void flashinfer::sampling::RadixTopKMaskLogitsKernel_MultiCTA
+  0.7%      3257us n=   640 avg=  5.09  void at::native::index_elementwise_kernel
+  0.6%      2553us n=   128 avg= 19.95  void flashinfer::sampling::TopPSamplingFromProbKernel
+  0.6%      2448us n=    36 avg= 68.00  nvjet_sm100_tst_128x256_64x6_2x2f_2cta_h_bz_TNT
+  0.4%      1959us n=    72 avg= 27.21  nvjet_sm100_tst_128x128_64x8_2x2_2cta_h_bz_TNT
+  0.3%      1511us n=   128 avg= 11.81  _temperature_kernel
+  0.2%      1079us n=   256 avg=  4.21  Memcpy DtoH (Device -> Pinned)
+  0.2%       868us n=   256 avg=  3.39  void at::native::unrolled_elementwise_kernel
+  0.2%       793us n=   128 avg=  6.19  _gather_block_tables_kernel
+  0.2%       762us n=   256 avg=  2.97  Memcpy HtoD (Pinned -> Device)
+  0.2%       758us n=    36 avg= 21.06  nvjet_sm100_tst_192x128_64x6_2x2_2cta_h_bz_TNT
+  0.2%       742us n=   128 avg=  5.79  _post_update_kernel
+  0.2%       709us n=   128 avg=  5.54  triton_red_fused__to_copy_cuda_skinny_unquantized_gemm_embedding_rms_norm_0
+
+## Qwen3-8B BF16 TP1 B200 decode c32 (512 in / 128 out), base cfbc42099a, top kernels
+total kernel us 766396, kernels 59803
+ 20.3%    155717us n=  4536 avg= 34.33  nvjet_sm100_tst_192x32_64x8_4x1_2cta_v_bz_TNT
+ 14.0%    107535us n=   216 avg=497.85  nvjet_sm100_tst_128x256_64x6_2x1_2cta_v_bz_TNT
+ 11.0%     84552us n=  4536 avg= 18.64  nvjet_sm100_tst_64x32_64x16_2x1_2cta_v_bz_splitK_TNT
+ 10.6%     81531us n=  4608 avg= 17.69  fmhaSm100fKernel_QkvBfloat16OBfloat16H128PagedKvCausalP64VarSeqQ8Kv256PersistentGroupedSwa
+  6.6%     50595us n=  4536 avg= 11.15  nvjet_sm100_tst_64x32_64x16_2x1_2cta_v_bz_TNT
+  6.0%     45867us n=  4536 avg= 10.11  nvjet_sm100_tst_32x64_64x16_4x1_v_bz_TNN
+  3.5%     27096us n=   128 avg=211.69  nvjet_sm100_tst_384x32_64x4_4x1f_2cta_v_bz_TNT
+  2.8%     21653us n=    36 avg=601.47  nvjet_sm100_tst_256x256_64x4_2x2f_2cta_h_bz_TNT
+  2.6%     20051us n=    36 avg=556.96  nvjet_sm100_tst_256x240_64x4_2x1_2cta_v_bz_TNT
+  2.6%     19918us n=  4680 avg=  4.26  triton_red_fused_cuda_skinny_unquantized_gemm_fused_add_rms_norm_0
+  2.4%     18185us n=  4550 avg=  4.00  triton_per_fused_rms_norm_rotary_embedding_split_with_sizes_view_3
+  2.3%     17695us n=  4680 avg=  3.78  triton_poi_fused_cuda_skinny_unquantized_gemm_mul_silu_slice_1
+  2.0%     15437us n=  4572 avg=  3.38  void cublasLt::splitKreduce_kernel
+  2.0%     15385us n=  4550 avg=  3.38  triton_red_fused_cuda_skinny_unquantized_gemm_fused_add_rms_norm_2
+  2.0%     15116us n=  4680 avg=  3.23  void vllm::reshape_and_cache_flash_kernel
+  1.7%     13281us n=  4550 avg=  2.92  triton_per_fused_rms_norm_rotary_embedding_split_with_sizes_view_4
+  1.2%      9213us n=   130 avg= 70.87  void at::native::(anonymous namespace)::cunn_SoftMaxForward
+  0.9%      6951us n=   130 avg= 53.47  _temperature_kernel
+  0.8%      6375us n=   108 avg= 59.03  fmhaSm100aKernel_QkvBfloat16OBfloat16H128PagedKvCausalP64VarSeqQ256Kv128PersistentContext
+  0.7%      5213us n=   130 avg= 40.10  void flashinfer::sampling::RadixTopKMaskLogitsKernel_MultiCTA
+  0.6%      4525us n=   130 avg= 34.81  void flashinfer::sampling::TopPSamplingFromProbKernel
+  0.3%      2463us n=    36 avg= 68.41  nvjet_sm100_tst_128x256_64x6_2x2f_2cta_h_bz_TNT
+
