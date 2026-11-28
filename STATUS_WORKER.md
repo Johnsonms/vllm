@@ -143,5 +143,30 @@ GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
 - **W22 done:** `results/worker/W22/SUMMARY.md`. **No-go.** Folding residual-add + RMSNorm into the GEMM epilogues is not faster than keeping the Inductor add+norm kernel: fold vs "QuACK gated + Inductor norm" is 0.96-1.01x on chain 1; chain 2 (down -> norm -> qkv) is slower than today (0.83-0.99x). Reason: `gemm_rms` needs a second finalize kernel and costs 3-11 us more than the plain GEMM, the Inductor kernel it removes costs 2-12 us. Only M = 8192 gains. The fold is slightly more accurate (0.0029 vs 0.0042).
 - **W23:** env-gated prototype is written (local only) and passes a smoke test: MXFP8 path taken for every CUDA-graph size >= 8 and all prefill sizes, DeepGEMM below 8. Extra memory 155.7 MB per layer = 5.6 GB for 36 layers (prototype keeps both weight copies). Paired E2E (2 passes on GPUs 2,3 and 5,4, 6 rounds, TPOT c1/c8/c32/c128, TTFT 4096 c1/c4/c16, GSM8K 2 runs per arm per pass) is running.
 
+## 2026-11-28 16:55Z: W23 interim — first E2E is mixed, and a warning about my cold-L2 numbers at small M
+- **E2E v1 (prototype with one pinned config, threshold 8), 5-6 of 6 rounds, both passes:** prefill TTFT 4096 **-5.8 % (c1), -8.3 % (c4), -9.0 % (c16)**, 23 of 24 rounds faster. Decode TPOT **+22.9 % (c8), +15.8 % (c32), +7.2 % (c128)** = slower. c1 unchanged (DeepGEMM path).
+- **Cause of the decode loss (c8 profile):** in serving QuACK's down_proj kernel takes 37.5 us and the gated kernel 26.1 us; DeepGEMM takes 14.5 and 19.7 us. Two reasons:
+  1. I pinned tile 128x256 for down_proj. With N = 4096 that is 16 tiles, so few SMs stream the weights. This is my config mistake.
+  2. **The cold-L2 microbench flatters QuACK at small M.** Without the L2 flush (new `multilayer.py`: one CUDA graph runs the MLP of 2 layers with distinct weights, nothing flushed) the vLLM chain at M = 8 is 46.9 us per layer (61.1 us with cold L2), the prototype 52.8 us (54.4 us). The serve profile agrees with the warm numbers (DeepGEMM gate_up 19.7 us in serving, 27.4 us cold).
+  **So the W21 and W23-step-0 speedups at M <= 8 are too optimistic. Treat M = 8 as 0.89x, not 1.12x.**
+- **Warm sweep with the best config per M** (`results/worker/W23/multi.jsonl`, whole MLP, us per layer):
+
+  | M | vLLM | prototype | speedup | prototype with my v1 config |
+  |---|---|---|---|---|
+  | 8 | 46.9 | 52.8 | 0.89 | 64.1 |
+  | 16 | 50.0 | 44.1 | 1.13 | 63.7 |
+  | 32 | 52.3 | 42.4 | 1.23 | 61.6 |
+  | 64 | 53.7 | 42.4 | 1.27 | 61.7 |
+  | 128 | 58.4 | 42.3 | 1.38 | 62.5 |
+  | 256 | 67.4 | 47.0 | 1.44 | 71.9 |
+  | 512 | 86.6 | 72.8 | 1.19 | - |
+  | 1024 | 148.7 | 123.7 | 1.20 | - |
+  | 2048 | 279.8 | 218.6 | 1.28 | - |
+  | 4096 | 512.0 | 436.6 | 1.17 | - |
+
+  The down_proj config decides it at M < 512 (tile_n = 64: 42 us; tile_n = 256: 61 us).
+- **Prototype v2:** threshold 16, config table per M range for both kernels. E2E v2 (same protocol) starts when v1's GSM8K runs finish. v1's GSM8K stays valid for accuracy (same arithmetic above M = 16).
+- Host cost of the prototype path: 75 us per MLP call outside CUDA graphs (prefill), 0.2-0.3 ms extra the first time a new M is seen. Not a problem at 4096 tokens (TTFT gain measured).
+
 ## Questions
 - (none)
