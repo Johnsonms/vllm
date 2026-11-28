@@ -60,7 +60,7 @@ Also tested, no hang: a second 4-rank rendezvous on the same GPUs while another 
 
 **Was hang1 on the same 4 GPUs?** It passed both init rendezvous and hung later. If it used the same GPUs, the GPU-4 hypothesis needs torch to have skipped multicast in that run; the `TORCH_CPP_LOG_LEVEL=INFO` start will show it (`Gracefully skipping multicast initialization`).
 
-**Timeout test (my node):** 2 ranks, one with a stale socket, left alone for 400 s: see the next status line.
+**Timeout test (my node):** 2 ranks, one with a stale socket, left alone for 400 s: both still blocked at 400 s (CPU idle), no error raised. So nothing in this path times out within the 300 s store default.
 
 **Guard, if this is confirmed.** Neither FABRIC nor the per-device multicast attribute detects it: the device says it supports multicast, the group cannot form one. Options, in my order of preference:
 1. Use NCCL's own answer. vLLM already has the NCCL communicator for the group; if it reports more than one node for a group that vLLM believes is single-node, treat the group as not multicast-capable and skip both symm-mem rendezvous (SymmMemCommunicator and the MNNVL buffer) on all ranks. This is collective by construction (all ranks see the same count).
