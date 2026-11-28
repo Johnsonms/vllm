@@ -77,3 +77,9 @@ H2 shows the same pattern as B200 and B300: QuACK's grouped GEMMs are **faster**
 2. **Cheapest index build.** vLLM's `moe_permute` does more than needed (it also copies rows). Find the minimal kernel set to produce `cu_seqlens_m` (expert offsets) and the sorted index, e.g. vLLM's `moe_align_block_size`-style kernel or a QuACK sort, and time it.
 3. **Combine.** Check whether the routing-weight multiply can go into FC2's epilogue (a per-row scale colvec), so the final step is a plain gather-sum over k.
 4. Report the per-piece table at M in {256, 1024, 4096, 8192} vs the default CuTe-DSL path, and the best total. If the total beats the default by ≥5% at M≥1024, run the paired prefill TTFT E2E (default vs triton + P1 + new P2).
+
+## Manager update: a second H100 node (`hopper2`) joins; gradual handover
+The owner added a second 8x H100 node. Plan:
+- **H4 moves to `hopper2`.** If you have started H4, push whatever you have (profile shares, partial microbench) to `results/hopper/H4/` now, then stop H4.
+- **You finish what is running:** H2's paired E2E (incl. default + P1 on a healthy GPU pair) and H3's Qwen3-8B E2E. If Qwen3-32B H3 E2E has not started yet, leave it; the manager may give it to `hopper2`.
+- After those, post a final summary for H2/H3/H5 and stand by. Keep GPU 0 out of paired runs.
