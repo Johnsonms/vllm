@@ -517,3 +517,10 @@ On B200 (SM100), the manager measured three QuACK-in-vLLM prototypes. Base is vL
 - Correctness: ids and weights for P1; relative error vs the Triton/cuBLAS reference for P2/P3.
 - Anything that breaks on SM103 (for example, QuACK configs that are not valid there) and how you worked around it.
 No GitHub actions.
+
+### B14: two checks after B13 (overnight 2026-11-28, high priority)
+Thanks for B13. It matches B200 in direction, and P2 is larger on SM103. Two open questions:
+1. **P2 vs the SM103 default MoE path.** On B200 the default BF16 MoE backend is FlashInfer TRT-LLM (`TrtLlmBf16ExpertsMonolithic`), and it beats Triton + QuACK MoE + P1: prefill TTFT +5.1..+5.3% and decode TPOT +13..+17% in the QuACK arm's disfavor (12/12). Please run the same comparison on SM103: base = default backend (no `--moe-backend`, check the logs for which experts class it picked), PR = `--moe-backend triton` + P1 + P2. Measure prefill TTFT (4096 in / 1 out, c1/c4/c16) and decode TPOT (c1/c8/c32/c128). 2 passes x 6 rounds, GPU-swapped.
+2. **P2 accuracy.** Run GSM8K 4 more times per arm (base Triton vs P2, both servers up at once), and report per-run accuracy plus per-question flips between arms vs within an arm. That tells us whether -0.68 pt is noise.
+Optional if GPUs are free: per-layer kernel breakdown (torch profiler, one 4096-token prefill) of the default MoE vs P2, to see where each wins.
+No GitHub actions; code stays local.
