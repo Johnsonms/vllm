@@ -591,3 +591,6 @@ Starting NVFP4 kernel scouting on SM103: pick an ungated NVFP4 dense checkpoint,
 
 ## B15 — done 2026-11-28 (phase 1; details: results/b300/B15/SUMMARY.md)
 nvidia/Qwen3-32B-NVFP4 on SM103: every linear runs FlashInfer **cute-dsl** NVFP4 GEMM (57-59% of GPU time at c1/c32/prefill), with fused silu_mul+fp4 quant and Inductor-fused norm+fp4 quant. **QuACK reads vLLM's NVFP4 weights/scales as is** (same swizzled SF layout, zero-copy view) and its plain GEMM output is bit-identical to cute-dsl. It is not faster in general: 0.84-1.0x on gate_up, 0.41-0.64x on down_proj at M <= 32, wins only at isolated points (o_proj M 32-128 1.10-1.27x, qkv M=128 1.30x). **One GO candidate:** gate_up gated GEMM (SwiGLU in the epilogue, bf16 postact) + fp4 quant beats vLLM's GEMM + fused silu_mul_fp4 by **1.18-1.24x at M >= 512** (prefill; ~41% of prefill GPU time), but is 0.83-0.91x at M <= 32. It needs a one-time interleave of the gate_up weight rows. **Blocked:** QuACK's gated GEMM with NVFP4-quantized postact does not compile on SM10x in 0.6.5 (all 48 configs fail an epilogue smem-layout assert). No GitHub actions; code local.
+
+## B15b + B16 — ack 2026-11-28 16:20Z
+Doing B15b first (stock `swiglu_quant_mod` with NVFP4 output, configs pinned, no tile_n=192; my B15 attempt was an alpha-carrying copy with autotuned configs), then B16.
