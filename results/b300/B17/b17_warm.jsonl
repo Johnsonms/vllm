@@ -1,0 +1,8 @@
+{"M": 32, "warm_vllm_us": 29.9, "warm_quack_us": 34.0, "speedup": 0.879}
+{"M": 64, "warm_vllm_us": 29.9, "warm_quack_us": 27.7, "speedup": 1.082}
+{"M": 128, "warm_vllm_us": 32.2, "warm_quack_us": 28.1, "speedup": 1.147}
+{"M": 256, "warm_vllm_us": 40.4, "warm_quack_us": 36.6, "speedup": 1.103}
+{"M": 512, "warm_vllm_us": 64.7, "warm_quack_us": 48.5, "speedup": 1.332}
+{"M": 1024, "warm_vllm_us": 115.2, "warm_quack_us": 92.4, "speedup": 1.246}
+{"M": 2048, "warm_vllm_us": 260.0, "warm_quack_us": 181.0, "speedup": 1.437}
+{"M": 8192, "warm_vllm_us": 995.1, "warm_quack_us": 815.6, "speedup": 1.22}
