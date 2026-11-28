@@ -113,3 +113,18 @@ Error of h vs FP32: QuACK 0.059-0.060 **after** its output quantization; vLLM 0.
 - Random activations, one layer per model, TP1. No end-to-end run: that needs vLLM edits (weight re-quantization at load, an MXFP8 1x32 activation quant kernel, the gated call), which phase 1 excludes.
 - QuACK timings are with its autotuner on (best case for QuACK).
 - The first version of the vLLM silu baseline used the `_C.silu_and_mul` custom op; serving uses an Inductor kernel that is 1.2-3.4x faster. The tables use the Inductor timing (`silu_supp.py`).
+
+## Corrected re-run (2026-11-28 18:45Z): gate_up chain with quantized output (`bench3.py`, `bench3_*.jsonl`)
+Same as the addendum table, with the vLLM arm fixed (the single packed quant kernel that serving uses) and without the L2 flush. This table replaces the addendum's. vLLM = DeepGEMM + Inductor silu-mul + packed quant of h; QuACK = `swiglu_quant_mod`, best correct pinned config.
+
+| M | 8B vLLM us | 8B QuACK us | 8B speedup | 32B vLLM us | 32B QuACK us | 32B speedup |
+|---|---|---|---|---|---|---|
+| 1 | 20.0 | 24.8 | 0.81 | 45.3 | 60.6 | 0.75 |
+| 8 | 18.4 | 26.8 | 0.69 | 45.6 | 57.3 | 0.80 |
+| 32 | 18.9 | 20.0 | 0.95 | 47.9 | 44.5 | 1.08 |
+| 128 | 27.9 | 20.7 | 1.35 | 56.8 | 45.4 | 1.25 |
+| 512 | 49.0 | 38.8 | 1.26 | 119.0 | 92.1 | 1.29 |
+| 2048 | 181.5 | 133.7 | 1.36 | 421.3 | 331.5 | 1.27 |
+| 8192 | 767.4 | 519.9 | 1.48 | 1797.1 | 1305.1 | 1.38 |
+
+**Corrected verdict for row 0 of the ranked table: 1.25-1.48x from M = 128, about 1.0x at M = 32, slower (0.69-0.81x) at M <= 8.** Caveat: one layer repeated in a warm graph lets part of the weights stay in L2, so the small-M absolute times here are lower than in serving (serving: DeepGEMM gate_up 19.7 us alone at M = 1). The 2-layer sweep in W24 is the better small-M reference for the whole MLP. The other W21 tables (plain GEMM, BF16-out gated) were not re-run; they compare GEMMs with prequantized inputs, so the quant-path error does not enter them, but they are cold-L2 numbers.

@@ -187,5 +187,8 @@ GPU7  NV18 NV18 NV18 NV18 NV18 NV18 NV18  X    80-159        1
 - **GSM8K:** the prototype's weights equal the ones vLLM already runs on SM100 (vLLM rounds the scales to powers of two at load: 2.66 % away from the checkpoint; prototype vs vLLM weights differ by 3e-7 relative). Greedy 64 prompts: each arm deterministic, base vs prototype identical on 5 of 64, first difference at token 13 (median). The -0.4 pt is a deterministic difference between two equivalent roundings; GSM8K cannot separate them.
 - Idle except W19. GPUs 2-7 free.
 
+## 2026-11-28 18:45Z: W21 headline table re-run with the corrected baseline
+- Appended to `results/worker/W21/SUMMARY.md`. gate_up chain (`swiglu_quant_mod` vs DeepGEMM + silu-mul + packed quant), warm, corrected vLLM arm: **8B 0.81 / 0.69 / 0.95 / 1.35 / 1.26 / 1.36 / 1.48x at M = 1 / 8 / 32 / 128 / 512 / 2048 / 8192; 32B 0.75 / 0.80 / 1.08 / 1.25 / 1.29 / 1.27 / 1.38x.** So: 1.25-1.48x from M = 128, nothing at M <= 32. The plain-GEMM tables do not involve the quant path and were not re-run.
+
 ## Questions
 - (none)
