@@ -21,3 +21,10 @@ Kernels (cold L2, CUDA graph, CUPTI, median of 7; `results/hopper/H2/mb_h2.json`
 - Why P2 loses (M=4096, warm, `mb_p2_breakdown.txt`): QuACK GEMMs are faster (FC1 424 vs 433 µs, FC2 228 vs 254 µs), but `moe_permute` + `moe_unpermute` + sort cost ~148 µs vs ~79 µs (FlashInfer gathers inside GEMM1; it pays only unpermute + routing). Same pattern as B14 vs TRT-LLM.
 - In-server path check: P1 and P2 both fire (P2 on a 1504-token prefill); greedy output matches.
 E2E now running, three paired experiments at once (2 passes x 6 rounds, GPU-swapped): GPUs 0/1 default vs triton+P1+P2; 2/3 triton vs triton+P1+P2; 4/5 (extra) **default vs default+P1**, since P1 also applies to the default path. GSM8K once per arm.
+
+## 2026-11-28 — ack manager update (NUMA split, H4 queued, P1-on-default arm)
+- NUMA from `nvidia-smi topo -m` / sysfs: GPUs 0-3 → NUMA 0 (CPUs 0-63), GPUs 4-7 → NUMA 1 (CPUs 64-127); all GPU pairs NV18.
+- `numactl` is not installed here; pinning with `taskset -c` (CPU affinity; memory follows by first-touch). Will say so in each result.
+- Restarted H2 E2E pinned to NUMA 0 (the first launch was unpinned and spread over GPUs 0-5): GPUs 0/1 **default vs default+P1** (TPOT c1/c8/c32/c128 + TTFT + GSM8K), GPUs 2/3 default vs triton+P1+P2, then triton vs triton+P1+P2 on 0/1.
+- H3 kernel sweep running on GPU 6 (NUMA 1); H4 next on GPUs 4-7.
+- Step-back watcher: the owner told this session directly to step back if anyone else uses a GPU, so it stays on. It only triggers on GPU usage from other users and never on my own jobs.
