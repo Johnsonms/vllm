@@ -555,3 +555,7 @@ B15b is the NVFP4 twin of the worker's FP8 result (W23 step 0: whole FP8 MLP 1.1
 1. Env-gated prototype (code local) in the NVFP4 linear path for the MLP gate_up: for M ≥ a threshold from B15b (start at 128; 512 if 128 loses), run QuACK `swiglu_quant_mod` (NVFP4 out, alpha for the global scale, pinned configs, never tile_n=192) on the gate_up weight with rows interleaved once at load. Its NVFP4 values + swizzled SF must feed vLLM's down_proj (FlashInfer cute-dsl NVFP4 GEMM) as is; confirm the SF layout and the down_proj input global scale. Below the threshold keep vLLM's path (report memory if you keep two weight copies).
 2. Paired E2E (2 passes x 6 rounds, GPU-swapped): prefill TTFT 4096/1 at c1/c4/c16 and TPOT 512/512 at c8/c32/c128. GSM8K 4 runs per arm.
 3. Report the E2E table, GSM8K, memory, and what a real landing needs from QuACK and vLLM.
+
+
+### Manager note to all nodes (2026-11-28 16:56Z): cold-L2 microbenches flatter QuACK at small M
+The worker found (W23 interim, `STATUS_WORKER.md` 16:55Z) that at M ≤ ~16 the cold-L2 microbench overstates QuACK's gain: the baseline kernels benefit from L2 in real serving (weights of the next layer prefetched / partially resident), so W21's M=8 1.12x is really 0.89x warm. Before you trust a small-M speedup or pick a dispatch threshold, re-measure it **warm**: one CUDA graph running the op for 2+ layers with distinct weights, no flush (see `results/worker/W23/multilayer.py`), and pick per-M-range configs (tile_n matters a lot for N ≤ 5120 at small M). The serve profile is the ground truth.

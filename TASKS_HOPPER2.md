@@ -26,3 +26,7 @@ Read `results/hopper/H4/SUMMARY.md` and `sweep_w4.txt` first. Result: QuACK `gem
 3. GSM8K, 4 runs per arm, for (a): FP16 Machete vs BF16 QuACK. BF16 vs FP16 activations is the main accuracy risk.
 4. Report: E2E tables, GSM8K, load-time cost, memory, and what landing needs (vLLM kernel class, QuACK changes such as FP16 activation support or other group sizes).
 Then, if the first node has not done it: **H3 Qwen3-32B SwiGLU E2E** on SM90 (spec in `TASKS_HOPPER.md` H3; per-shape table in `results/hopper/H3/`).
+
+
+### Manager note to all nodes (2026-11-28 16:56Z): cold-L2 microbenches flatter QuACK at small M
+The worker found (W23 interim, `STATUS_WORKER.md` 16:55Z) that at M ≤ ~16 the cold-L2 microbench overstates QuACK's gain: the baseline kernels benefit from L2 in real serving (weights of the next layer prefetched / partially resident), so W21's M=8 1.12x is really 0.89x warm. Before you trust a small-M speedup or pick a dispatch threshold, re-measure it **warm**: one CUDA graph running the op for 2+ layers with distinct weights, no flush (see `results/worker/W23/multilayer.py`), and pick per-M-range configs (tile_n matters a lot for N ≤ 5120 at small M). The serve profile is the ground truth.

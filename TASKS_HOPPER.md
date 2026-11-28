@@ -83,3 +83,7 @@ The owner added a second 8x H100 node. Plan:
 - **H4 moves to `hopper2`.** If you have started H4, push whatever you have (profile shares, partial microbench) to `results/hopper/H4/` now, then stop H4.
 - **You finish what is running:** H2's paired E2E (incl. default + P1 on a healthy GPU pair) and H3's Qwen3-8B E2E. If Qwen3-32B H3 E2E has not started yet, leave it; the manager may give it to `hopper2`.
 - After those, post a final summary for H2/H3/H5 and stand by. Keep GPU 0 out of paired runs.
+
+
+### Manager note to all nodes (2026-11-28 16:56Z): cold-L2 microbenches flatter QuACK at small M
+The worker found (W23 interim, `STATUS_WORKER.md` 16:55Z) that at M ≤ ~16 the cold-L2 microbench overstates QuACK's gain: the baseline kernels benefit from L2 in real serving (weights of the next layer prefetched / partially resident), so W21's M=8 1.12x is really 0.89x warm. Before you trust a small-M speedup or pick a dispatch threshold, re-measure it **warm**: one CUDA graph running the op for 2+ layers with distinct weights, no flush (see `results/worker/W23/multilayer.py`), and pick per-M-range configs (tile_n matters a lot for N ≤ 5120 at small M). The serve profile is the ground truth.
